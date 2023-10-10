@@ -1,4 +1,4 @@
-package org.botoff.security.dto;
+package org.bot0ff.dto.jwt;
 
 import lombok.Data;
 
