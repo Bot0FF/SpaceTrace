@@ -7,4 +7,6 @@ import java.util.List;
 public interface UserService {
     List<User> findAll();
     User findOne(Long userId);
+    Boolean existsByUsername(String username);
+    void saveUser(User user);
 }

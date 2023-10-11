@@ -25,4 +25,14 @@ public class UserServiceImpl implements UserService{
     public User findOne(Long userId) {
         return userRepository.findById(userId).orElseThrow(IllegalAccessError::new);
     }
+
+    @Override
+    public Boolean existsByUsername(String username) {
+        return userRepository.existsByUsername(username);
+    }
+
+    @Override
+    public void saveUser(User user) {
+        userRepository.save(user);
+    }
 }

@@ -17,6 +17,8 @@ import java.util.stream.Collectors;
 public class JwtTokenUtil {
     @Value("${jwt.token.secret}")
     private String secret;
+    @Value("${jwt.token.lifetime}")
+    private Integer lifetime;
 
     private  <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
         Claims claims = getAllClaimsFromToken(token);
@@ -51,7 +53,7 @@ public class JwtTokenUtil {
 
     private String doGenerateToken(Map<String, Object> claims, String subject) {
         Date issuedDate = new Date();
-        Date expiredDate = new Date(issuedDate.getTime() + 60 * 60 * 1000);
+        Date expiredDate = new Date(issuedDate.getTime() + lifetime);
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(subject)
@@ -68,6 +70,7 @@ public class JwtTokenUtil {
                 .getBody();
     }
 
+    //проверка срока действия токена
     private boolean isTokenExpired(String token) {
         Date date = getExpirationDateFromToken(token);
         return date != null && date.before(new Date());
