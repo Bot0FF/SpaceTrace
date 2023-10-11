@@ -1,9 +1,6 @@
 package org.bot0ff.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 
@@ -30,4 +27,9 @@ public class User{
 
     @Enumerated(value = EnumType.STRING)
     private Status status;
+
+    @Column(name = "posX")
+    private int posX;
+    @Column(name = "posY")
+    private int posY;
 }
