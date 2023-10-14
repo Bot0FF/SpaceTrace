@@ -19,7 +19,8 @@ public class ActionServiceImpl implements ActionService{
 
     @Override
     public MoveResponse getUserPosition(String username, String direction) {
-        List<MoveUser> userPosition = userRepository.getPosxAndPosyByUserName(username);
+        List<MoveUser> userPosition = userRepository.getSectorAndPosxAndPosyByUserName(username);
+        String sector = userPosition.get(0).getSector();
         int posX = userPosition.get(0).getPosX();
         int posY = userPosition.get(0).getPosY();
 
@@ -31,7 +32,7 @@ public class ActionServiceImpl implements ActionService{
         }
 
         userRepository.saveNewUserPosition(posX, posY, username);
-        var newUserPositionEndpoint = userPositionEndpoint + "x=" + posX + "&y=" + posY;
-        return new MoveResponse(newUserPositionEndpoint, username, posX, posY);
+        var newUserPositionEndpoint = userPositionEndpoint + "sector=" + sector + "&x=" + posX + "&y=" + posY;
+        return new MoveResponse(newUserPositionEndpoint, username, sector, posX, posY);
     }
 }

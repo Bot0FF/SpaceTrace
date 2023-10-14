@@ -19,9 +19,11 @@ public class Sector {
     @Enumerated(value = EnumType.STRING)
     private SectorType sectorType;
 
-    @Column(name = "enemy")
-    private List<?> enemy;
-
-    @Column(name = "resource")
-    private List<?> resource;
+//    @Column(name = "enemy")
+//    @ElementCollection(targetClass=String.class)
+//    private List<String> enemy;
+//
+//    @Column(name = "resource")
+//    @ElementCollection(targetClass=String.class)
+//    private List<String> resource;
 }

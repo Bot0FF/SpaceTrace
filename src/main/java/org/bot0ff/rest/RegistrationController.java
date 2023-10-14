@@ -36,7 +36,7 @@ public class RegistrationController {
 
         User user = new User(null, registerRequest.getUsername(),
                 passwordEncoder.encode(registerRequest.getPassword()),
-                Role.USER, Status.ACTIVE, 0, 0);
+                Role.USER, Status.ACTIVE, "SUN", 0, 0);
 
         userService.saveUser(user);
 

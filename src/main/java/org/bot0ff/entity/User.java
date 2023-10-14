@@ -28,6 +28,8 @@ public class User{
     @Enumerated(value = EnumType.STRING)
     private Status status;
 
+    @Column(name = "sector")
+    private String sector;
     @Column(name = "posX")
     private int posX;
     @Column(name = "posY")
