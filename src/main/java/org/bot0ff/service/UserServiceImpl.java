@@ -23,6 +23,12 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
+    public Long findIdByUsername(String username) {
+        User user = userRepository.findByUsername(username).orElseThrow(IllegalAccessError::new);
+        return user.getId();
+    }
+
+    @Override
     public Boolean existsByUsername(String username) {
         return userRepository.existsByUsername(username);
     }

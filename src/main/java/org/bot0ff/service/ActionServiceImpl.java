@@ -2,36 +2,53 @@ package org.bot0ff.service;
 
 import lombok.RequiredArgsConstructor;
 import org.bot0ff.dto.main.MoveResponse;
-import org.bot0ff.dto.jpa.MoveUser;
-import org.bot0ff.repository.UserRepository;
+import org.bot0ff.entity.Player;
+import org.bot0ff.repository.PlayerRepository;
 import org.bot0ff.util.Constants;
+import org.bot0ff.world.World;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class ActionServiceImpl implements ActionService{
     @Value("${app.endpoint.move}")
     private String userPositionEndpoint;
-    private final UserRepository userRepository;
+    private final PlayerRepository playerRepository;
 
     @Override
     public MoveResponse getUserPosition(String username, String direction) {
-        List<MoveUser> userPosition = userRepository.getSectorAndPosxAndPosyByUserName(username);
-        String sector = userPosition.get(0).getSector();
-        int posX = userPosition.get(0).getPosX();
-        int posY = userPosition.get(0).getPosY();
-
-        switch (direction) {
-            case "up" -> posY = (posY < Constants.MAX_POS_Y) ? posY + 1 : posY;
-            case "down" -> posY = (posY > Constants.MIN_POS_Y) ? posY - 1 : posY;
-            case "left" -> posX = (posX > Constants.MIN_POS_X) ? posX - 1 : posX;
-            case "right" -> posX = (posX < Constants.MAX_POS_X) ? posX + 1 : posX;
+        Player player = playerRepository.findByName(username).orElse(null);
+        if(player == null) {
+            return new MoveResponse();
         }
 
-        userRepository.saveNewUserPosition(posX, posY, username);
+        String sector = player.getSector();
+        int posX = player.getPosX();
+        int posY = player.getPosY();
+
+        int maxSectorPosX = 0;
+        int maxSectorPosY = 0;
+
+        switch (sector) {
+            case "SUN" -> {
+                maxSectorPosX = Constants.SUN_MAX_POS_X;
+                maxSectorPosY = Constants.SUN_MAX_POS_Y;
+            }
+        }
+
+        World.getLocation(sector, posX, posY).removePlayer(player);
+
+        switch (direction) {
+            case "up" -> posY = (posY < maxSectorPosY) ? posY + 1 : posY;
+            case "down" -> posY = (posY > 1) ? posY - 1 : posY;
+            case "left" -> posX = (posX > 1) ? posX - 1 : posX;
+            case "right" -> posX = (posX < maxSectorPosX) ? posX + 1 : posX;
+        }
+
+        World.getLocation(sector, posX, posY).setPlayer(player);
+
+        playerRepository.saveNewUserPosition(posX, posY, username);
         var newUserPositionEndpoint = userPositionEndpoint + "sector=" + sector + "&x=" + posX + "&y=" + posY;
         return new MoveResponse(newUserPositionEndpoint, username, sector, posX, posY);
     }

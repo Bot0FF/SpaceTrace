@@ -17,11 +17,4 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsername(String username);
     Boolean existsByUsername(String username);
-
-    @Query(value = "SELECT sector, posX, posY FROM users WHERE username = :username", nativeQuery = true)
-    List<MoveUser> getSectorAndPosxAndPosyByUserName(@Param("username")String username);
-
-    @Modifying
-    @Query(value = "UPDATE users SET posX = :posX, posY = :posY WHERE username = :username", nativeQuery = true)
-    void saveNewUserPosition(@Param("posX") int posX, @Param("posY")int posY, @Param("username")String username);
 }

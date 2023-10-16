@@ -1,4 +1,4 @@
-package org.bot0ff.entity;
+package org.bot0ff.world;
 
 public enum SectorType {
     SUN, CENTAURI, BERNARD, SIRIUS, EPSILION
