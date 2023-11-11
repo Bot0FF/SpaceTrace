@@ -6,14 +6,11 @@ import org.bot0ff.entity.Player;
 import org.bot0ff.repository.PlayerRepository;
 import org.bot0ff.util.Constants;
 import org.bot0ff.world.World;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class ActionServiceImpl implements ActionService{
-    @Value("${app.endpoint.move}")
-    private String userPositionEndpoint;
     private final PlayerRepository playerRepository;
 
     @Override
@@ -49,7 +46,7 @@ public class ActionServiceImpl implements ActionService{
         World.getLocation(sector, posX, posY).setPlayer(player);
 
         playerRepository.saveNewUserPosition(posX, posY, username);
-        var newUserPositionEndpoint = userPositionEndpoint + "sector=" + sector + "&x=" + posX + "&y=" + posY;
+        var newUserPositionEndpoint = "move?sector=" + sector + "&x=" + posX + "&y=" + posY;
         return new MoveResponse(newUserPositionEndpoint, username, sector, posX, posY);
     }
 }
