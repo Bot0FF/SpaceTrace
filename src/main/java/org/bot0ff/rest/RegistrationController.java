@@ -3,10 +3,14 @@ package org.bot0ff.rest;
 import lombok.RequiredArgsConstructor;
 import org.bot0ff.dto.jwt.JwtRegisterRequest;
 import org.bot0ff.dto.jwt.JwtRegisterResponse;
+import org.bot0ff.dto.main.StartNewGameRequest;
+import org.bot0ff.dto.main.StartNewGameResponse;
+import org.bot0ff.entity.Player;
 import org.bot0ff.entity.Role;
 import org.bot0ff.entity.Status;
 import org.bot0ff.entity.User;
 import org.bot0ff.security.jwt.JwtTokenUtil;
+import org.bot0ff.service.PlayerService;
 import org.bot0ff.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class RegistrationController {
     private final UserService userService;
+    private final PlayerService playerService;
     private final UserDetailsService userDetailsService;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenUtil jwtTokenUtil;
@@ -36,7 +41,7 @@ public class RegistrationController {
 
         User user = new User(null, registerRequest.getUsername(),
                 passwordEncoder.encode(registerRequest.getPassword()),
-                Role.USER, Status.ACTIVE, 0, 0);
+                Role.USER, Status.ACTIVE);
 
         userService.saveUser(user);
 
@@ -48,6 +53,23 @@ public class RegistrationController {
         UserDetails userDetails = userDetailsService.loadUserByUsername(registerRequest.getUsername());
         String token = jwtTokenUtil.generateToken(userDetails);
         return ResponseEntity.ok(new JwtRegisterResponse(token));
+    }
+
+    @PostMapping("/startNewGame")
+    public ResponseEntity<?> startNewGame(@RequestBody StartNewGameRequest startNewGameRequest) throws Exception {
+        Long userId = userService.findIdByUsername(startNewGameRequest.getUsername());
+        Player player = playerService.findById(userId);
+        StartNewGameResponse response;
+        if(player == null) {
+            Player newPlayer = new Player(userId, startNewGameRequest.getUsername(),  "SUN", 0, 0);
+            playerService.savePlayer(newPlayer);
+            response = new StartNewGameResponse(newPlayer.getName(), newPlayer.getSector(), newPlayer.getPosX(), newPlayer.getPosY());
+        }
+        else {
+            response = new StartNewGameResponse(player.getName(), player.getSector(), player.getPosX(), player.getPosY());
+        }
+
+        return ResponseEntity.ok(response);
     }
 
     private void authenticate(String username, String password) {

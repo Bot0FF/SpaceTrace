@@ -2,6 +2,7 @@ package org.bot0ff.service;
 
 import lombok.RequiredArgsConstructor;
 import org.bot0ff.entity.Player;
+import org.bot0ff.entity.User;
 import org.bot0ff.repository.PlayerRepository;
 import org.springframework.stereotype.Service;
 
