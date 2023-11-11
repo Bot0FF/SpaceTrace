@@ -1,0 +1,875 @@
+Index: src/main/java/org/bot0ff/rest/RegistrationController.java
+===================================================================
+diff --git a/src/main/java/org/bot0ff/rest/RegistrationController.java b/src/main/java/org/bot0ff/rest/RegistrationController.java
+deleted file mode 100644
+--- a/src/main/java/org/bot0ff/rest/RegistrationController.java	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
++++ /dev/null	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
+@@ -1,56 +0,0 @@
+-package org.bot0ff.rest;
+-
+-import lombok.RequiredArgsConstructor;
+-import org.bot0ff.dto.jwt.JwtRegisterRequest;
+-import org.bot0ff.dto.jwt.JwtRegisterResponse;
+-import org.bot0ff.entity.Role;
+-import org.bot0ff.entity.Status;
+-import org.bot0ff.entity.User;
+-import org.bot0ff.security.jwt.JwtTokenUtil;
+-import org.bot0ff.service.UserService;
+-import org.springframework.http.ResponseEntity;
+-import org.springframework.security.authentication.AuthenticationManager;
+-import org.springframework.security.authentication.BadCredentialsException;
+-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+-import org.springframework.security.core.userdetails.UserDetails;
+-import org.springframework.security.core.userdetails.UserDetailsService;
+-import org.springframework.security.crypto.password.PasswordEncoder;
+-import org.springframework.web.bind.annotation.PostMapping;
+-import org.springframework.web.bind.annotation.RequestBody;
+-import org.springframework.web.bind.annotation.RestController;
+-
+-@RestController
+-@RequiredArgsConstructor
+-public class RegistrationController {
+-    private final UserService userService;
+-    private final UserDetailsService userDetailsService;
+-    private final AuthenticationManager authenticationManager;
+-    private final JwtTokenUtil jwtTokenUtil;
+-    private final PasswordEncoder passwordEncoder;
+-
+-    @PostMapping("/register")
+-    public ResponseEntity<?> registerUser(@RequestBody JwtRegisterRequest registerRequest) throws Exception {
+-        if(userService.existsByUsername(registerRequest.getUsername())) {
+-            return ResponseEntity.badRequest().body("Username already exist");
+-        }
+-
+-        User user = new User(null, registerRequest.getUsername(),
+-                passwordEncoder.encode(registerRequest.getPassword()),
+-                Role.USER, Status.ACTIVE, 0, 0);
+-
+-        userService.saveUser(user);
+-
+-        try {
+-            authenticate(registerRequest.getUsername(), registerRequest.getPassword());
+-        } catch (BadCredentialsException e) {
+-            throw new Exception("Incorrect username or password", e);
+-        }
+-        UserDetails userDetails = userDetailsService.loadUserByUsername(registerRequest.getUsername());
+-        String token = jwtTokenUtil.generateToken(userDetails);
+-        return ResponseEntity.ok(new JwtRegisterResponse(token));
+-    }
+-
+-    private void authenticate(String username, String password) {
+-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+-    }
+-}
+Index: src/main/java/org/bot0ff/dto/jwt/JwtRegisterRequest.java
+===================================================================
+diff --git a/src/main/java/org/bot0ff/dto/jwt/JwtRegisterRequest.java b/src/main/java/org/bot0ff/dto/jwt/JwtRegisterRequest.java
+deleted file mode 100644
+--- a/src/main/java/org/bot0ff/dto/jwt/JwtRegisterRequest.java	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
++++ /dev/null	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
+@@ -1,9 +0,0 @@
+-package org.bot0ff.dto.jwt;
+-
+-import lombok.Data;
+-
+-@Data
+-public class JwtRegisterRequest {
+-    private String username;
+-    private String password;
+-}
+Index: src/main/java/org/bot0ff/config/WebSecurityConfig.java
+===================================================================
+diff --git a/src/main/java/org/bot0ff/config/WebSecurityConfig.java b/src/main/java/org/bot0ff/config/WebSecurityConfig.java
+deleted file mode 100644
+--- a/src/main/java/org/bot0ff/config/WebSecurityConfig.java	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
++++ /dev/null	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
+@@ -1,57 +0,0 @@
+-package org.bot0ff.config;
+-
+-import lombok.RequiredArgsConstructor;
+-import org.bot0ff.security.jwt.JwtRequestFilter;
+-import org.springframework.context.annotation.Bean;
+-import org.springframework.context.annotation.Configuration;
+-import org.springframework.http.HttpMethod;
+-import org.springframework.security.authentication.AuthenticationManager;
+-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+-import org.springframework.security.config.http.SessionCreationPolicy;
+-import org.springframework.security.core.userdetails.UserDetailsService;
+-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+-import org.springframework.security.crypto.password.PasswordEncoder;
+-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+-
+-@Configuration
+-@EnableWebSecurity
+-@RequiredArgsConstructor
+-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+-    private final UserDetailsService userDetailsService;
+-    private final JwtRequestFilter jwtRequestFilter;
+-
+-    @Override
+-    protected void configure(HttpSecurity http) throws Exception {
+-        http
+-                .csrf().disable()
+-                .authorizeRequests()
+-                .antMatchers("/auth").permitAll()
+-                .antMatchers("/register").permitAll()
+-                //
+-                .antMatchers("/move").permitAll()
+-                .anyRequest().authenticated()
+-                .and()
+-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+-
+-        http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+-    }
+-
+-    @Override
+-    @Bean
+-    public AuthenticationManager authenticationManagerBean() throws Exception {
+-        return super.authenticationManagerBean();
+-    }
+-
+-    @Override
+-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+-        auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
+-    }
+-
+-    @Bean
+-    public PasswordEncoder passwordEncoder() {
+-        return new BCryptPasswordEncoder();
+-    }
+-}
+Index: src/main/java/org/bot0ff/security/jwt/JwtRequestFilter.java
+===================================================================
+diff --git a/src/main/java/org/bot0ff/security/jwt/JwtRequestFilter.java b/src/main/java/org/bot0ff/security/jwt/JwtRequestFilter.java
+deleted file mode 100644
+--- a/src/main/java/org/bot0ff/security/jwt/JwtRequestFilter.java	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
++++ /dev/null	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
+@@ -1,53 +0,0 @@
+-package org.bot0ff.security.jwt;
+-
+-import lombok.RequiredArgsConstructor;
+-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+-import org.springframework.security.core.context.SecurityContextHolder;
+-import org.springframework.security.core.userdetails.UserDetails;
+-import org.springframework.security.core.userdetails.UserDetailsService;
+-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+-import org.springframework.stereotype.Component;
+-import org.springframework.web.filter.OncePerRequestFilter;
+-
+-import javax.servlet.FilterChain;
+-import javax.servlet.ServletException;
+-import javax.servlet.http.HttpServletRequest;
+-import javax.servlet.http.HttpServletResponse;
+-import java.io.IOException;
+-
+-@Component
+-@RequiredArgsConstructor
+-public class JwtRequestFilter extends OncePerRequestFilter {
+-    private final UserDetailsService userDetailsService;
+-    private final JwtTokenUtil jwtTokenUtil;
+-
+-    @Override
+-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+-        String authHeader = request.getHeader("Authorization");
+-
+-        String username = null;
+-        String jwt = null;
+-        if(authHeader != null && authHeader.startsWith("Bearer ")){
+-            jwt = authHeader.substring(7);
+-            try {
+-                username = jwtTokenUtil.getUsernameFromToken(jwt);
+-            }
+-            catch (Exception ex){
+-                System.out.println("Token is invalid: " + ex.getMessage());
+-            }
+-        }
+-
+-        if(username != null && SecurityContextHolder.getContext().getAuthentication() == null){
+-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+-            if(jwtTokenUtil.validateToken(jwt, userDetails)){
+-                UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+-                token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+-                SecurityContextHolder.getContext().setAuthentication(token);
+-            }
+-        }
+-
+-        filterChain.doFilter(request, response);
+-    }
+-
+-}
+-
+Index: src/main/java/org/bot0ff/dto/jwt/JwtRegisterResponse.java
+===================================================================
+diff --git a/src/main/java/org/bot0ff/dto/jwt/JwtRegisterResponse.java b/src/main/java/org/bot0ff/dto/jwt/JwtRegisterResponse.java
+deleted file mode 100644
+--- a/src/main/java/org/bot0ff/dto/jwt/JwtRegisterResponse.java	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
++++ /dev/null	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
+@@ -1,10 +0,0 @@
+-package org.bot0ff.dto.jwt;
+-
+-import lombok.AllArgsConstructor;
+-import lombok.Data;
+-
+-@Data
+-@AllArgsConstructor
+-public class JwtRegisterResponse {
+-    private String token;
+-}
+Index: src/main/java/org/bot0ff/dto/jwt/JwtAuthResponse.java
+===================================================================
+diff --git a/src/main/java/org/bot0ff/dto/jwt/JwtAuthResponse.java b/src/main/java/org/bot0ff/dto/jwt/JwtAuthResponse.java
+deleted file mode 100644
+--- a/src/main/java/org/bot0ff/dto/jwt/JwtAuthResponse.java	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
++++ /dev/null	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
+@@ -1,10 +0,0 @@
+-package org.bot0ff.dto.jwt;
+-
+-import lombok.AllArgsConstructor;
+-import lombok.Data;
+-
+-@Data
+-@AllArgsConstructor
+-public class JwtAuthResponse {
+-    private String token;
+-}
+\ No newline at end of file
+Index: src/main/java/org/bot0ff/dto/jwt/JwtAuthRequest.java
+===================================================================
+diff --git a/src/main/java/org/bot0ff/dto/jwt/JwtAuthRequest.java b/src/main/java/org/bot0ff/dto/jwt/JwtAuthRequest.java
+deleted file mode 100644
+--- a/src/main/java/org/bot0ff/dto/jwt/JwtAuthRequest.java	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
++++ /dev/null	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
+@@ -1,9 +0,0 @@
+-package org.bot0ff.dto.jwt;
+-
+-import lombok.Data;
+-
+-@Data
+-public class JwtAuthRequest {
+-    private String username;
+-    private String password;
+-}
+Index: src/main/java/org/bot0ff/rest/MainController.java
+===================================================================
+diff --git a/src/main/java/org/bot0ff/rest/MainController.java b/src/main/java/org/bot0ff/rest/MainController.java
+deleted file mode 100644
+--- a/src/main/java/org/bot0ff/rest/MainController.java	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
++++ /dev/null	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
+@@ -1,22 +0,0 @@
+-package org.bot0ff.rest;
+-
+-import lombok.RequiredArgsConstructor;
+-import org.bot0ff.dto.main.MoveRequest;
+-import org.bot0ff.dto.main.MoveResponse;
+-import org.bot0ff.service.ActionService;
+-import org.springframework.http.ResponseEntity;
+-import org.springframework.stereotype.Controller;
+-import org.springframework.web.bind.annotation.PostMapping;
+-import org.springframework.web.bind.annotation.RequestBody;
+-
+-@Controller
+-@RequiredArgsConstructor
+-public class MainController {
+-    private final ActionService actionService;
+-
+-    @PostMapping("/move")
+-    public ResponseEntity<MoveResponse> moveUser(@RequestBody MoveRequest moveRequest) {
+-        var userPosition = actionService.getUserPosition(moveRequest.getUsername(), moveRequest.getDirection());
+-        return ResponseEntity.ok(userPosition);
+-    }
+-}
+Index: src/main/java/org/bot0ff/rest/AuthController.java
+===================================================================
+diff --git a/src/main/java/org/bot0ff/rest/AuthController.java b/src/main/java/org/bot0ff/rest/AuthController.java
+deleted file mode 100644
+--- a/src/main/java/org/bot0ff/rest/AuthController.java	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
++++ /dev/null	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
+@@ -1,40 +0,0 @@
+-package org.bot0ff.rest;
+-
+-import lombok.RequiredArgsConstructor;
+-import org.bot0ff.dto.jwt.JwtAuthRequest;
+-import org.bot0ff.dto.jwt.JwtAuthResponse;
+-import org.bot0ff.security.jwt.JwtTokenUtil;
+-import org.springframework.http.ResponseEntity;
+-import org.springframework.security.authentication.AuthenticationManager;
+-import org.springframework.security.authentication.BadCredentialsException;
+-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+-import org.springframework.security.core.userdetails.UserDetails;
+-import org.springframework.security.core.userdetails.UserDetailsService;
+-import org.springframework.web.bind.annotation.*;
+-
+-@RestController
+-@RequiredArgsConstructor
+-public class AuthController {
+-    private final UserDetailsService userDetailsService;
+-    private final AuthenticationManager authenticationManager;
+-    private final JwtTokenUtil jwtTokenUtil;
+-
+-    @PostMapping("/auth")
+-    public ResponseEntity<?> createAuthToken(@RequestBody JwtAuthRequest authRequest) throws Exception {
+-        try {
+-            authenticate(authRequest.getUsername(), authRequest.getPassword());
+-        } catch (BadCredentialsException e) {
+-            throw new Exception("Incorrect username or password", e);
+-        }
+-
+-        UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getUsername());
+-
+-        String token = jwtTokenUtil.generateToken(userDetails);
+-
+-        return ResponseEntity.ok(new JwtAuthResponse(token));
+-    }
+-
+-    private void authenticate(String username, String password) {
+-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+-    }
+-}
+Index: src/main/java/org/bot0ff/security/jwt/JwtTokenUtil.java
+===================================================================
+diff --git a/src/main/java/org/bot0ff/security/jwt/JwtTokenUtil.java b/src/main/java/org/bot0ff/security/jwt/JwtTokenUtil.java
+deleted file mode 100644
+--- a/src/main/java/org/bot0ff/security/jwt/JwtTokenUtil.java	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
++++ /dev/null	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
+@@ -1,78 +0,0 @@
+-package org.bot0ff.security.jwt;
+-
+-import io.jsonwebtoken.Claims;
+-import io.jsonwebtoken.Jwts;
+-import io.jsonwebtoken.SignatureAlgorithm;
+-import lombok.RequiredArgsConstructor;
+-import org.springframework.beans.factory.annotation.Value;
+-import org.springframework.security.core.GrantedAuthority;
+-import org.springframework.security.core.userdetails.UserDetails;
+-import org.springframework.stereotype.Component;
+-
+-import java.util.*;
+-import java.util.function.Function;
+-import java.util.stream.Collectors;
+-
+-@Component
+-public class JwtTokenUtil {
+-    @Value("${jwt.token.secret}")
+-    private String secret;
+-    @Value("${jwt.token.lifetime}")
+-    private Integer lifetime;
+-
+-    private  <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
+-        Claims claims = getAllClaimsFromToken(token);
+-        return claimsResolver.apply(claims);
+-    }
+-
+-    public String getUsernameFromToken(String token) {
+-        return getClaimFromToken(token, Claims::getSubject);
+-    }
+-
+-    private Date getExpirationDateFromToken(String token) {
+-        return getClaimFromToken(token, Claims::getExpiration);
+-    }
+-
+-    public Boolean validateToken(String token) {
+-        return !isTokenExpired(token);
+-    }
+-
+-    public Boolean validateToken(String token, UserDetails userDetails) {
+-        String username = getUsernameFromToken(token);
+-        return Objects.equals(username, userDetails.getUsername()) && !isTokenExpired(token);
+-    }
+-
+-    public String generateToken(UserDetails userDetails){
+-        Map<String, Object> claims = new HashMap<>();
+-        List<String> rolesList = userDetails.getAuthorities().stream()
+-                .map(GrantedAuthority::getAuthority)
+-                .collect(Collectors.toList());
+-        claims.put("role", rolesList);
+-        return doGenerateToken(claims, userDetails.getUsername());
+-    }
+-
+-    private String doGenerateToken(Map<String, Object> claims, String subject) {
+-        Date issuedDate = new Date();
+-        Date expiredDate = new Date(issuedDate.getTime() + lifetime);
+-        return Jwts.builder()
+-                .setClaims(claims)
+-                .setSubject(subject)
+-                .setIssuedAt(expiredDate)
+-                .setExpiration(expiredDate)
+-                .signWith(SignatureAlgorithm.HS256, secret)
+-                .compact();
+-    }
+-
+-    private Claims getAllClaimsFromToken(String token) {
+-        return Jwts.parser()
+-                .setSigningKey(secret)
+-                .parseClaimsJws(token)
+-                .getBody();
+-    }
+-
+-    //проверка срока действия токена
+-    private boolean isTokenExpired(String token) {
+-        Date date = getExpirationDateFromToken(token);
+-        return date != null && date.before(new Date());
+-    }
+-}
+Index: src/main/java/org/bot0ff/security/UserDetailsImpl.java
+===================================================================
+diff --git a/src/main/java/org/bot0ff/security/UserDetailsImpl.java b/src/main/java/org/bot0ff/security/UserDetailsImpl.java
+deleted file mode 100644
+--- a/src/main/java/org/bot0ff/security/UserDetailsImpl.java	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
++++ /dev/null	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
+@@ -1,53 +0,0 @@
+-package org.bot0ff.security;
+-
+-import lombok.RequiredArgsConstructor;
+-import org.bot0ff.entity.Status;
+-import org.bot0ff.entity.User;
+-import org.springframework.security.core.GrantedAuthority;
+-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+-import org.springframework.security.core.userdetails.UserDetails;
+-
+-import java.util.Collection;
+-import java.util.Collections;
+-
+-@RequiredArgsConstructor
+-public class UserDetailsImpl implements UserDetails {
+-    private final User user;
+-
+-    @Override
+-    public Collection<? extends GrantedAuthority> getAuthorities() {
+-        String userRole = user.getRole().name();
+-        SimpleGrantedAuthority authority = new SimpleGrantedAuthority(userRole);
+-        return Collections.singletonList(authority);
+-    }
+-
+-    @Override
+-    public String getPassword() {
+-        return user.getPassword();
+-    }
+-
+-    @Override
+-    public String getUsername() {
+-        return user.getUsername();
+-    }
+-
+-    @Override
+-    public boolean isAccountNonExpired() {
+-        return true;
+-    }
+-
+-    @Override
+-    public boolean isAccountNonLocked() {
+-        return !user.getStatus().equals(Status.BANNED);
+-    }
+-
+-    @Override
+-    public boolean isCredentialsNonExpired() {
+-        return true;
+-    }
+-
+-    @Override
+-    public boolean isEnabled() {
+-        return user.getStatus().equals(Status.ACTIVE);
+-    }
+-}
+Index: src/main/java/org/bot0ff/security/UserDetailsServiceImpl.java
+===================================================================
+diff --git a/src/main/java/org/bot0ff/security/UserDetailsServiceImpl.java b/src/main/java/org/bot0ff/security/UserDetailsServiceImpl.java
+deleted file mode 100644
+--- a/src/main/java/org/bot0ff/security/UserDetailsServiceImpl.java	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
++++ /dev/null	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
+@@ -1,20 +0,0 @@
+-package org.bot0ff.security;
+-
+-import lombok.RequiredArgsConstructor;
+-import org.bot0ff.repository.UserRepository;
+-import org.springframework.security.core.userdetails.UserDetails;
+-import org.springframework.security.core.userdetails.UserDetailsService;
+-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+-import org.springframework.stereotype.Service;
+-
+-@Service
+-@RequiredArgsConstructor
+-public class UserDetailsServiceImpl implements UserDetailsService {
+-    private final UserRepository userRepository;
+-
+-    @Override
+-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+-        return new UserDetailsImpl(userRepository.findByUsername(username)
+-                .orElseThrow(IllegalArgumentException::new));
+-    }
+-}
+Index: src/main/java/org/bot0ff/service/UserServiceImpl.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package org.bot0ff.service;\r\n\r\nimport lombok.RequiredArgsConstructor;\r\nimport org.bot0ff.entity.User;\r\nimport org.bot0ff.repository.UserRepository;\r\nimport org.springframework.stereotype.Service;\r\n\r\nimport java.util.List;\r\n\r\n@Service\r\n@RequiredArgsConstructor\r\npublic class UserServiceImpl implements UserService{\r\n    private final UserRepository userRepository;\r\n\r\n    @Override\r\n    public List<User> findAll() {\r\n        return userRepository.findAll();\r\n    }\r\n\r\n    @Override\r\n    public User findOne(Long userId) {\r\n        return userRepository.findById(userId).orElseThrow(IllegalAccessError::new);\r\n    }\r\n\r\n    @Override\r\n    public Boolean existsByUsername(String username) {\r\n        return userRepository.existsByUsername(username);\r\n    }\r\n\r\n    @Override\r\n    public void saveUser(User user) {\r\n        userRepository.save(user);\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/org/bot0ff/service/UserServiceImpl.java b/src/main/java/org/bot0ff/service/UserServiceImpl.java
+--- a/src/main/java/org/bot0ff/service/UserServiceImpl.java	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
++++ b/src/main/java/org/bot0ff/service/UserServiceImpl.java	(date 1697462539111)
+@@ -22,6 +22,12 @@
+         return userRepository.findById(userId).orElseThrow(IllegalAccessError::new);
+     }
+ 
++    @Override
++    public Long findIdByUsername(String username) {
++        User user = userRepository.findByUsername(username).orElseThrow(IllegalAccessError::new);
++        return user.getId();
++    }
++
+     @Override
+     public Boolean existsByUsername(String username) {
+         return userRepository.existsByUsername(username);
+Index: .gitignore
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+># Default ignored files\r\n/shelf/\r\n/.idea/workspace.xml\r\n/src/main/resources/application.properties\r\n./images\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.gitignore b/.gitignore
+--- a/.gitignore	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
++++ b/.gitignore	(date 1697539466468)
+@@ -1,5 +1,7 @@
+ # Default ignored files
+ /shelf/
+-/.idea/workspace.xml
+-/src/main/resources/application.properties
++/.idea
++/src/main/resources
+ ./images
++/src/test
++/target
+\ No newline at end of file
+Index: src/main/java/org/bot0ff/dto/main/MoveResponse.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package org.bot0ff.dto.main;\r\n\r\nimport lombok.AllArgsConstructor;\r\nimport lombok.Data;\r\nimport lombok.RequiredArgsConstructor;\r\n\r\n@Data\r\n@AllArgsConstructor\r\npublic class MoveResponse {\r\n    private String imageMap;\r\n    private String username;\r\n    private int posX;\r\n    private int posY;\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/org/bot0ff/dto/main/MoveResponse.java b/src/main/java/org/bot0ff/dto/main/MoveResponse.java
+--- a/src/main/java/org/bot0ff/dto/main/MoveResponse.java	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
++++ b/src/main/java/org/bot0ff/dto/main/MoveResponse.java	(date 1697539466478)
+@@ -1,14 +1,23 @@
+ package org.bot0ff.dto.main;
+ 
+ import lombok.AllArgsConstructor;
++import lombok.Builder;
+ import lombok.Data;
+-import lombok.RequiredArgsConstructor;
++import lombok.NoArgsConstructor;
++import org.bot0ff.entity.Enemy;
++import org.bot0ff.entity.Player;
++
++import java.util.Set;
+ 
+ @Data
+ @AllArgsConstructor
++@NoArgsConstructor
++@Builder
+ public class MoveResponse {
+-    private String imageMap;
+-    private String username;
++    private String name;
++    private String sector;
+     private int posX;
+     private int posY;
++    private Set<Enemy> enemies;
++    private Set<Player> players;
+ }
+Index: src/main/java/org/bot0ff/Application.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package org.bot0ff;\r\n\r\nimport org.springframework.boot.SpringApplication;\r\nimport org.springframework.boot.autoconfigure.SpringBootApplication;\r\n\r\nimport java.util.Date;\r\n\r\n@SpringBootApplication\r\npublic class Application {\r\n\r\n    public static void main(String[] args) {\r\n        SpringApplication.run(Application.class, args);\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/org/bot0ff/Application.java b/src/main/java/org/bot0ff/Application.java
+--- a/src/main/java/org/bot0ff/Application.java	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
++++ b/src/main/java/org/bot0ff/Application.java	(date 1697539466485)
+@@ -3,12 +3,9 @@
+ import org.springframework.boot.SpringApplication;
+ import org.springframework.boot.autoconfigure.SpringBootApplication;
+ 
+-import java.util.Date;
+-
+ @SpringBootApplication
+ public class Application {
+-
+     public static void main(String[] args) {
+-        SpringApplication.run(Application.class, args);
++        SpringApplication.run(Application.class);
+     }
+ }
+Index: src/main/java/org/bot0ff/repository/UserRepository.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package org.bot0ff.repository;\r\n\r\nimport org.bot0ff.dto.jpa.MoveUser;\r\nimport org.bot0ff.entity.User;\r\nimport org.springframework.data.jpa.repository.JpaRepository;\r\nimport org.springframework.data.jpa.repository.Modifying;\r\nimport org.springframework.data.jpa.repository.Query;\r\nimport org.springframework.data.repository.query.Param;\r\nimport org.springframework.stereotype.Repository;\r\nimport org.springframework.transaction.annotation.Transactional;\r\n\r\nimport java.util.List;\r\nimport java.util.Optional;\r\n\r\n@Transactional\r\n@Repository\r\npublic interface UserRepository extends JpaRepository<User, Long> {\r\n    Optional<User> findByUsername(String username);\r\n    Boolean existsByUsername(String username);\r\n\r\n    @Query(value = \"SELECT posX, posY FROM users WHERE username = :username\", nativeQuery = true)\r\n    List<MoveUser> getPosxAndPosyByUserName(@Param(\"username\")String username);\r\n\r\n    @Modifying\r\n    @Query(value = \"UPDATE users SET posX = :posX, posY = :posY WHERE username = :username\", nativeQuery = true)\r\n    void saveNewUserPosition(@Param(\"posX\") int posX, @Param(\"posY\")int posY, @Param(\"username\")String username);\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/org/bot0ff/repository/UserRepository.java b/src/main/java/org/bot0ff/repository/UserRepository.java
+--- a/src/main/java/org/bot0ff/repository/UserRepository.java	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
++++ b/src/main/java/org/bot0ff/repository/UserRepository.java	(date 1697460819395)
+@@ -17,11 +17,4 @@
+ public interface UserRepository extends JpaRepository<User, Long> {
+     Optional<User> findByUsername(String username);
+     Boolean existsByUsername(String username);
+-
+-    @Query(value = "SELECT posX, posY FROM users WHERE username = :username", nativeQuery = true)
+-    List<MoveUser> getPosxAndPosyByUserName(@Param("username")String username);
+-
+-    @Modifying
+-    @Query(value = "UPDATE users SET posX = :posX, posY = :posY WHERE username = :username", nativeQuery = true)
+-    void saveNewUserPosition(@Param("posX") int posX, @Param("posY")int posY, @Param("username")String username);
+ }
+Index: src/main/java/org/bot0ff/dto/jpa/MoveUser.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package org.bot0ff.dto.jpa;\r\n\r\npublic interface MoveUser {\r\n    int getPosX();\r\n    int getPosY();\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/org/bot0ff/dto/jpa/MoveUser.java b/src/main/java/org/bot0ff/dto/jpa/MoveUser.java
+--- a/src/main/java/org/bot0ff/dto/jpa/MoveUser.java	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
++++ b/src/main/java/org/bot0ff/dto/jpa/MoveUser.java	(date 1697264685125)
+@@ -1,6 +1,7 @@
+ package org.bot0ff.dto.jpa;
+ 
+ public interface MoveUser {
++    String getSector();
+     int getPosX();
+     int getPosY();
+ }
+Index: src/main/java/org/bot0ff/service/ActionService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package org.bot0ff.service;\r\n\r\nimport org.bot0ff.dto.main.MoveResponse;\r\n\r\npublic interface ActionService {\r\n    MoveResponse getUserPosition(String username, String direction);\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/org/bot0ff/service/ActionService.java b/src/main/java/org/bot0ff/service/ActionService.java
+--- a/src/main/java/org/bot0ff/service/ActionService.java	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
++++ b/src/main/java/org/bot0ff/service/ActionService.java	(date 1697539466513)
+@@ -3,5 +3,5 @@
+ import org.bot0ff.dto.main.MoveResponse;
+ 
+ public interface ActionService {
+-    MoveResponse getUserPosition(String username, String direction);
++    MoveResponse getPlayerPosition(String username, String direction);
+ }
+Index: pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project xmlns=\"http://maven.apache.org/POM/4.0.0\"\r\n         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n         xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\">\r\n    <modelVersion>4.0.0</modelVersion>\r\n\r\n    <groupId>com.bot0ff</groupId>\r\n    <artifactId>VezLand</artifactId>\r\n    <version>1.0-SNAPSHOT</version>\r\n    <packaging>jar</packaging>\r\n\r\n    <properties>\r\n        <maven.compiler.source>17</maven.compiler.source>\r\n        <maven.compiler.target>17</maven.compiler.target>\r\n        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>\r\n    </properties>\r\n\r\n    <dependencyManagement>\r\n        <dependencies>\r\n            <dependency>\r\n                <groupId>org.springframework.boot</groupId>\r\n                <artifactId>spring-boot-dependencies</artifactId>\r\n                <version>2.6.6</version>\r\n                <scope>import</scope>\r\n                <type>pom</type>\r\n            </dependency>\r\n        </dependencies>\r\n    </dependencyManagement>\r\n\r\n    <dependencies>\r\n        <dependency>\r\n            <groupId>org.springframework.boot</groupId>\r\n            <artifactId>spring-boot-starter-web</artifactId>\r\n        </dependency>\r\n        <dependency>\r\n            <groupId>org.springframework.boot</groupId>\r\n            <artifactId>spring-boot-starter-security</artifactId>\r\n        </dependency>\r\n        <dependency>\r\n            <groupId>org.springframework.boot</groupId>\r\n            <artifactId>spring-boot-starter-data-jpa</artifactId>\r\n        </dependency>\r\n        <dependency>\r\n            <groupId>org.postgresql</groupId>\r\n            <artifactId>postgresql</artifactId>\r\n        </dependency>\r\n        <dependency>\r\n            <groupId>io.jsonwebtoken</groupId>\r\n            <artifactId>jjwt</artifactId>\r\n            <version>0.9.1</version>\r\n        </dependency>\r\n        <dependency>\r\n            <groupId>commons-io</groupId>\r\n            <artifactId>commons-io</artifactId>\r\n            <version>2.11.0</version>\r\n        </dependency>\r\n        <dependency>\r\n            <groupId>org.projectlombok</groupId>\r\n            <artifactId>lombok</artifactId>\r\n        </dependency>\r\n    </dependencies>\r\n\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/pom.xml b/pom.xml
+--- a/pom.xml	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
++++ b/pom.xml	(date 1697539466409)
+@@ -5,7 +5,7 @@
+     <modelVersion>4.0.0</modelVersion>
+ 
+     <groupId>com.bot0ff</groupId>
+-    <artifactId>VezLand</artifactId>
++    <artifactId>SpaceTrace</artifactId>
+     <version>1.0-SNAPSHOT</version>
+     <packaging>jar</packaging>
+ 
+@@ -34,29 +34,25 @@
+         </dependency>
+         <dependency>
+             <groupId>org.springframework.boot</groupId>
+-            <artifactId>spring-boot-starter-security</artifactId>
++            <artifactId>spring-boot-starter-data-jpa</artifactId>
+         </dependency>
+         <dependency>
+-            <groupId>org.springframework.boot</groupId>
+-            <artifactId>spring-boot-starter-data-jpa</artifactId>
++            <groupId>org.telegram</groupId>
++            <artifactId>telegrambots</artifactId>
++            <version>6.0.1</version>
+         </dependency>
+         <dependency>
+             <groupId>org.postgresql</groupId>
+             <artifactId>postgresql</artifactId>
+         </dependency>
+         <dependency>
+-            <groupId>io.jsonwebtoken</groupId>
+-            <artifactId>jjwt</artifactId>
+-            <version>0.9.1</version>
++            <groupId>org.projectlombok</groupId>
++            <artifactId>lombok</artifactId>
+         </dependency>
+         <dependency>
+-            <groupId>commons-io</groupId>
+-            <artifactId>commons-io</artifactId>
+-            <version>2.11.0</version>
+-        </dependency>
+-        <dependency>
+-            <groupId>org.projectlombok</groupId>
+-            <artifactId>lombok</artifactId>
++            <groupId>log4j</groupId>
++            <artifactId>log4j</artifactId>
++            <version>1.2.17</version>
+         </dependency>
+     </dependencies>
+ 
+Index: src/main/java/org/bot0ff/entity/User.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package org.bot0ff.entity;\r\n\r\nimport lombok.*;\r\n\r\nimport javax.persistence.*;\r\n\r\n@Entity\r\n@Table(name = \"users\")\r\n@Data\r\n@NoArgsConstructor\r\n@AllArgsConstructor\r\n@Builder\r\npublic class User{\r\n\r\n    @Id\r\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\r\n    private Long id;\r\n\r\n    @Column(name = \"username\")\r\n    private String username;\r\n\r\n    @Column(name = \"password\")\r\n    private String password;\r\n\r\n    @Enumerated(value = EnumType.STRING)\r\n    private Role role;\r\n\r\n    @Enumerated(value = EnumType.STRING)\r\n    private Status status;\r\n\r\n    @Column(name = \"posX\")\r\n    private int posX;\r\n    @Column(name = \"posY\")\r\n    private int posY;\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/org/bot0ff/entity/User.java b/src/main/java/org/bot0ff/entity/User.java
+--- a/src/main/java/org/bot0ff/entity/User.java	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
++++ b/src/main/java/org/bot0ff/entity/User.java	(date 1697460819427)
+@@ -27,9 +27,4 @@
+ 
+     @Enumerated(value = EnumType.STRING)
+     private Status status;
+-
+-    @Column(name = "posX")
+-    private int posX;
+-    @Column(name = "posY")
+-    private int posY;
+ }
+Index: src/main/java/org/bot0ff/service/ActionServiceImpl.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package org.bot0ff.service;\r\n\r\nimport lombok.RequiredArgsConstructor;\r\nimport org.bot0ff.dto.main.MoveResponse;\r\nimport org.bot0ff.dto.jpa.MoveUser;\r\nimport org.bot0ff.repository.UserRepository;\r\nimport org.bot0ff.util.Constants;\r\nimport org.springframework.beans.factory.annotation.Value;\r\nimport org.springframework.stereotype.Service;\r\n\r\nimport java.util.List;\r\n\r\n@Service\r\n@RequiredArgsConstructor\r\npublic class ActionServiceImpl implements ActionService{\r\n    @Value(\"${app.endpoint.move}\")\r\n    private String userPositionEndpoint;\r\n    private final UserRepository userRepository;\r\n\r\n    @Override\r\n    public MoveResponse getUserPosition(String username, String direction) {\r\n        List<MoveUser> userPosition = userRepository.getPosxAndPosyByUserName(username);\r\n        int posX = userPosition.get(0).getPosX();\r\n        int posY = userPosition.get(0).getPosY();\r\n\r\n        switch (direction) {\r\n            case \"up\" -> posY = (posY < Constants.MAX_POS_Y) ? posY + 1 : posY;\r\n            case \"down\" -> posY = (posY > Constants.MIN_POS_Y) ? posY - 1 : posY;\r\n            case \"left\" -> posX = (posX > Constants.MIN_POS_X) ? posX - 1 : posX;\r\n            case \"right\" -> posX = (posX < Constants.MAX_POS_X) ? posX + 1 : posX;\r\n        }\r\n\r\n        userRepository.saveNewUserPosition(posX, posY, username);\r\n        var newUserPositionEndpoint = userPositionEndpoint + \"x=\" + posX + \"&y=\" + posY;\r\n        return new MoveResponse(newUserPositionEndpoint, username, posX, posY);\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/org/bot0ff/service/ActionServiceImpl.java b/src/main/java/org/bot0ff/service/ActionServiceImpl.java
+--- a/src/main/java/org/bot0ff/service/ActionServiceImpl.java	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
++++ b/src/main/java/org/bot0ff/service/ActionServiceImpl.java	(date 1697539466519)
+@@ -2,36 +2,61 @@
+ 
+ import lombok.RequiredArgsConstructor;
+ import org.bot0ff.dto.main.MoveResponse;
+-import org.bot0ff.dto.jpa.MoveUser;
+-import org.bot0ff.repository.UserRepository;
++import org.bot0ff.entity.Player;
++import org.bot0ff.repository.PlayerRepository;
+ import org.bot0ff.util.Constants;
++import org.bot0ff.world.Location;
++import org.bot0ff.world.World;
+ import org.springframework.beans.factory.annotation.Value;
+ import org.springframework.stereotype.Service;
+ 
+-import java.util.List;
+-
+ @Service
+ @RequiredArgsConstructor
+ public class ActionServiceImpl implements ActionService{
+-    @Value("${app.endpoint.move}")
+-    private String userPositionEndpoint;
+-    private final UserRepository userRepository;
++    private final PlayerRepository playerRepository;
+ 
+     @Override
+-    public MoveResponse getUserPosition(String username, String direction) {
+-        List<MoveUser> userPosition = userRepository.getPosxAndPosyByUserName(username);
+-        int posX = userPosition.get(0).getPosX();
+-        int posY = userPosition.get(0).getPosY();
++    public MoveResponse getPlayerPosition(String username, String direction) {
++        Player player = playerRepository.findByName(username).orElse(null);
++        if(player == null) {
++            return new MoveResponse();
++        }
++
++        String sector = player.getSector();
++        int posX = player.getPosX();
++        int posY = player.getPosY();
++
++        int maxSectorPosX = 0;
++        int maxSectorPosY = 0;
++
++        switch (sector) {
++            case "SUN" -> {
++                maxSectorPosX = Constants.SUN_MAX_POS_X;
++                maxSectorPosY = Constants.SUN_MAX_POS_Y;
++            }
++        }
++
++        World.getLocation(sector, posX, posY).removePlayer(player);
+ 
+         switch (direction) {
+-            case "up" -> posY = (posY < Constants.MAX_POS_Y) ? posY + 1 : posY;
+-            case "down" -> posY = (posY > Constants.MIN_POS_Y) ? posY - 1 : posY;
+-            case "left" -> posX = (posX > Constants.MIN_POS_X) ? posX - 1 : posX;
+-            case "right" -> posX = (posX < Constants.MAX_POS_X) ? posX + 1 : posX;
++            case "up" -> posY = (posY < maxSectorPosY) ? posY + 1 : posY;
++            case "down" -> posY = (posY > 1) ? posY - 1 : posY;
++            case "left" -> posX = (posX > 1) ? posX - 1 : posX;
++            case "right" -> posX = (posX < maxSectorPosX) ? posX + 1 : posX;
+         }
+ 
+-        userRepository.saveNewUserPosition(posX, posY, username);
+-        var newUserPositionEndpoint = userPositionEndpoint + "x=" + posX + "&y=" + posY;
+-        return new MoveResponse(newUserPositionEndpoint, username, posX, posY);
++        Location location = World.getLocation(sector, posX, posY);
++        location.setPlayer(player);
++
++        playerRepository.saveNewUserPosition(posX, posY, username);
++
++        return MoveResponse.builder()
++                .name(username)
++                .sector(sector)
++                .posX(posX)
++                .posY(posY)
++                .enemies(location.getEnemies())
++                .players(location.getPlayers())
++                .build();
+     }
+ }
+Index: src/main/java/org/bot0ff/service/UserService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package org.bot0ff.service;\r\n\r\nimport org.bot0ff.entity.User;\r\n\r\nimport java.util.List;\r\n\r\npublic interface UserService {\r\n    List<User> findAll();\r\n    User findOne(Long userId);\r\n    Boolean existsByUsername(String username);\r\n    void saveUser(User user);\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/org/bot0ff/service/UserService.java b/src/main/java/org/bot0ff/service/UserService.java
+--- a/src/main/java/org/bot0ff/service/UserService.java	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
++++ b/src/main/java/org/bot0ff/service/UserService.java	(date 1697462539111)
+@@ -7,6 +7,7 @@
+ public interface UserService {
+     List<User> findAll();
+     User findOne(Long userId);
++    Long findIdByUsername(String username);
+     Boolean existsByUsername(String username);
+     void saveUser(User user);
+ }
+Index: src/main/java/org/bot0ff/util/Constants.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package org.bot0ff.util;\r\n\r\npublic class Constants {\r\n    public static int MIN_POS_X = 1;\r\n    public static int MAX_POS_X = 10;\r\n    public static int MIN_POS_Y = 0;\r\n    public static int MAX_POS_Y = 10;\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/org/bot0ff/util/Constants.java b/src/main/java/org/bot0ff/util/Constants.java
+--- a/src/main/java/org/bot0ff/util/Constants.java	(revision fd9bc2f9c914b91c8fe93a4013e70b4bc76e9e3a)
++++ b/src/main/java/org/bot0ff/util/Constants.java	(date 1697459342292)
+@@ -1,8 +1,10 @@
+ package org.bot0ff.util;
+ 
+ public class Constants {
+-    public static int MIN_POS_X = 1;
+-    public static int MAX_POS_X = 10;
+-    public static int MIN_POS_Y = 0;
+-    public static int MAX_POS_Y = 10;
++    //SUN
++    public static int SUN_MAX_POS_X = 10;
++    public static int SUN_MAX_POS_Y = 10;
++
++    //sun system
++    public static int MAX_COUNT_ENEMY_ON_LOCATION = 5;
+ }
