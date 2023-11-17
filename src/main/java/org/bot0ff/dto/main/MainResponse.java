@@ -2,12 +2,14 @@ package org.bot0ff.dto.main;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
-public class StartNewGameResponse {
-    private String name;
-    private String sector;
+@NoArgsConstructor
+public class MainResponse {
+    private String username;
+    private String locationType;
     private int posX;
     private int posY;
 }

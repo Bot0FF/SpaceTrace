@@ -4,11 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bot0ff.world.LocationType;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "players")
@@ -23,10 +21,12 @@ public class Player {
     @Column(name = "name")
     private String name;
 
-    @Column(name = "sector")
-    private String sector;
+    @Enumerated(value = EnumType.STRING)
+    private LocationType locationType;
+
     @Column(name = "posX")
     private int posX;
+
     @Column(name = "posY")
     private int posY;
 }

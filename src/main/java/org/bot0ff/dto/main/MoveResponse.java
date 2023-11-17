@@ -8,9 +8,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MoveResponse {
-    private String imageMap;
     private String username;
-    private String sector;
+    private String locationType;
     private int posX;
     private int posY;
 }

@@ -1,6 +1,5 @@
 package org.bot0ff.repository;
 
-import org.bot0ff.dto.jpa.MoveUser;
 import org.bot0ff.entity.Player;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

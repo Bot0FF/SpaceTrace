@@ -2,7 +2,7 @@ package org.bot0ff.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.bot0ff.world.SectorType;
+import org.bot0ff.world.LocationType;
 
 import javax.persistence.*;
 
@@ -17,7 +17,7 @@ public class Enemy {
 
     @Enumerated(value = EnumType.STRING)
     @Column(name = "sectorType")
-    private SectorType sectorType;
+    private LocationType locationType;
 
     @Column(name = "name")
     private String name;

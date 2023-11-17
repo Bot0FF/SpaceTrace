@@ -14,7 +14,7 @@ public abstract class Location {
     private int x;
     private int y;
     private String name;
-    private SectorType sectorType;
+    private LocationType locationType;
     private int maxCountResource;
     private int updateTime;
 
