@@ -23,7 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin
-@RestController()
+@RestController
 @RequiredArgsConstructor
 public class AuthController {
     private final UserRepository userRepository;
@@ -45,7 +45,7 @@ public class AuthController {
 
         String token = jwtTokenUtil.generateToken(userDetails);
 
-        return ResponseEntity.ok(new JwtAuthResponse(token));
+        return ResponseEntity.ok(new JwtAuthResponse(authRequest.getUsername(), token));
     }
 
     @PostMapping("/register")
@@ -76,7 +76,7 @@ public class AuthController {
         }
         UserDetails userDetails = userDetailsService.loadUserByUsername(registerRequest.getUsername());
         String token = jwtTokenUtil.generateToken(userDetails);
-        return ResponseEntity.ok(new JwtRegisterResponse(token));
+        return ResponseEntity.ok(new JwtRegisterResponse(registerRequest.getUsername(), token));
     }
 
     private void authenticate(String username, String password) {
