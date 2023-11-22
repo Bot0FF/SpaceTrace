@@ -3,7 +3,6 @@ package org.bot0ff.security.jwt;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,8 +16,10 @@ import java.util.stream.Collectors;
 public class JwtTokenUtil {
     @Value("${jwt.token.secret}")
     private String secret;
-    @Value("${jwt.token.lifetime}")
-    private Integer lifetime;
+    @Value("${jwt.accessToken.lifetime}")
+    private Integer lifetimeAccess;
+    @Value("${jwt.refreshToken.lifetime}")
+    private Integer lifetimeRefresh;
 
     private  <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
         Claims claims = getAllClaimsFromToken(token);
@@ -33,30 +34,39 @@ public class JwtTokenUtil {
         return getClaimFromToken(token, Claims::getExpiration);
     }
 
-    public Boolean validateToken(String token) {
-        return !isTokenExpired(token);
-    }
-
     public Boolean validateToken(String token, UserDetails userDetails) {
         String username = getUsernameFromToken(token);
         return Objects.equals(username, userDetails.getUsername()) && !isTokenExpired(token);
     }
 
-    public String generateToken(UserDetails userDetails){
+    public String generateAccessToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
         List<String> rolesList = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
         claims.put("role", rolesList);
-        return doGenerateToken(claims, userDetails.getUsername());
-    }
-
-    private String doGenerateToken(Map<String, Object> claims, String subject) {
         Date issuedDate = new Date();
-        Date expiredDate = new Date(issuedDate.getTime() + lifetime);
+        Date expiredDate = new Date(issuedDate.getTime() + lifetimeAccess);
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(subject)
+                .setSubject(userDetails.getUsername())
+                .setIssuedAt(expiredDate)
+                .setExpiration(expiredDate)
+                .signWith(SignatureAlgorithm.HS256, secret)
+                .compact();
+    }
+
+    public String generateRefreshToken(UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+        List<String> rolesList = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+        claims.put("role", rolesList);
+        Date issuedDate = new Date();
+        Date expiredDate = new Date(issuedDate.getTime() + lifetimeRefresh);
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(userDetails.getUsername())
                 .setIssuedAt(expiredDate)
                 .setExpiration(expiredDate)
                 .signWith(SignatureAlgorithm.HS256, secret)

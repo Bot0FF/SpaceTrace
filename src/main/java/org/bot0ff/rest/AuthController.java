@@ -34,7 +34,7 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
 
     @PostMapping("/auth")
-    public ResponseEntity<?> createAuthToken(@RequestBody JwtAuthRequest authRequest) throws Exception {
+    public ResponseEntity<?> getAccessToken(@RequestBody JwtAuthRequest authRequest) throws Exception {
         try {
             authenticate(authRequest.getUsername(), authRequest.getPassword());
         } catch (BadCredentialsException e) {
@@ -43,9 +43,25 @@ public class AuthController {
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getUsername());
 
-        String token = jwtTokenUtil.generateToken(userDetails);
+        String accessToken = jwtTokenUtil.generateAccessToken(userDetails);
+        String refreshToken = jwtTokenUtil.generateRefreshToken(userDetails);
 
-        return ResponseEntity.ok(new JwtAuthResponse(authRequest.getUsername(), token));
+        return ResponseEntity.ok(new JwtAuthResponse(authRequest.getUsername(), accessToken, refreshToken));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> getRefreshToken(@RequestBody JwtAuthRequest authRequest) throws Exception {
+        try {
+            authenticate(authRequest.getUsername(), authRequest.getPassword());
+        } catch (BadCredentialsException e) {
+            throw new Exception("Incorrect username or password", e);
+        }
+
+        UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getUsername());
+
+        String accessToken = jwtTokenUtil.generateAccessToken(userDetails);
+
+        return ResponseEntity.ok(new JwtAuthResponse(authRequest.getUsername(), accessToken, null));
     }
 
     @PostMapping("/register")
@@ -75,7 +91,7 @@ public class AuthController {
             throw new Exception("Некорректное имя или пароль", e);
         }
         UserDetails userDetails = userDetailsService.loadUserByUsername(registerRequest.getUsername());
-        String token = jwtTokenUtil.generateToken(userDetails);
+        String token = jwtTokenUtil.generateAccessToken(userDetails);
         return ResponseEntity.ok(new JwtRegisterResponse(registerRequest.getUsername(), token));
     }
 
