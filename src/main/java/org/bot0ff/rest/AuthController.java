@@ -1,10 +1,7 @@
 package org.bot0ff.rest;
 
 import lombok.RequiredArgsConstructor;
-import org.bot0ff.dto.jwt.JwtAuthRequest;
-import org.bot0ff.dto.jwt.JwtAuthResponse;
-import org.bot0ff.dto.jwt.JwtRegisterRequest;
-import org.bot0ff.dto.jwt.JwtRegisterResponse;
+import org.bot0ff.dto.jwt.*;
 import org.bot0ff.entity.Player;
 import org.bot0ff.entity.Role;
 import org.bot0ff.entity.Status;
@@ -22,7 +19,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-@CrossOrigin
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequiredArgsConstructor
 public class AuthController {
@@ -50,18 +47,17 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> getRefreshToken(@RequestBody JwtAuthRequest authRequest) throws Exception {
-        try {
-            authenticate(authRequest.getUsername(), authRequest.getPassword());
-        } catch (BadCredentialsException e) {
-            throw new Exception("Incorrect username or password", e);
-        }
+    public ResponseEntity<?> getRefreshToken(@RequestBody JwtRefreshRequest jwtRefreshRequest) throws Exception {
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getUsername());
+        String username = jwtTokenUtil.getUsernameFromToken(jwtRefreshRequest.getRefreshToken());
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        if(!jwtTokenUtil.validateToken(jwtRefreshRequest.getRefreshToken(), userDetails)) {
+            return ResponseEntity.badRequest().body("Username not found");
+        }
 
         String accessToken = jwtTokenUtil.generateAccessToken(userDetails);
 
-        return ResponseEntity.ok(new JwtAuthResponse(authRequest.getUsername(), accessToken, null));
+        return ResponseEntity.ok(new JwtAuthResponse(username, accessToken, jwtRefreshRequest.getRefreshToken()));
     }
 
     @PostMapping("/register")
@@ -93,6 +89,12 @@ public class AuthController {
         UserDetails userDetails = userDetailsService.loadUserByUsername(registerRequest.getUsername());
         String token = jwtTokenUtil.generateAccessToken(userDetails);
         return ResponseEntity.ok(new JwtRegisterResponse(registerRequest.getUsername(), token));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout() throws Exception {
+
+         return ResponseEntity.ok("");
     }
 
     private void authenticate(String username, String password) {

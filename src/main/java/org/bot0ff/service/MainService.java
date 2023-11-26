@@ -17,7 +17,7 @@ public class MainService {
 
     //состояние user после обновления страницы
     public MainResponse getPlayerState(String username) {
-        Player player = playerRepository.findByName(username).orElse(null);;
+        Player player = playerRepository.findByName(username).orElse(null);
         //TODO сделать ответ, если user не найден
         if(player == null) {
             return new MainResponse();
