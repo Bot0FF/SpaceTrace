@@ -19,7 +19,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-@CrossOrigin(origins = "http://localhost:3000")
+import javax.servlet.http.Cookie;
+
 @RestController
 @RequiredArgsConstructor
 public class AuthController {
@@ -42,22 +43,25 @@ public class AuthController {
 
         String accessToken = jwtTokenUtil.generateAccessToken(userDetails);
         String refreshToken = jwtTokenUtil.generateRefreshToken(userDetails);
+        Cookie cookie = new Cookie("refreshToken", refreshToken);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
 
-        return ResponseEntity.ok(new JwtAuthResponse(authRequest.getUsername(), accessToken, refreshToken));
+        return ResponseEntity.ok(new JwtAuthResponse(authRequest.getUsername(), accessToken, refreshToken, cookie));
     }
 
-    @PostMapping("/refresh")
-    public ResponseEntity<?> getRefreshToken(@RequestBody JwtRefreshRequest jwtRefreshRequest) throws Exception {
+    @GetMapping("/refresh")
+    public ResponseEntity<?> getRefreshToken(@CookieValue(value = "refreshToken", defaultValue = "Atta") String refreshToken) {
 
-        String username = jwtTokenUtil.getUsernameFromToken(jwtRefreshRequest.getRefreshToken());
+        String username = jwtTokenUtil.getUsernameFromToken(refreshToken);
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-        if(!jwtTokenUtil.validateToken(jwtRefreshRequest.getRefreshToken(), userDetails)) {
+        if(!jwtTokenUtil.validateToken(refreshToken, userDetails)) {
             return ResponseEntity.badRequest().body("Username not found");
         }
 
         String accessToken = jwtTokenUtil.generateAccessToken(userDetails);
 
-        return ResponseEntity.ok(new JwtAuthResponse(username, accessToken, jwtRefreshRequest.getRefreshToken()));
+        return ResponseEntity.ok(new JwtRefreshResponse(accessToken, refreshToken));
     }
 
     @PostMapping("/register")
