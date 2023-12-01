@@ -2,7 +2,6 @@ package org.bot0ff.config;
 
 import lombok.RequiredArgsConstructor;
 import org.bot0ff.security.jwt.JwtRequestFilter;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -12,18 +11,17 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-
-import java.util.Arrays;
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -31,18 +29,27 @@ import java.util.List;
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private final UserDetailsService userDetailsService;
     private final JwtRequestFilter jwtRequestFilter;
+    private final AuthenticationEntryPoint unauthorizedHandler;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> {
-                    cors.configurationSource(corsConfigurationSource());
-                })
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .exceptionHandling().authenticationEntryPoint(unauthorizedHandler)
+                .and()
                 .authorizeRequests()
                 .antMatchers("/auth").permitAll()
                 .antMatchers("/register").permitAll()
+                .antMatchers("/refresh").permitAll()
                 .anyRequest().authenticated()
+                .and()
+                .logout()
+                .logoutUrl("/logout")
+                .logoutSuccessHandler(
+                        (request, response, authentication) ->
+                                SecurityContextHolder.clearContext()
+                )
                 .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
@@ -61,23 +68,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-
-//    @Bean
-//    public FilterRegistrationBean corsFilterBean() {
-//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-//        CorsConfiguration config = new CorsConfiguration();
-//        config.applyPermitDefaultValues();
-//        config.setAllowCredentials(true);
-//        config.setAllowedOrigins(List.of("*"));
-//        config.setAllowedHeaders(List.of("*"));
-//        config.setAllowedMethods(List.of("*"));
-//        config.setExposedHeaders(List.of("content-length"));
-//        config.setMaxAge(3600L);
-//        source.registerCorsConfiguration("/**", config);
-//        FilterRegistrationBean bean = new FilterRegistrationBean(new CorsFilter(source));
-//        bean.setOrder(0);
-//        return bean;
-//    }
 
     @Override
     @Bean

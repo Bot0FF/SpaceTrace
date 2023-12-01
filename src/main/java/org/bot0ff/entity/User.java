@@ -22,6 +22,12 @@ public class User{
     @Column(name = "password")
     private String password;
 
+    @Column(name = "email")
+    private String email;
+
+    @Column(name = "refreshToken")
+    private String refreshToken;
+
     @Enumerated(value = EnumType.STRING)
     private Role role;
 
