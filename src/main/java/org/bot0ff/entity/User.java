@@ -1,8 +1,9 @@
 package org.bot0ff.entity;
 
+import jakarta.persistence.*;
 import lombok.*;
 
-import javax.persistence.*;
+import java.util.Date;
 
 @Entity
 @Table(name = "users")
@@ -25,8 +26,8 @@ public class User{
     @Column(name = "email")
     private String email;
 
-    @Column(name = "refreshToken")
-    private String refreshToken;
+    @Column(name = "token")
+    private Date token;
 
     @Enumerated(value = EnumType.STRING)
     private Role role;

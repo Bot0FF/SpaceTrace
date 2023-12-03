@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,4 +25,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Modifying
     @Query(value = "UPDATE users SET refresh_token = :refreshToken WHERE username = :username", nativeQuery = true)
     void setUserRefreshToken(@Param("refreshToken") String refreshToken, @Param("username") String username);
+
+    @Modifying
+    @Query(value = "SELECT token=:token FROM users WHERE username = :username", nativeQuery = true)
+    String tokenIsBlocked(@Param("token") Date token, @Param("username") String username);
 }

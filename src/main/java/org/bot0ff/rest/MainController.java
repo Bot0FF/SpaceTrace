@@ -2,6 +2,7 @@ package org.bot0ff.rest;
 
 import lombok.RequiredArgsConstructor;
 import org.bot0ff.dto.main.MoveResponse;
+
 import org.bot0ff.service.MainService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

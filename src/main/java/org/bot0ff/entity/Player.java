@@ -1,12 +1,11 @@
 package org.bot0ff.entity;
 
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bot0ff.world.LocationType;
-
-import javax.persistence.*;
 
 @Entity
 @Table(name = "players")

@@ -1,10 +1,9 @@
 package org.bot0ff.entity;
 
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.bot0ff.world.LocationType;
-
-import javax.persistence.*;
 
 //будут загружаться из базы в зависимости от сектора
 @Data
