@@ -7,9 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class MainResponse {
-    private String username;
-    private String locationType;
-    private int posX;
-    private int posY;
+public class MoveRequest {
+    String direction;
 }

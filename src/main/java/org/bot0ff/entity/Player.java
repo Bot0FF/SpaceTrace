@@ -23,6 +23,12 @@ public class Player {
     @Enumerated(value = EnumType.STRING)
     private LocationType locationType;
 
+    @Column(name = "hp")
+    private int hp;
+
+    @Column(name = "mana")
+    private int mana;
+
     @Column(name = "posX")
     private int posX;
 

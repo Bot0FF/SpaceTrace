@@ -1,7 +1,7 @@
 package org.bot0ff.rest;
 
 import lombok.RequiredArgsConstructor;
-import org.bot0ff.dto.main.MoveResponse;
+import org.bot0ff.dto.main.MoveRequest;
 
 import org.bot0ff.service.MainService;
 import org.springframework.http.ResponseEntity;
@@ -16,13 +16,14 @@ public class MainController {
 
     @GetMapping("/main")
     public ResponseEntity<?> mainPage(@AuthenticationPrincipal(expression = "username") String username) {
-        var userState = mainServiceImpl.getPlayerState(username);
-        return ResponseEntity.ok(userState);
+        var response = mainServiceImpl.getPlayerState(username);
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/move/{direction}")
-    public ResponseEntity<MoveResponse> moveUser(@AuthenticationPrincipal(expression = "username") String username, @PathVariable String direction) {
-        var userPosition = mainServiceImpl.setPlayerPosition(username, direction);
-        return ResponseEntity.ok(userPosition);
+    @PostMapping("/move")
+    public ResponseEntity<?> moveUser(@AuthenticationPrincipal(expression = "username") String username,
+                                                @RequestBody MoveRequest moveRequest) {
+        var response = mainServiceImpl.setPlayerPosition(username, moveRequest.getDirection());
+        return ResponseEntity.ok(response);
     }
 }

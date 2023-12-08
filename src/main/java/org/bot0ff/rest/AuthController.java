@@ -11,6 +11,7 @@ import org.bot0ff.entity.Status;
 import org.bot0ff.entity.User;
 import org.bot0ff.repository.PlayerRepository;
 import org.bot0ff.repository.UserRepository;
+import org.bot0ff.util.Constants;
 import org.bot0ff.world.LocationType;
 import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -43,7 +44,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Пользователь не найден"));
         }
 
-        return ResponseEntity.ok().body(new JwtAuthResponse(player));
+        return ResponseEntity.ok().body(player);
     }
 
     @PostMapping("/auth")
@@ -60,7 +61,7 @@ public class AuthController {
          }
 
          return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
-                 .body(new JwtAuthResponse(player));
+                 .body(player);
     }
 
     @PostMapping("/register")
@@ -81,7 +82,8 @@ public class AuthController {
         if(currentUser == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "Ошибка регистрации"));
         }
-        Player player = new Player(currentUser.getId(), user.getUsername(), LocationType.PLAIN, 5, 5);
+        Player player = new Player(currentUser.getId(), user.getUsername(), LocationType.PLAIN,
+                Constants.START_HP, Constants.START_MANA, Constants.START_POS_X, Constants.START_POS_Y);
         playerRepository.save(player);
 
         Authentication authentication = authenticationManager
@@ -91,6 +93,6 @@ public class AuthController {
         ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
 
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
-                .body(new JwtAuthResponse(player));
+                .body(player);
     }
 }

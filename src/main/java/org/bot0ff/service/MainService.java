@@ -1,8 +1,6 @@
 package org.bot0ff.service;
 
 import lombok.RequiredArgsConstructor;
-import org.bot0ff.dto.main.MainResponse;
-import org.bot0ff.dto.main.MoveResponse;
 import org.bot0ff.entity.Player;
 import org.bot0ff.repository.PlayerRepository;
 import org.bot0ff.util.Constants;
@@ -16,45 +14,51 @@ public class MainService {
     private final WorldGenerator worldGenerator;
 
     //состояние user после обновления страницы
-    public MainResponse getPlayerState(String username) {
+    public Player getPlayerState(String username) {
         Player player = playerRepository.findByName(username).orElse(null);
         //TODO сделать ответ, если user не найден
         if(player == null) {
-            return new MainResponse();
+            return null;
         }
-
-        int posX = player.getPosX();
-        int posY = player.getPosY();
-        String locationType = String.valueOf(worldGenerator.getLocation(posX, posY).getLocationType());
-
-        return new MainResponse(username, locationType, posX, posY);
+        return player;
     }
 
     //позиция user после перемещения
-    public MoveResponse setPlayerPosition(String username, String direction) {
+    public Player setPlayerPosition(String username, String direction) {
         Player player = playerRepository.findByName(username).orElse(null);
-        //TODO сделать ответ, если user не найден
         if(player == null) {
-            return new MoveResponse();
+            return null;
         }
 
         int posX = player.getPosX();
         int posY = player.getPosY();
-
         worldGenerator.getLocation(posX, posY).removePlayer(player);
 
         switch (direction) {
-            case "up" -> posY = (posY < Constants.MAX_POS_Y) ? posY + 1 : posY;
-            case "down" -> posY = (posY > 1) ? posY - 1 : posY;
-            case "left" -> posX = (posX > 1) ? posX - 1 : posX;
-            case "right" -> posX = (posX < Constants.MAX_POS_X) ? posX + 1 : posX;
+            case "up" -> {
+                if(posY + 1 < Constants.MAX_POS_Y) {
+                    player.setPosY(posY + 1);
+                }
+            }
+            case "down" -> {
+                if(posY - 1 > 1) {
+                    player.setPosY(posY - 1);
+                }
+            }
+            case "left" -> {
+                if(posX - 1 > 1) {
+                    player.setPosX(posX - 1);
+                }
+            }
+            case "right" -> {
+                if(posX + 1 < Constants.MAX_POS_X) {
+                    player.setPosX(posX + 1);
+                }
+            }
         }
 
-        worldGenerator.getLocation(posX, posY).setPlayer(player);
-
-        String locationType = String.valueOf(worldGenerator.getLocation(posX, posY).getLocationType());
-
-        playerRepository.saveNewUserPosition(posX, posY, username);
-        return new MoveResponse(username, locationType, posX, posY);
+        worldGenerator.getLocation(player.getPosX(), player.getPosY()).setPlayer(player);
+        playerRepository.saveNewUserPosition(player.getPosX(), player.getPosY(), player.getName());
+        return player;
     }
 }
