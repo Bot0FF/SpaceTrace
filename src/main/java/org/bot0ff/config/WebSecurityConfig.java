@@ -40,6 +40,7 @@ public class WebSecurityConfig {
                        authorizeHttpRequest
                                .requestMatchers("/auth").permitAll()
                                .requestMatchers("/register").permitAll()
+                               .requestMatchers("/library/**").permitAll()
                                .anyRequest().authenticated())
                  .logout(logout -> logout.logoutUrl("/logout").addLogoutHandler(new CookieClearingLogoutHandler("Token")));
         http.authenticationProvider(authenticationProvider());
