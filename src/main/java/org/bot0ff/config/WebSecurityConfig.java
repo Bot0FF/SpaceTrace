@@ -38,9 +38,7 @@ public class WebSecurityConfig {
                  .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                  .authorizeHttpRequests(authorizeHttpRequest ->
                        authorizeHttpRequest
-                               .requestMatchers("/auth").permitAll()
-                               .requestMatchers("/register").permitAll()
-                               .requestMatchers("/library/**").permitAll()
+                               .requestMatchers("/**").permitAll()
                                .anyRequest().authenticated())
                  .logout(logout -> logout.logoutUrl("/logout").addLogoutHandler(new CookieClearingLogoutHandler("Token")));
         http.authenticationProvider(authenticationProvider());

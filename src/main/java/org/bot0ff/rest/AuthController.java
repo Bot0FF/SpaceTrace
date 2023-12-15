@@ -5,14 +5,9 @@ import lombok.RequiredArgsConstructor;
 import org.bot0ff.config.jwt.JwtUtils;
 import org.bot0ff.config.service.UserDetailsImpl;
 import org.bot0ff.dto.jwt.*;
-import org.bot0ff.entity.Player;
-import org.bot0ff.entity.Role;
-import org.bot0ff.entity.Status;
-import org.bot0ff.entity.User;
-import org.bot0ff.repository.PlayerRepository;
+import org.bot0ff.entity.*;
 import org.bot0ff.repository.UserRepository;
 import org.bot0ff.util.Constants;
-import org.bot0ff.world.LocationType;
 import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -35,17 +30,6 @@ public class AuthController {
     private final JwtUtils jwtUtils;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
-    private final PlayerRepository playerRepository;
-
-    @GetMapping("/")
-    public ResponseEntity<?> getAccessToken(@AuthenticationPrincipal UserDetails userDetails) {
-        Player player = playerRepository.findByName(userDetails.getUsername()).orElse(null);
-        if(player == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Пользователь не найден"));
-        }
-
-        return ResponseEntity.ok().body(player);
-    }
 
     @PostMapping("/auth")
     public ResponseEntity<?> getAccessToken(@Valid @RequestBody JwtAuthRequest authRequest) {
@@ -54,14 +38,10 @@ public class AuthController {
          SecurityContextHolder.getContext().setAuthentication(authentication);
          UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
          ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
-
-         Player player = playerRepository.findByName(userDetails.getUsername()).orElse(null);
-         if(player == null) {
-             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Пользователь не найден"));
-         }
+         var user = userRepository.findUserByName(userDetails.getUsername());
 
          return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
-                 .body(player);
+                 .body(user);
     }
 
     @PostMapping("/register")
@@ -72,19 +52,17 @@ public class AuthController {
         }
 
         //сохранение в бд нового пользователя
-        User user = new User(null, registerRequest.getUsername(),
-                passwordEncoder.encode(registerRequest.getPassword()),
-                registerRequest.getEmail(), List.of(Role.USER), Status.ACTIVE);
+        User user = new User();
+        user.setUsername(registerRequest.getUsername());
+        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+        user.setEmail(registerRequest.getEmail());
+        user.setRole(List.of(Role.USER));
+        user.setStatus(Status.ACTIVE);
+        user.setX(Constants.START_POS_X);
+        user.setY(Constants.START_POS_Y);
+        user.setHp(Constants.START_HP);
+        user.setMana(Constants.START_MANA);
         userRepository.save(user);
-
-        //сохранение refreshToken user
-        User currentUser = userRepository.findByUsername(user.getUsername()).orElse(null);
-        if(currentUser == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Ошибка регистрации"));
-        }
-        Player player = new Player(currentUser.getId(), user.getUsername(), LocationType.PLAIN,
-                Constants.START_HP, Constants.START_MANA, Constants.START_POS_X, Constants.START_POS_Y);
-        playerRepository.save(player);
 
         Authentication authentication = authenticationManager
                 .authenticate(new UsernamePasswordAuthenticationToken(registerRequest.getUsername(), registerRequest.getPassword()));
@@ -93,6 +71,6 @@ public class AuthController {
         ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
 
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
-                .body(player);
+                .body(user);
     }
 }

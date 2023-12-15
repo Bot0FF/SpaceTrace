@@ -1,64 +1,29 @@
 package org.bot0ff.service;
 
 import lombok.RequiredArgsConstructor;
-import org.bot0ff.entity.Player;
-import org.bot0ff.repository.PlayerRepository;
-import org.bot0ff.util.Constants;
-import org.bot0ff.world.WorldGenerator;
+import org.bot0ff.repository.LocationRepository;
+import org.bot0ff.repository.UserRepository;
+import org.json.simple.JSONObject;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("unchecked")
 public class MainService {
-    private final PlayerRepository playerRepository;
-    private final WorldGenerator worldGenerator;
+    private final UserRepository userRepository;
+    private final LocationRepository locationRepository;
 
     //состояние user после обновления страницы
-    public Player getPlayerState(String username) {
-        Player player = playerRepository.findByName(username).orElse(null);
-        //TODO сделать ответ, если user не найден
-        if(player == null) {
-            return null;
-        }
-        return player;
-    }
+    public JSONObject getPlayerState(String username) {
+        var response = new JSONObject();
+        var user = userRepository.findUserByName(username).orElse(null);
+        var location = locationRepository.findById(Long.valueOf("" + user.getX() + user.getY())).orElse(null);
+//        var enemies = location.getEnemies();
+//        var heroes = location.getUsers();
 
-    //позиция user после перемещения
-    public Player setPlayerPosition(String username, String direction) {
-        Player player = playerRepository.findByName(username).orElse(null);
-        if(player == null) {
-            return null;
-        }
-
-        int posX = player.getPosX();
-        int posY = player.getPosY();
-        worldGenerator.getLocation(posX, posY).removePlayer(player);
-
-        switch (direction) {
-            case "up" -> {
-                if(posY + 1 < Constants.MAX_POS_Y) {
-                    player.setPosY(posY + 1);
-                }
-            }
-            case "down" -> {
-                if(posY - 1 > 1) {
-                    player.setPosY(posY - 1);
-                }
-            }
-            case "left" -> {
-                if(posX - 1 > 1) {
-                    player.setPosX(posX - 1);
-                }
-            }
-            case "right" -> {
-                if(posX + 1 < Constants.MAX_POS_X) {
-                    player.setPosX(posX + 1);
-                }
-            }
-        }
-
-        worldGenerator.getLocation(player.getPosX(), player.getPosY()).setPlayer(player);
-        playerRepository.saveNewUserPosition(player.getPosX(), player.getPosY(), player.getName());
-        return player;
+        response.put("user", user);
+//        response.put("enemies", enemies);
+//        response.put("heroes", heroes);
+        return response;
     }
 }

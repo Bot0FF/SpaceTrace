@@ -3,19 +3,19 @@ package org.bot0ff.entity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.bot0ff.world.LocationType;
+import lombok.NoArgsConstructor;
 
-//будут загружаться из базы в зависимости от сектора
 @Data
 @Table(name = "enemy")
 @Entity
 @AllArgsConstructor
+@NoArgsConstructor
 public class Enemy {
     @Id
     private Long id;
 
     @Enumerated(value = EnumType.STRING)
-    @Column(name = "sectorType")
+    @Column(name = "locationType")
     private LocationType locationType;
 
     @Column(name = "name")
