@@ -34,6 +34,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<UserDTO> findUserByName(@Param("username")String username);
 
     @Modifying
-    @Query(value = "UPDATE players SET posX = :posX, posY = :posY WHERE name = :name", nativeQuery = true)
-    void saveNewUserPosition(@Param("posX") int posX, @Param("posY")int posY, @Param("name")String name);
+    @Query(value = "UPDATE users SET x = :x, y = :y, location = :location WHERE username = :username", nativeQuery = true)
+    void saveNewUserPosition(@Param("x") int x, @Param("y")int y, @Param("location")Long location, @Param("username")String name);
 }

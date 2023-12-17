@@ -3,7 +3,10 @@ package org.bot0ff.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
@@ -13,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User{
+public class User implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,6 +41,12 @@ public class User{
     @Enumerated(value = EnumType.STRING)
     @JsonIgnore
     private Status status;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "location")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JsonIgnore
+    private Location location;
 
     @Column(name = "x")
     private int x;

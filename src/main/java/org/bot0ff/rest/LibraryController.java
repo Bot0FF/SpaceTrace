@@ -3,7 +3,7 @@ package org.bot0ff.rest;
 import lombok.RequiredArgsConstructor;
 import org.bot0ff.entity.Enemy;
 import org.bot0ff.repository.EnemyRepository;
-import org.json.simple.JSONObject;
+import org.bot0ff.util.JsonProcessor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -12,55 +12,61 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @CrossOrigin
 @RestController
 @RequestMapping("/api/library")
 @RequiredArgsConstructor
-@SuppressWarnings("unchecked")
 public class LibraryController {
     private final EnemyRepository enemyRepository;
+    private final JsonProcessor jsonProcessor;
 
     @GetMapping("/all")
     public ResponseEntity<?> libraryPage() {
-        var allItems = new JSONObject();
-        allItems.put("Существа", "/api/library/enemy");
-        allItems.put("Ресурсы", "/api/library/resource");
-        allItems.put("Сражения", "/api/library/battle");
-        allItems.put("Развитие", "/api/library/evolution");
+        var allItems = Map.of(
+                "Существа", "/api/library/enemy",
+                "Ресурсы", "/api/library/resource",
+                "Сражения", "/api/library/battle",
+                "Развитие", "/api/library/evolution"
+                );
 
         return ResponseEntity.ok(allItems);
     }
 
     @GetMapping("/enemy")
     public ResponseEntity<?> enemyPage() {
-        var enemies = new JSONObject();
         List<Enemy> enemyList = enemyRepository.findAll();
-        enemies.put("enemies", enemyList);
+        var enemies = Map.of(
+                "enemies", enemyList
+        );
 
         return ResponseEntity.ok(enemies);
     }
 
     @GetMapping("/resource")
     public ResponseEntity<?> resourcePage() {
-        var resources = new JSONObject();
-        resources.put("resources", "resources");
+        var resources = Map.of(
+                "resource", "resource"
+        );
 
         return ResponseEntity.ok(resources);
     }
 
     @GetMapping("/battle")
     public ResponseEntity<?> battlePage() {
-        var battle = new JSONObject();
-        battle.put("battle", "battle");
+        var battle = Map.of(
+                "battle", "battle"
+        );
 
         return ResponseEntity.ok(battle);
     }
 
     @GetMapping("/evolution")
     public ResponseEntity<?> evolutionPage() {
-        var evolution = new JSONObject();
-        evolution.put("evolution", "evolution");
+        var evolution = Map.of(
+                "evolution", "evolution"
+        );
 
         return ResponseEntity.ok(evolution);
     }

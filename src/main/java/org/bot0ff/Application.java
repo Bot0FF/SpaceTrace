@@ -29,7 +29,7 @@ public class Application {
 //            for(int x = 1; x <= Constants.MAX_MAP_LENGTH; x++) {
 //                for(int y = 1; y <= Constants.MAX_MAP_LENGTH; y++) {
 //                    var location = new Location();
-//                    location.setId(Long.valueOf("" + x + y));
+//                    location.setId(Long.parseLong("" + x + y));
 //                    location.setName("Равнина");
 //                    location.setX(x);
 //                    location.setY(y);
