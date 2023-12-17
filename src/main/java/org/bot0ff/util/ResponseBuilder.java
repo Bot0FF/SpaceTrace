@@ -15,5 +15,6 @@ public class ResponseBuilder {
     private UserDTO user;
     private List<Enemy> enemies;
     private List<User> players;
-    private Map<String, String> status;
+    private Map<String, String> content;
+    private String status;
 }

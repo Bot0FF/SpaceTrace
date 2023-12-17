@@ -1,15 +1,16 @@
 package org.bot0ff.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.bot0ff.repository.LocationRepository;
 import org.bot0ff.repository.UserRepository;
 import org.bot0ff.util.Constants;
 import org.bot0ff.util.JsonProcessor;
 import org.bot0ff.util.ResponseBuilder;
+import org.bot0ff.util.ResponseStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MainService {
@@ -23,7 +24,9 @@ public class MainService {
         if(user == null) {
             var response = ResponseBuilder.builder()
                     .user(null)
+                    .status(ResponseStatus.ERROR_USER)
                     .build();
+            log.info("Не найден user в БД по запросу username: {}", username);
             return jsonProcessor.toJson(response);
         }
         var locationId = Long.parseLong("" + user.getX() + user.getY());
@@ -31,24 +34,30 @@ public class MainService {
         if(location == null) {
             var response = ResponseBuilder.builder()
                     .user(user)
+                    .status(ResponseStatus.ERROR_LOCATION)
                     .build();
+            log.info("Не найдена location в БД по запросу locationId: {}", locationId);
             return jsonProcessor.toJson(response);
         }
         var response = ResponseBuilder.builder()
                 .user(user)
                 .enemies(location.getEnemies())
                 .players(location.getPlayers())
+                .status(ResponseStatus.SUCCESS)
                 .build();
 
         return jsonProcessor.toJson(response);
     }
 
+    //смена локации user
     public String movePlayer(String username, String direction) {
         var user = userRepository.findUserByName(username).orElse(null);
         if(user == null) {
             var response = ResponseBuilder.builder()
                     .user(null)
+                    .status(ResponseStatus.ERROR_USER)
                     .build();
+            log.info("Не найден user в БД по запросу username: {}", username);
             return jsonProcessor.toJson(response);
         }
         int newPositionX = user.getX();
@@ -79,7 +88,7 @@ public class MainService {
         userRepository.saveNewUserPosition(newPositionX, newPositionY, newLocationId, username);
 
         var response = ResponseBuilder.builder()
-                .status(Map.of("status", "success"))
+                .status(ResponseStatus.SUCCESS)
                 .build();
 
         return jsonProcessor.toJson(response);

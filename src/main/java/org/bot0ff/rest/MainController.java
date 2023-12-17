@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 
 import org.bot0ff.service.MainService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin
@@ -13,17 +12,17 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 
 public class MainController {
-    private final MainService mainServiceImpl;
+    private final MainService mainService;
 
     @GetMapping("/main")
     public ResponseEntity<?> mainPage() {
-        var response = mainServiceImpl.getPlayerState("admin");
+        var response = mainService.getPlayerState("admin");
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/move/{direction}")
     public ResponseEntity<?> moveUser(@PathVariable String direction) {
-        var response = mainServiceImpl.movePlayer("admin", direction);
+        var response = mainService.movePlayer("admin", direction);
         return ResponseEntity.ok(response);
     }
 
