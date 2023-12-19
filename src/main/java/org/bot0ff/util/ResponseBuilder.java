@@ -2,19 +2,19 @@ package org.bot0ff.util;
 
 import lombok.Builder;
 import lombok.Data;
-import org.bot0ff.dto.UserDTO;
 import org.bot0ff.entity.Enemy;
-import org.bot0ff.entity.User;
+import org.bot0ff.entity.Library;
+import org.bot0ff.entity.Player;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
-import java.util.Map;
 
 @Data
 @Builder
 public class ResponseBuilder {
-    private UserDTO user;
+    private Player player;
     private List<Enemy> enemies;
-    private List<User> players;
-    private Map<String, String> content;
-    private String status;
+    private List<Player> players;
+    private String content;
+    private HttpStatus httpStatus;
 }

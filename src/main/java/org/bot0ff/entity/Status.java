@@ -1,5 +1,10 @@
 package org.bot0ff.entity;
 
 public enum Status {
-    ACTIVE, BANNED, DELETED
+    ACTIVE,
+    BANNED,
+    DELETED,
+    OFFLINE,
+    FIGHT,
+    ACTION
 }

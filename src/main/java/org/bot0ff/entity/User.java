@@ -37,26 +37,4 @@ public class User implements Serializable {
     @Enumerated(value = EnumType.STRING)
     @JsonIgnore
     private List<Role> role;
-
-    @Enumerated(value = EnumType.STRING)
-    @JsonIgnore
-    private Status status;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "location")
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JsonIgnore
-    private Location location;
-
-    @Column(name = "x")
-    private int x;
-
-    @Column(name = "y")
-    private int y;
-
-    @Column(name = "hp")
-    private int hp;
-
-    @Column(name = "mana")
-    private int mana;
 }

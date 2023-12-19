@@ -3,94 +3,103 @@ package org.bot0ff.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bot0ff.repository.LocationRepository;
-import org.bot0ff.repository.UserRepository;
+import org.bot0ff.repository.PlayerRepository;
 import org.bot0ff.util.Constants;
 import org.bot0ff.util.JsonProcessor;
 import org.bot0ff.util.ResponseBuilder;
-import org.bot0ff.util.ResponseStatus;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class MainService {
-    private final UserRepository userRepository;
+    private final PlayerRepository playerRepository;
     private final LocationRepository locationRepository;
     private final JsonProcessor jsonProcessor;
 
     //состояние user после обновления страницы
     public String getPlayerState(String username) {
-        var user = userRepository.findUserByName(username).orElse(null);
-        if(user == null) {
+        var player = playerRepository.findByName(username);
+        if(player.isEmpty()) {
             var response = ResponseBuilder.builder()
-                    .user(null)
-                    .status(ResponseStatus.ERROR_USER)
+                    .httpStatus(HttpStatus.NO_CONTENT)
                     .build();
-            log.info("Не найден user в БД по запросу username: {}", username);
+            log.info("Не найден player в БД по запросу username: {}", username);
             return jsonProcessor.toJson(response);
         }
-        var locationId = Long.parseLong("" + user.getX() + user.getY());
-        var location = locationRepository.findById(locationId).orElse(null);
-        if(location == null) {
+        var location = locationRepository.findById(player.get().getLocationId());
+        if(location.isEmpty()) {
             var response = ResponseBuilder.builder()
-                    .user(user)
-                    .status(ResponseStatus.ERROR_LOCATION)
+                    .player(player.get())
+                    .httpStatus(HttpStatus.NO_CONTENT)
                     .build();
-            log.info("Не найдена location в БД по запросу locationId: {}", locationId);
+            log.info("Не найдена location в БД по запросу locationId: {}", player.get().getLocationId());
             return jsonProcessor.toJson(response);
         }
         var response = ResponseBuilder.builder()
-                .user(user)
-                .enemies(location.getEnemies())
-                .players(location.getPlayers())
-                .status(ResponseStatus.SUCCESS)
+                .player(player.get())
+                .enemies(location.get().getEnemies())
+                .players(location.get().getPlayers())
+                .content(location.get().getName())
+                .httpStatus(HttpStatus.OK)
                 .build();
 
         return jsonProcessor.toJson(response);
     }
 
     //смена локации user
+    @Transactional
     public String movePlayer(String username, String direction) {
-        var user = userRepository.findUserByName(username).orElse(null);
-        if(user == null) {
+        var player = playerRepository.findByName(username).orElse(null);
+        if(player == null) {
             var response = ResponseBuilder.builder()
-                    .user(null)
-                    .status(ResponseStatus.ERROR_USER)
+                    .httpStatus(HttpStatus.NO_CONTENT)
                     .build();
-            log.info("Не найден user в БД по запросу username: {}", username);
+            log.info("Не найден player в БД по запросу username: {}", username);
             return jsonProcessor.toJson(response);
         }
-        int newPositionX = user.getX();
-        int newPositionY = user.getY();
         switch (direction) {
             case "up" -> {
-                if(user.getY() + 1 <= Constants.MAX_MAP_LENGTH) {
-                    newPositionY = user.getY() + 1;
+                if(player.getY() + 1 <= Constants.MAX_MAP_LENGTH) {
+                    player.setY(player.getY() + 1);
                 }
             }
             case "left" -> {
-                if(user.getX() - 1 >= 0) {
-                    newPositionX = user.getX() - 1;
+                if(player.getX() - 1 >= 0) {
+                    player.setX(player.getX() - 1);
                 }
             }
             case "right" -> {
-                if(user.getX() + 1 <= Constants.MAX_MAP_LENGTH) {
-                    newPositionX = user.getX() + 1;
+                if(player.getX() + 1 <= Constants.MAX_MAP_LENGTH) {
+                     player.setX(player.getX() + 1);
                 }
             }
             case "down" -> {
-                if(user.getY() - 1 >= 0) {
-                    newPositionY = user.getY() - 1;
+                if(player.getY() - 1 >= 0) {
+                     player.setY(player.getY() - 1);
                 }
             }
         }
-        var newLocationId = Long.parseLong("" + newPositionX + newPositionY);
-        userRepository.saveNewUserPosition(newPositionX, newPositionY, newLocationId, username);
-
+        var newLocationId = Long.parseLong("" + player.getX() + player.getY());
+        playerRepository.saveNewPlayerPosition(player.getX(), player.getY(), newLocationId, player.getName());
+        var location = locationRepository.findById(newLocationId);
+        if(location.isEmpty()) {
+            var response = ResponseBuilder.builder()
+                    .player(player)
+                    .httpStatus(HttpStatus.NO_CONTENT)
+                    .build();
+            log.info("Не найдена newLocation в БД по запросу newLocationId: {}", newLocationId);
+            return jsonProcessor.toJson(response);
+        }
         var response = ResponseBuilder.builder()
-                .status(ResponseStatus.SUCCESS)
+                .player(player)
+                .enemies(location.get().getEnemies())
+                .players(location.get().getPlayers())
+                .content(location.get().getName())
+                .httpStatus(HttpStatus.OK)
                 .build();
-
         return jsonProcessor.toJson(response);
     }
 }

@@ -1,4 +1,4 @@
-package org.bot0ff.dto.jwt;
+package org.bot0ff.dto.auth;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class JwtRegisterRequest {
+public class RegisterRequest {
     @NotBlank(message = "The username is required.")
     //@Size(min = 3, max = 20, message = "The username must be from 3 to 20 characters.")
     private String username;

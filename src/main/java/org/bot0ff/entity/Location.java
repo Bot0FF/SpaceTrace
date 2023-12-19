@@ -1,5 +1,6 @@
 package org.bot0ff.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -32,7 +33,7 @@ public class Location implements Serializable {
     private LocationType locationType;
 
     @OneToMany(mappedBy = "location", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<User> players;
+    private List<Player> players;
 
     @OneToMany(mappedBy = "location", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Enemy> enemies;
