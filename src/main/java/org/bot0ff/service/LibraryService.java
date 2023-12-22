@@ -15,19 +15,37 @@ public class LibraryService {
     private final LibraryRepository libraryRepository;
     private final JsonProcessor jsonProcessor;
 
+    public String getEntityType(String type) {
+        var entities = libraryRepository.findByType(type);
+        if(entities.isEmpty()) {
+            var response = ResponseBuilder.builder()
+                    .content("Список пуст")
+                    .status(HttpStatus.NO_CONTENT)
+                    .build();
+            log.info("Не найдено ни одного типа сущностей в БД: {}", type);
+            return jsonProcessor.toJson(response);
+        }
+        var response = ResponseBuilder.builder()
+                .libraries(entities)
+                .content(String.valueOf(entities.size()))
+                .status(HttpStatus.OK)
+                .build();
+        return jsonProcessor.toJson(response);
+    }
+
     public String getEntityInfo(String name) {
         var entity = libraryRepository.findByName(name);
         if(entity.isEmpty()) {
             var response = ResponseBuilder.builder()
                     .content("Описание не найдено")
-                    .httpStatus(HttpStatus.NO_CONTENT)
+                    .status(HttpStatus.NO_CONTENT)
                     .build();
             log.info("Не найдено описание сущности в БД: {}", name);
             return jsonProcessor.toJson(response);
         }
         var response = ResponseBuilder.builder()
                 .content(entity.get().getDescription())
-                .httpStatus(HttpStatus.OK)
+                .status(HttpStatus.OK)
                 .build();
         return jsonProcessor.toJson(response);
     }

@@ -15,6 +15,7 @@ public class ResponseBuilder {
     private Player player;
     private List<Enemy> enemies;
     private List<Player> players;
+    private List<Library> libraries;
     private String content;
-    private HttpStatus httpStatus;
+    private HttpStatus status;
 }

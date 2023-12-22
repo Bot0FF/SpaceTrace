@@ -16,29 +16,8 @@ import java.util.ArrayList;
 @SpringBootApplication
 @EnableScheduling
 public class Application {
-    @Autowired
-    LocationRepository locationRepository;
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }
-
-//    @Bean
-//    public CommandLineRunner CommandLineRunnerBean() {
-//        return (args) -> {
-//            for(int x = 1; x <= Constants.MAX_MAP_LENGTH; x++) {
-//                for(int y = 1; y <= Constants.MAX_MAP_LENGTH; y++) {
-//                    var location = new Location();
-//                    location.setId(Long.parseLong("" + x + y));
-//                    location.setName("Равнина");
-//                    location.setX(x);
-//                    location.setY(y);
-//                    location.setLocationType(LocationType.PLAIN);
-//                    location.setPlayers(new ArrayList<>());
-//                    location.setEnemies(new ArrayList<>());
-//                    locationRepository.save(location);
-//                }
-//            }
-//        };
-//    }
 }

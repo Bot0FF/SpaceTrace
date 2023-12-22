@@ -8,7 +8,7 @@ public class Constants {
     public static int START_POS_Y = 2;
 
     //Размеры карты
-    public static int MAX_MAP_LENGTH = 5;
+    public static int MAX_MAP_LENGTH = 9;
 
     //максимальное количество существ на локации
     public static int MAX_COUNT_ENEMY_ON_LOCATION = 3;

@@ -10,7 +10,7 @@ import java.io.Serializable;
 import java.util.List;
 
 @Data
-@Table(name = "location")
+@Table(name = "locations")
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor

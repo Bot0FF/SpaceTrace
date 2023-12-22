@@ -22,7 +22,7 @@ public class FightService {
         var player = playerRepository.findByName(username);
         if(player.isEmpty()) {
             var response = ResponseBuilder.builder()
-                    .httpStatus(HttpStatus.NO_CONTENT)
+                    .status(HttpStatus.NO_CONTENT)
                     .build();
             log.info("Не найден player в БД по запросу username: {}", username);
             return jsonProcessor.toJson(response);
