@@ -7,10 +7,9 @@ import org.bot0ff.config.jwt.JwtUtils;
 import org.bot0ff.config.service.UserDetailsImpl;
 import org.bot0ff.dto.auth.*;
 import org.bot0ff.entity.*;
-import org.bot0ff.repository.LocationRepository;
 import org.bot0ff.repository.UserRepository;
 import org.bot0ff.service.MainService;
-import org.bot0ff.util.ResponseBuilder;
+import org.bot0ff.dto.response.MainBuilder;
 import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -33,7 +32,6 @@ public class AuthController {
     private final JwtUtils jwtUtils;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
-    protected final LocationRepository locationRepository;
     private final MainService mainService;
 
     //авторизация
@@ -44,8 +42,7 @@ public class AuthController {
          SecurityContextHolder.getContext().setAuthentication(authentication);
          UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
          ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
-         var response = Map.of("username", userDetails.getUsername(),
-                 "status", "OK");
+         var response = mainService.getPlayerState(userDetails.getUsername());
 
          return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
                  .body(response);
@@ -55,7 +52,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
         if(userRepository.existsByUsername(registerRequest.getUsername())) {
-            var response = ResponseBuilder.builder()
+            var response = MainBuilder.builder()
                     .status(HttpStatus.NO_CONTENT)
                     .build();
             return ResponseEntity.badRequest().body(response);
@@ -77,5 +74,15 @@ public class AuthController {
 
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
                 .body(response);
+    }
+
+    //новости
+    @GetMapping("/news")
+    public ResponseEntity<?> getNews() {
+        List<News> newsList =
+                List.of(new News(1L, "vezland/1", "Новость 1"),
+                        new News(2L, "vezland/2", "Новость 2"));
+
+        return ResponseEntity.ok().body(newsList);
     }
 }

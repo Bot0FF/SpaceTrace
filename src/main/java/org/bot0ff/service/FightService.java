@@ -6,7 +6,7 @@ import org.bot0ff.dto.main.FightRequest;
 import org.bot0ff.repository.LocationRepository;
 import org.bot0ff.repository.PlayerRepository;
 import org.bot0ff.util.JsonProcessor;
-import org.bot0ff.util.ResponseBuilder;
+import org.bot0ff.dto.response.MainBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +21,7 @@ public class FightService {
     public String getStartState(String username, FightRequest fightRequest) {
         var player = playerRepository.findByName(username);
         if(player.isEmpty()) {
-            var response = ResponseBuilder.builder()
+            var response = MainBuilder.builder()
                     .status(HttpStatus.NO_CONTENT)
                     .build();
             log.info("Не найден player в БД по запросу username: {}", username);

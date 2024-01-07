@@ -11,9 +11,10 @@ import org.bot0ff.repository.PlayerRepository;
 import org.bot0ff.repository.UserRepository;
 import org.bot0ff.service.MainService;
 import org.bot0ff.util.Constants;
-import org.bot0ff.util.ResponseBuilder;
+import org.bot0ff.dto.response.MainBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -33,13 +34,13 @@ public class MainController {
         String username = "admin";
         var user = userRepository.findByUsername(username).orElse(null);
         if(user == null) {
-            var response = ResponseBuilder.builder()
+            var response = MainBuilder.builder()
                     .status(HttpStatus.NO_CONTENT)
                     .build();
             return ResponseEntity.ok(response);
         }
         if(playerRepository.existsByName(user.getUsername())) {
-            var response = ResponseBuilder.builder()
+            var response = MainBuilder.builder()
                     .status(HttpStatus.NO_CONTENT)
                     .build();
             return ResponseEntity.badRequest().body(response);
@@ -47,7 +48,7 @@ public class MainController {
         var locationId = Long.parseLong("" + Constants.START_POS_X + Constants.START_POS_Y);
         var location = locationRepository.findById(locationId).orElse(null);
         if(location == null) {
-            var response = ResponseBuilder.builder()
+            var response = MainBuilder.builder()
                     .status(HttpStatus.NO_CONTENT)
                     .build();
             log.info("Не найдена location в БД по запросу locationId: {}", locationId);
@@ -68,8 +69,8 @@ public class MainController {
 
     //главная страница
     @GetMapping("/im")
-    public ResponseEntity<?> mainPage() {
-        var response = mainService.getPlayerState("admin");
+    public ResponseEntity<?> mainPage(@AuthenticationPrincipal(expression = "username") String username) {
+        var response = mainService.getPlayerState(username);
         return ResponseEntity.ok(response);
     }
 
@@ -93,6 +94,4 @@ public class MainController {
         var response = mainService.getPlayerProfile(name);
         return ResponseEntity.ok(response);
     }
-
-    //@AuthenticationPrincipal(expression = "username") String username
 }

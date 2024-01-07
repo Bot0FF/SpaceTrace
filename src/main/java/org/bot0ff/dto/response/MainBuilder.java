@@ -1,4 +1,4 @@
-package org.bot0ff.util;
+package org.bot0ff.dto.response;
 
 import lombok.Builder;
 import lombok.Data;
@@ -11,11 +11,12 @@ import java.util.List;
 
 @Data
 @Builder
-public class ResponseBuilder {
+public class MainBuilder {
     private Player player;
     private List<Enemy> enemies;
     private List<Player> players;
     private List<Library> libraries;
     private String content;
+    private boolean inFight;
     private HttpStatus status;
 }

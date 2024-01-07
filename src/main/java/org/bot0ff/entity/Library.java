@@ -23,4 +23,10 @@ public class Library {
 
     @Column(name = "description")
     private String description;
+
+    @Column(name = "hp")
+    private int hp;
+
+    @Column(name = "damage")
+    private int damage;
 }

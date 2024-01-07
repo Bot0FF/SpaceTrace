@@ -12,4 +12,7 @@ public class Constants {
 
     //максимальное количество существ на локации
     public static int MAX_COUNT_ENEMY_ON_LOCATION = 3;
+
+    //шанс появления противника на локации
+    public static int CHANCE_CREATE_ENEMY = 50;
 }
