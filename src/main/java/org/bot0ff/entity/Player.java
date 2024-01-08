@@ -35,15 +35,30 @@ public class Player {
     @Column(name = "y")
     private int y;
 
+    @Enumerated(value = EnumType.STRING)
+    @JsonIgnore
+    private Status status;
+
     @Column(name = "hp")
     private int hp;
 
     @Column(name = "mana")
     private int mana;
 
-    @Enumerated(value = EnumType.STRING)
-    @JsonIgnore
-    private Status status;
+    @Column(name = "damage")
+    private int damage;
+
+    @Column(name = "fightId")
+    private Long fightId;
+
+    @Column(name = "endRound")
+    private boolean endRound;
+
+    @Column(name = "roundDamage")
+    private int roundDamage;
+
+    @Column(name = "attackToId")
+    private Long attackToId;
 
     public Long getLocationId() {
         return Long.parseLong("" + this.getX() + this.getY());

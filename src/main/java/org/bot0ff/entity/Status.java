@@ -6,5 +6,5 @@ public enum Status {
     DELETED,
     OFFLINE,
     FIGHT,
-    ACTION
+    END
 }

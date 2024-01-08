@@ -19,12 +19,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Boolean existsByUsername(String username);
 
-    Optional<User> findRefreshTokenByUsername(String username);
-
-    @Modifying
-    @Query(value = "UPDATE users SET refresh_token = :refreshToken WHERE username = :username", nativeQuery = true)
-    void setUserRefreshToken(@Param("refreshToken") String refreshToken, @Param("username") String username);
-
     @Modifying
     @Query(value = "SELECT token=:token FROM users WHERE username = :username", nativeQuery = true)
     String tokenIsBlocked(@Param("token") Date token, @Param("username") String username);

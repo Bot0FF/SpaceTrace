@@ -3,11 +3,7 @@ package org.bot0ff.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
-
 import java.io.Serializable;
-import java.util.Date;
 import java.util.List;
 
 @Entity

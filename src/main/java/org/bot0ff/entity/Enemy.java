@@ -36,11 +36,27 @@ public class Enemy {
     @Column(name = "name")
     private String name;
 
+    @Enumerated(value = EnumType.STRING)
+    @JsonIgnore
+    private Status status;
+
+    @Column(name = "fightId")
+    private Long fightId;
+
     @Column(name = "hp")
     private int hp;
 
     @Column(name = "damage")
     private int damage;
+
+    @Column(name = "endRound")
+    private boolean endRound;
+
+    @Column(name = "roundDamage")
+    private int roundDamage;
+
+    @Column(name = "attackToId")
+    private Long attackToId;
 
     public Long getLocationId() {
         return Long.parseLong("" + this.getX() + this.getY());

@@ -2,51 +2,54 @@ package org.bot0ff.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bot0ff.repository.LibraryRepository;
-import org.bot0ff.util.JsonProcessor;
 import org.bot0ff.dto.response.MainBuilder;
+import org.bot0ff.repository.PlayerRepository;
+import org.bot0ff.util.JsonProcessor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class LibraryService {
-    private final LibraryRepository libraryRepository;
+public class InfoService {
+    private final PlayerRepository playerRepository;
     private final JsonProcessor jsonProcessor;
 
-    public String getEntityType(String type) {
-        var entities = libraryRepository.findByType(type);
-        if(entities.isEmpty()) {
+    //все players
+    public String getAllPlayers() {
+        var players = playerRepository.findAll();
+        if(players.isEmpty()) {
             var response = MainBuilder.builder()
-                    .content("Список пуст")
                     .status(HttpStatus.NO_CONTENT)
                     .build();
-            log.info("Не найдено ни одного типа сущностей в БД: {}", type);
+            log.info("Не найдены players в БД по запросу getAllPlayers");
             return jsonProcessor.toJsonMainResponse(response);
         }
         var response = MainBuilder.builder()
-                .libraries(entities)
-                .content(String.valueOf(entities.size()))
+                .players(players)
+                .content(String.valueOf(players.size()))
                 .status(HttpStatus.OK)
                 .build();
+
         return jsonProcessor.toJsonMainResponse(response);
     }
 
-    public String getEntityInfo(String name) {
-        var entity = libraryRepository.findByName(name);
-        if(entity.isEmpty()) {
+    //профиль player
+    public String getPlayerProfile(String username) {
+        var player = playerRepository.findByName(username);
+        if(player.isEmpty()) {
             var response = MainBuilder.builder()
-                    .content("Описание не найдено")
+                    .content("Игрок не найден")
                     .status(HttpStatus.NO_CONTENT)
                     .build();
-            log.info("Не найдено описание сущности в БД: {}", name);
+            log.info("Не найден player в БД по запросу username: {}", username);
             return jsonProcessor.toJsonMainResponse(response);
         }
         var response = MainBuilder.builder()
-                .content(entity.get().getDescription())
+                .player(player.get())
                 .status(HttpStatus.OK)
                 .build();
+
         return jsonProcessor.toJsonMainResponse(response);
     }
 }

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bot0ff.entity.Enemy;
 import org.bot0ff.entity.Library;
+import org.bot0ff.entity.Status;
 import org.bot0ff.repository.EnemyRepository;
 import org.bot0ff.repository.LibraryRepository;
 import org.bot0ff.repository.LocationRepository;
@@ -37,7 +38,7 @@ public class MainService {
                     .status(HttpStatus.NO_CONTENT)
                     .build();
             log.info("Не найден player в БД по запросу username: {}", username);
-            return jsonProcessor.toJson(response);
+            return jsonProcessor.toJsonMainResponse(response);
         }
         var location = locationRepository.findById(player.get().getLocationId());
         if(location.isEmpty()) {
@@ -46,7 +47,7 @@ public class MainService {
                     .status(HttpStatus.NO_CONTENT)
                     .build();
             log.info("Не найдена location в БД по запросу locationId: {}", player.get().getLocationId());
-            return jsonProcessor.toJson(response);
+            return jsonProcessor.toJsonMainResponse(response);
         }
         var response = MainBuilder.builder()
                 .player(player.get())
@@ -56,7 +57,7 @@ public class MainService {
                 .status(HttpStatus.OK)
                 .build();
 
-        return jsonProcessor.toJson(response);
+        return jsonProcessor.toJsonMainResponse(response);
     }
 
     //смена локации user
@@ -68,7 +69,7 @@ public class MainService {
                     .status(HttpStatus.NO_CONTENT)
                     .build();
             log.info("Не найден player в БД по запросу username: {}", username);
-            return jsonProcessor.toJson(response);
+            return jsonProcessor.toJsonMainResponse(response);
         }
         switch (direction) {
             case "up" -> {
@@ -102,7 +103,7 @@ public class MainService {
                     .status(HttpStatus.NO_CONTENT)
                     .build();
             log.info("Не найдена newLocation в БД по запросу newLocationId: {}", newLocationId);
-            return jsonProcessor.toJson(response);
+            return jsonProcessor.toJsonMainResponse(response);
         }
 
         //шанс появления enemy на локации
@@ -111,7 +112,8 @@ public class MainService {
             Optional<Library> enemyLibrary = libraryRepository.findById(randomUtil.getRandomEnemyId());
             if(enemyLibrary.isPresent()) {
                 Enemy newEnemy = new Enemy(randomUtil.getRandomId(), player.getX(), player.getY(), player.getLocation().getLocationType(),
-                        location.get(), enemyLibrary.get().getName(), enemyLibrary.get().getHp(), enemyLibrary.get().getDamage());
+                        location.get(), enemyLibrary.get().getName(), Status.ACTIVE, null, enemyLibrary.get().getHp(), enemyLibrary.get().getDamage(),
+                        false, 0, null);
                 enemyRepository.save(newEnemy);
             }
         }
@@ -123,44 +125,6 @@ public class MainService {
                 .content(location.get().getName())
                 .status(HttpStatus.OK)
                 .build();
-        return jsonProcessor.toJson(response);
-    }
-
-    //все players
-    public String getAllPlayers() {
-        var players = playerRepository.findAll();
-        if(players.isEmpty()) {
-            var response = MainBuilder.builder()
-                    .status(HttpStatus.NO_CONTENT)
-                    .build();
-            log.info("Не найдены players в БД по запросу getAllPlayers");
-            return jsonProcessor.toJson(response);
-        }
-        var response = MainBuilder.builder()
-                .players(players)
-                .content(String.valueOf(players.size()))
-                .status(HttpStatus.OK)
-                .build();
-
-        return jsonProcessor.toJson(response);
-    }
-
-    //профиль player
-    public String getPlayerProfile(String username) {
-        var player = playerRepository.findByName(username);
-        if(player.isEmpty()) {
-            var response = MainBuilder.builder()
-                    .content("Игрок не найден")
-                    .status(HttpStatus.NO_CONTENT)
-                    .build();
-            log.info("Не найден player в БД по запросу username: {}", username);
-            return jsonProcessor.toJson(response);
-        }
-        var response = MainBuilder.builder()
-                .player(player.get())
-                .status(HttpStatus.OK)
-                .build();
-
-        return jsonProcessor.toJson(response);
+        return jsonProcessor.toJsonMainResponse(response);
     }
 }
