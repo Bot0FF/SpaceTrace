@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bot0ff.entity.enums.LocationType;
+import org.bot0ff.entity.enums.Status;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -18,20 +20,26 @@ public class Enemy {
     private Long id;
 
     @Column(name = "x")
+    @JsonIgnore
     private int x;
 
     @Column(name = "y")
+    @JsonIgnore
     private int y;
 
     @Enumerated(value = EnumType.STRING)
     @Column(name = "locationType")
     private LocationType locationType;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne()
     @JoinColumn(name = "location")
-    @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonIgnore
     private Location location;
+
+    @ManyToOne()
+    @JoinColumn(name = "fight")
+    @JsonIgnore
+    private Fight fight;
 
     @Column(name = "name")
     private String name;
@@ -39,9 +47,6 @@ public class Enemy {
     @Enumerated(value = EnumType.STRING)
     @JsonIgnore
     private Status status;
-
-    @Column(name = "fightId")
-    private Long fightId;
 
     @Column(name = "hp")
     private int hp;
@@ -58,6 +63,7 @@ public class Enemy {
     @Column(name = "attackToId")
     private Long attackToId;
 
+    @JsonIgnore
     public Long getLocationId() {
         return Long.parseLong("" + this.getX() + this.getY());
     }

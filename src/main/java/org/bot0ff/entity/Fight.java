@@ -8,17 +8,27 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Data
+@Table(name = "fight")
+@Entity
 @AllArgsConstructor
 @NoArgsConstructor
 public class Fight {
 
-    private List<Long> players;
+    @Id
+    private Long id;
 
-    private List<Long> enemies;
+    @OneToMany(mappedBy = "fight", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Player> players;
 
+    @OneToMany(mappedBy = "fight", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Enemy> enemies;
+
+    @Column(name = "countRound")
     private int countRound;
 
-    private int timeToEndRound;
+    @Column(name = "fightEnd")
+    private boolean fightEnd;
 
-    private boolean roundEnd;
+    @Transient
+    private int timeToEndRound;
 }

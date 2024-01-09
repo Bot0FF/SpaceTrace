@@ -5,11 +5,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bot0ff.config.jwt.JwtUtils;
 import org.bot0ff.config.service.UserDetailsImpl;
+import org.bot0ff.dto.Response;
 import org.bot0ff.dto.auth.*;
 import org.bot0ff.entity.*;
+import org.bot0ff.entity.enums.Role;
 import org.bot0ff.repository.UserRepository;
 import org.bot0ff.service.MainService;
-import org.bot0ff.dto.response.MainBuilder;
 import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -52,7 +53,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
         if(userRepository.existsByUsername(registerRequest.getUsername())) {
-            var response = MainBuilder.builder()
+            var response = Response.builder()
                     .status(HttpStatus.NO_CONTENT)
                     .build();
             return ResponseEntity.badRequest().body(response);
@@ -79,10 +80,6 @@ public class AuthController {
     //новости
     @GetMapping("/news")
     public ResponseEntity<?> getNews() {
-        List<News> newsList =
-                List.of(new News(1L, "vezland/1", "Новость 1"),
-                        new News(2L, "vezland/2", "Новость 2"));
-
-        return ResponseEntity.ok().body(newsList);
+        return ResponseEntity.ok().body("");
     }
 }

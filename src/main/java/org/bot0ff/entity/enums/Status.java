@@ -1,4 +1,4 @@
-package org.bot0ff.entity;
+package org.bot0ff.entity.enums;
 
 public enum Status {
     ACTIVE,
@@ -6,5 +6,5 @@ public enum Status {
     DELETED,
     OFFLINE,
     FIGHT,
-    END
+    DIE
 }

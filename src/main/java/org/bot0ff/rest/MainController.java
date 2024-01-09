@@ -24,8 +24,8 @@ public class MainController {
     }
 
     //смена локации
-    @GetMapping("/move/{direction}")
-    public ResponseEntity<?> movePlayer(@PathVariable String direction) {
+    @GetMapping("/move")
+    public ResponseEntity<?> movePlayer(@RequestParam String direction) {
         var response = mainService.movePlayer("admin", direction);
         return ResponseEntity.ok(response);
     }

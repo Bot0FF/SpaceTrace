@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bot0ff.entity.enums.Status;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -23,16 +24,22 @@ public class Player {
     @Column(name = "name")
     private String name;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne()
     @JoinColumn(name = "location")
-    @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonIgnore
     private Location location;
 
+    @ManyToOne()
+    @JoinColumn(name = "fight")
+    @JsonIgnore
+    private Fight fight;
+
     @Column(name = "x")
+    @JsonIgnore
     private int x;
 
     @Column(name = "y")
+    @JsonIgnore
     private int y;
 
     @Enumerated(value = EnumType.STRING)
@@ -48,9 +55,6 @@ public class Player {
     @Column(name = "damage")
     private int damage;
 
-    @Column(name = "fightId")
-    private Long fightId;
-
     @Column(name = "endRound")
     private boolean endRound;
 
@@ -60,6 +64,7 @@ public class Player {
     @Column(name = "attackToId")
     private Long attackToId;
 
+    @JsonIgnore
     public Long getLocationId() {
         return Long.parseLong("" + this.getX() + this.getY());
     }

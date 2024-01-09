@@ -13,18 +13,24 @@ import org.springframework.web.bind.annotation.*;
 public class FightController {
     private final FightService fightService;
 
-    //начать сражение с выбранным enemy
-    @GetMapping("/attack/enemy")
+    //начать сражение с выбранным противником
+    @GetMapping("/attack")
     public ResponseEntity<?> actionAttack(@RequestParam Long id) {
         var response = fightService.getStartFightUserVsEnemy("admin", id);
         return ResponseEntity.ok(response);
     }
 
+    //текущее состояние сражения
+    @GetMapping("/refresh")
+    public ResponseEntity<?> actionFight() {
+        var response = fightService.getRefreshCurrentRound("admin");
+        return ResponseEntity.ok(response);
+    }
+
     //физическая атака по выбранному enemy
     @GetMapping("/phys")
-    public ResponseEntity<?> actionFight(@RequestParam Long abilityId,
-                                         @RequestParam Long targetId) {
-        var response = fightService.getPhysAttackUserVsEnemy("admin", abilityId, targetId);
+    public ResponseEntity<?> actionFight(@RequestParam Long targetId) {
+        var response = fightService.getPhysAttackUserVsEnemy("admin", targetId);
         return ResponseEntity.ok(response);
     }
 }

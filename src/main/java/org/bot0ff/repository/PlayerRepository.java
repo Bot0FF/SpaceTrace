@@ -17,4 +17,5 @@ public interface PlayerRepository extends JpaRepository<Player, Long> {
     @Modifying
     @Query(value = "UPDATE players SET x = :x, y = :y, location = :location WHERE name = :name", nativeQuery = true)
     void saveNewPlayerPosition(@Param("x") int x, @Param("y")int y, @Param("location") Long location, @Param("name") String name);
+
 }

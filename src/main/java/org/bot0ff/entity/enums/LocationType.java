@@ -1,4 +1,4 @@
-package org.bot0ff.entity;
+package org.bot0ff.entity.enums;
 
 public enum LocationType {
     PLAIN,

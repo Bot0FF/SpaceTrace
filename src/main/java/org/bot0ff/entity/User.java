@@ -3,6 +3,8 @@ package org.bot0ff.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import org.bot0ff.entity.enums.Role;
+
 import java.io.Serializable;
 import java.util.List;
 

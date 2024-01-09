@@ -2,10 +2,10 @@ package org.bot0ff.rest;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bot0ff.dto.Response;
 import org.bot0ff.dto.auth.SettingRequest;
-import org.bot0ff.dto.response.MainBuilder;
 import org.bot0ff.entity.Player;
-import org.bot0ff.entity.Status;
+import org.bot0ff.entity.enums.Status;
 import org.bot0ff.repository.LocationRepository;
 import org.bot0ff.repository.PlayerRepository;
 import org.bot0ff.repository.UserRepository;
@@ -32,13 +32,15 @@ public class SettingController {
         String username = "admin";
         var user = userRepository.findByUsername(username).orElse(null);
         if(user == null) {
-            var response = MainBuilder.builder()
+            var response = Response.builder()
+                    .info("Игрок не найден")
                     .status(HttpStatus.NO_CONTENT)
                     .build();
             return ResponseEntity.ok(response);
         }
         if(playerRepository.existsByName(user.getUsername())) {
-            var response = MainBuilder.builder()
+            var response = Response.builder()
+                    .info("Игрок с таким именем уже зарегистрирован")
                     .status(HttpStatus.NO_CONTENT)
                     .build();
             return ResponseEntity.badRequest().body(response);
@@ -46,7 +48,8 @@ public class SettingController {
         var locationId = Long.parseLong("" + Constants.START_POS_X + Constants.START_POS_Y);
         var location = locationRepository.findById(locationId).orElse(null);
         if(location == null) {
-            var response = MainBuilder.builder()
+            var response = Response.builder()
+                    .info("Локация не найдена")
                     .status(HttpStatus.NO_CONTENT)
                     .build();
             log.info("Не найдена location в БД по запросу locationId: {}", locationId);
@@ -56,10 +59,15 @@ public class SettingController {
         player.setName(user.getUsername());
         player.setX(Constants.START_POS_X);
         player.setY(Constants.START_POS_Y);
-        player.setHp(Constants.START_HP);
         player.setMana(Constants.START_MANA);
         player.setLocation(location);
         player.setStatus(Status.ACTIVE);
+        player.setHp(Constants.START_HP);
+        player.setMana(Constants.START_MANA);
+        player.setDamage(Constants.START_DAMAGE);
+        player.setEndRound(false);
+        player.setRoundDamage(0);
+        player.setAttackToId(0L);
         playerRepository.save(player);
         var response = mainService.getPlayerState(username);
         return ResponseEntity.ok(response);
