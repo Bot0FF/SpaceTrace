@@ -7,8 +7,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bot0ff.entity.enums.Status;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(name = "players")
@@ -17,6 +15,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @AllArgsConstructor
 @Builder
 public class Player {
+    //общее
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -46,6 +45,7 @@ public class Player {
     @JsonIgnore
     private Status status;
 
+    //характеристики
     @Column(name = "hp")
     private int hp;
 
@@ -55,14 +55,21 @@ public class Player {
     @Column(name = "damage")
     private int damage;
 
-    @Column(name = "endRound")
-    private boolean endRound;
+    //сражения
+    @Column(name = "roundActionEnd")
+    private boolean roundActionEnd;
 
-    @Column(name = "roundDamage")
-    private int roundDamage;
+    @Column(name = "roundChangeAbility")
+    @JsonIgnore
+    private Long roundChangeAbility;
 
-    @Column(name = "attackToId")
-    private Long attackToId;
+    @Column(name = "roundTargetType")
+    @JsonIgnore
+    private String roundTargetType;
+
+    @Column(name = "roundTargetId")
+    @JsonIgnore
+    private Long roundTargetId;
 
     @JsonIgnore
     public Long getLocationId() {

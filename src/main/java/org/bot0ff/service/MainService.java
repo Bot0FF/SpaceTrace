@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bot0ff.dto.Response;
 import org.bot0ff.entity.Enemy;
+import org.bot0ff.entity.Location;
+import org.bot0ff.entity.Player;
 import org.bot0ff.entity.enums.Status;
 import org.bot0ff.repository.EnemyRepository;
 import org.bot0ff.repository.LocationRepository;
@@ -46,7 +48,6 @@ public class MainService {
             log.info("Не найдена location в БД по запросу locationId: {}", player.get().getLocationId());
             return jsonProcessor.toJson(response);
         }
-        location.get().getPlayers().removeIf(p -> p.getId().equals(player.get().getId()));
         var response = Response.builder()
                 .player(player.get())
                 .location(location.get())
@@ -91,7 +92,16 @@ public class MainService {
             }
         }
         var newLocationId = Long.parseLong("" + player.get().getX() + player.get().getY());
-        playerRepository.saveNewPlayerPosition(player.get().getX(), player.get().getY(), newLocationId, player.get().getName());
+        playerRepository.saveNewPlayerPosition(player.get().getX(), player.get().getY(), newLocationId, player.get().getId());
+
+        //шанс появления enemy на локации
+        if(randomUtil.getChanceCreateEnemy()) {
+            var location = locationRepository.findById(newLocationId);
+            if(location.isPresent()) {
+                Enemy newEnemy = getRandomEnemy(location.get());
+                enemyRepository.save(newEnemy);
+            }
+        }
 
         var location = locationRepository.findById(newLocationId);
         if(location.isEmpty()) {
@@ -103,18 +113,18 @@ public class MainService {
             return jsonProcessor.toJson(response);
         }
 
-        //шанс появления enemy на локации
-        if(randomUtil.getChanceCreateEnemy()) {
-            Enemy newEnemy = new Enemy(randomUtil.getRandomId(), player.get().getX(), player.get().getY(), player.get().getLocation().getLocationType(),
-                    location.get(), null, "Паук", Status.ACTIVE, 10, 10, false, 0, 0L);
-            enemyRepository.save(newEnemy);
-        }
-        location.get().getPlayers().removeIf(p -> p.getId().equals(player.get().getId()));
         var response = Response.builder()
                 .player(player.get())
                 .location(location.get())
                 .status(HttpStatus.OK)
                 .build();
         return jsonProcessor.toJson(response);
+    }
+
+    //возвращает случайного enemy в зависимости от локации
+    private Enemy getRandomEnemy(Location location) {
+        return new Enemy(randomUtil.getRandomId(), location.getX(), location.getY(), location.getLocationType(),
+                location, null, "Паук", Status.ACTIVE, 10, 10, 10, false,
+                null, null, null);
     }
 }

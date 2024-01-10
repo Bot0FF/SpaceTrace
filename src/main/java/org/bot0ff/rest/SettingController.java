@@ -29,7 +29,7 @@ public class SettingController {
     //настройка нового пользователя
     @PostMapping("/start/setting")
     public ResponseEntity<?> settingUser(@RequestBody SettingRequest settingRequest) {
-        String username = "admin";
+        String username = "user";
         var user = userRepository.findByUsername(username).orElse(null);
         if(user == null) {
             var response = Response.builder()
@@ -61,13 +61,15 @@ public class SettingController {
         player.setY(Constants.START_POS_Y);
         player.setMana(Constants.START_MANA);
         player.setLocation(location);
+        player.setFight(null);
         player.setStatus(Status.ACTIVE);
         player.setHp(Constants.START_HP);
         player.setMana(Constants.START_MANA);
         player.setDamage(Constants.START_DAMAGE);
-        player.setEndRound(false);
-        player.setRoundDamage(0);
-        player.setAttackToId(0L);
+        player.setRoundActionEnd(false);
+        player.setRoundChangeAbility(null);
+        player.setRoundTargetType(null);
+        player.setRoundTargetId(null);
         playerRepository.save(player);
         var response = mainService.getPlayerState(username);
         return ResponseEntity.ok(response);

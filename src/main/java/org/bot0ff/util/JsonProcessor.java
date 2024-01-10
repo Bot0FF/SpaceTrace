@@ -9,6 +9,12 @@ public class JsonProcessor {
 
     public String toJson(Response response) {
         try {
+            if(response.getLocation() != null) {
+                response.getLocation().getPlayers().removeIf(p -> p.getId().equals(response.getPlayer().getId()));
+            }
+            if(response.getFight() != null) {
+                response.getFight().getPlayers().removeIf(p -> p.getId().equals(response.getPlayer().getId()));
+            }
             return objectMapper
                     .writerWithDefaultPrettyPrinter()
                     .writeValueAsString(response);

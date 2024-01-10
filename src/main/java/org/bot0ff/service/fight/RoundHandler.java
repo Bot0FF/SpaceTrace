@@ -13,6 +13,7 @@ import org.bot0ff.repository.PlayerRepository;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 import java.util.*;
@@ -27,6 +28,27 @@ public class RoundHandler {
 
     public static Map<Long, Integer> FIGHT_MAP = Collections.synchronizedMap(new HashMap<>());
 
+    //заглушка на очистку статуса боя user, если в FIGHT_MAP нет сражений
+    @Scheduled(fixedDelay = 30000)
+    @Transactional
+    public void clearFightDB() {
+        Player player = playerRepository.findByName("user").orElse(null);
+        if(RoundHandler.FIGHT_MAP.isEmpty()) {
+            Fight fight = fightRepository.findById(player.getFight().getId()).orElse(null);
+            List<Player> players = fight.getPlayers();
+            for(Player p: players) {
+                playerRepository.clearPlayerFight(Status.ACTIVE.name(), null,
+                        false, null, null, null, p.getId());
+            }
+            List<Enemy> enemies = fight.getEnemies();
+            for(Enemy e: enemies) {
+                enemyRepository.clearEnemyFight(Status.ACTIVE.name(), null,
+                        false, null, null, null, e.getId());
+            }
+            fightRepository.setStatusFight(false, player.getFight().getId());
+        }
+    }
+
     @Scheduled(fixedDelay = 1000)
     public void mapRoundHandler() {
         if(!FIGHT_MAP.isEmpty()) {
@@ -39,19 +61,6 @@ public class RoundHandler {
                 }
                 else {
                     FIGHT_MAP.put(entry.getKey(), FIGHT_MAP.get(entry.getKey()) - 1);
-                }
-            }
-        }
-    }
-
-    @Scheduled(fixedDelay = 60000)
-    public void clearFightMap() {
-        if(!FIGHT_MAP.isEmpty()) {
-            Iterator<Map.Entry<Long, Integer>> entries = FIGHT_MAP.entrySet().iterator();
-            while (entries.hasNext()) {
-                Map.Entry<Long, Integer> entry = entries.next();
-                if(entry.getValue() == -1) {
-                    entries.remove();
                 }
             }
         }

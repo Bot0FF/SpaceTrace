@@ -7,8 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bot0ff.entity.enums.LocationType;
 import org.bot0ff.entity.enums.Status;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 @Data
 @Table(name = "enemy")
@@ -51,17 +49,27 @@ public class Enemy {
     @Column(name = "hp")
     private int hp;
 
+    @Column(name = "mana")
+    private int mana;
+
     @Column(name = "damage")
     private int damage;
 
-    @Column(name = "endRound")
-    private boolean endRound;
+    //сражения
+    @Column(name = "roundActionEnd")
+    private boolean roundActionEnd;
 
-    @Column(name = "roundDamage")
-    private int roundDamage;
+    @Column(name = "roundChangeAbility")
+    @JsonIgnore
+    private Long roundChangeAbility;
 
-    @Column(name = "attackToId")
-    private Long attackToId;
+    @Column(name = "roundTargetType")
+    @JsonIgnore
+    private String roundTargetType;
+
+    @Column(name = "roundTargetId")
+    @JsonIgnore
+    private Long roundTargetId;
 
     @JsonIgnore
     public Long getLocationId() {
