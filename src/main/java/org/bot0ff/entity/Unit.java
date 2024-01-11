@@ -6,15 +6,17 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bot0ff.entity.enums.AttackType;
 import org.bot0ff.entity.enums.Status;
+import org.bot0ff.entity.enums.TeamType;
 
 @Entity
-@Table(name = "players")
+@Table(name = "unit")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Player {
+public class Unit {
     //общее
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,16 +25,14 @@ public class Player {
     @Column(name = "name")
     private String name;
 
-    @ManyToOne()
-    @JoinColumn(name = "location")
+    @Enumerated(value = EnumType.STRING)
     @JsonIgnore
-    private Location location;
+    private Status status;
 
-    @ManyToOne()
-    @JoinColumn(name = "fight")
-    @JsonIgnore
-    private Fight fight;
+    @Column(name = "actionEnd")
+    private boolean actionEnd;
 
+    //локация
     @Column(name = "x")
     @JsonIgnore
     private int x;
@@ -41,9 +41,10 @@ public class Player {
     @JsonIgnore
     private int y;
 
-    @Enumerated(value = EnumType.STRING)
+    @ManyToOne()
+    @JoinColumn(name = "location")
     @JsonIgnore
-    private Status status;
+    private Location location;
 
     //характеристики
     @Column(name = "hp")
@@ -55,21 +56,27 @@ public class Player {
     @Column(name = "damage")
     private int damage;
 
-    //сражения
-    @Column(name = "roundActionEnd")
-    private boolean roundActionEnd;
-
-    @Column(name = "roundChangeAbility")
+    //сражение
+    @ManyToOne()
+    @JoinColumn(name = "fight")
     @JsonIgnore
-    private Long roundChangeAbility;
+    private Fight fight;
 
-    @Column(name = "roundTargetType")
+    @Enumerated(value = EnumType.STRING)
     @JsonIgnore
-    private String roundTargetType;
+    private TeamType _teamType;
 
-    @Column(name = "roundTargetId")
+    @Column(name = "_damage")
     @JsonIgnore
-    private Long roundTargetId;
+    private Long _damage;
+
+    @Enumerated(value = EnumType.STRING)
+    @JsonIgnore
+    private AttackType _attackType;
+
+    @Column(name = "_targetId")
+    @JsonIgnore
+    private Long _targetId;
 
     @JsonIgnore
     public Long getLocationId() {

@@ -43,7 +43,7 @@ public class AuthController {
          SecurityContextHolder.getContext().setAuthentication(authentication);
          UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
          ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
-         var response = mainService.getPlayerState(userDetails.getUsername());
+         var response = mainService.getUserState(userDetails.getUsername());
 
          return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
                  .body(response);
@@ -52,9 +52,17 @@ public class AuthController {
     //регистрация
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
+        if(registerRequest.getUsername().startsWith("*")) {
+            var response = Response.builder()
+                    .info("Имя не должно начинаться с символов '*'")
+                    .status(0)
+                    .build();
+            return ResponseEntity.badRequest().body(response);
+        }
         if(userRepository.existsByUsername(registerRequest.getUsername())) {
             var response = Response.builder()
-                    .status(HttpStatus.NO_CONTENT)
+                    .info("Игрок с таким именем уже зарегистрирован")
+                    .status(0)
                     .build();
             return ResponseEntity.badRequest().body(response);
         }

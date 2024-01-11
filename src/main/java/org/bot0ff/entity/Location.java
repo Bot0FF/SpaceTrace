@@ -37,9 +37,5 @@ public class Location implements Serializable {
 
     @OneToMany(mappedBy = "location", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @ToString.Exclude
-    private List<Player> players;
-
-    @OneToMany(mappedBy = "location", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @ToString.Exclude
-    private List<Enemy> enemies;
+    private List<Unit> units;
 }

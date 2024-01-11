@@ -22,11 +22,7 @@ public class Fight {
 
     @OneToMany(mappedBy = "fight", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @ToString.Exclude
-    private List<Player> players;
-
-    @OneToMany(mappedBy = "fight", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @ToString.Exclude
-    private List<Enemy> enemies;
+    private List<Unit> units;
 
     @Column(name = "countRound")
     private int countRound;

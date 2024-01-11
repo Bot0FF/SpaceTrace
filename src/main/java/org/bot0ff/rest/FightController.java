@@ -15,16 +15,9 @@ public class FightController {
 
     //начать сражение с выбранным противником
     @GetMapping("/attack")
-    public ResponseEntity<?> actionAttackEnemy(@RequestParam Long opponentId) {
-        String targetType = "ENEMY";
-        if(targetType.equals("ENEMY")) {
-            var response = fightService.getStartFightUserVsEnemy("user", opponentId);
-            return ResponseEntity.ok(response);
-        }
-        else {
-            var response = fightService.getStartFightUserVsPlayer("user", opponentId);
-            return ResponseEntity.ok(response);
-        }
+    public ResponseEntity<?> actionAttack(@RequestParam Long targetId) {
+        var response = fightService.getStartFight("user", targetId);
+        return ResponseEntity.ok(response);
     }
 
     //текущее состояние сражения
@@ -34,10 +27,10 @@ public class FightController {
         return ResponseEntity.ok(response);
     }
 
-    //физическая атака по выбранному противнику
+    //атака по выбранному противнику
     @GetMapping("/hit")
     public ResponseEntity<?> actionFight(@RequestParam Long targetId) {
-        var response = fightService.setAttackPlayer("user", "ENEMY", targetId);
+        var response = fightService.setAttack("user", 0L, targetId);
         return ResponseEntity.ok(response);
     }
 }

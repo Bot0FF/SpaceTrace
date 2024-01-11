@@ -3,17 +3,14 @@ package org.bot0ff.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bot0ff.dto.Response;
-import org.bot0ff.entity.Enemy;
 import org.bot0ff.entity.Location;
-import org.bot0ff.entity.Player;
+import org.bot0ff.entity.Unit;
 import org.bot0ff.entity.enums.Status;
-import org.bot0ff.repository.EnemyRepository;
 import org.bot0ff.repository.LocationRepository;
-import org.bot0ff.repository.PlayerRepository;
+import org.bot0ff.repository.UnitRepository;
 import org.bot0ff.util.Constants;
 import org.bot0ff.util.JsonProcessor;
 import org.bot0ff.util.RandomUtil;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,20 +18,19 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class MainService {
-    private final PlayerRepository playerRepository;
-    private final EnemyRepository enemyRepository;
+    private final UnitRepository unitRepository;
     private final LocationRepository locationRepository;
     private final JsonProcessor jsonProcessor;
     private final RandomUtil randomUtil;
 
     //состояние user после обновления страницы
     @Transactional
-    public String getPlayerState(String username) {
-        var player = playerRepository.findByName(username);
+    public String getUserState(String username) {
+        var player = unitRepository.findByName(username);
         if(player.isEmpty()) {
             var response = Response.builder()
                     .info("Игрок не найден")
-                    .status(HttpStatus.NO_CONTENT)
+                    .status(0)
                     .build();
             log.info("Не найден player в БД по запросу username: {}", username);
             return jsonProcessor.toJson(response);
@@ -43,7 +39,7 @@ public class MainService {
         if(location.isEmpty()) {
             var response = Response.builder()
                     .info("Локация не найдена")
-                    .status(HttpStatus.NO_CONTENT)
+                    .status(0)
                     .build();
             log.info("Не найдена location в БД по запросу locationId: {}", player.get().getLocationId());
             return jsonProcessor.toJson(response);
@@ -51,7 +47,7 @@ public class MainService {
         var response = Response.builder()
                 .player(player.get())
                 .location(location.get())
-                .status(HttpStatus.OK)
+                .status(1)
                 .build();
 
         return jsonProcessor.toJson(response);
@@ -59,12 +55,12 @@ public class MainService {
 
     //смена локации user
     @Transactional
-    public String movePlayer(String username, String direction) {
-        var player = playerRepository.findByName(username);
+    public String moveUser(String username, String direction) {
+        var player = unitRepository.findByName(username);
         if(player.isEmpty()) {
             var response = Response.builder()
                     .info("Игрок не найден")
-                    .status(HttpStatus.NO_CONTENT)
+                    .status(0)
                     .build();
             log.info("Не найден player в БД по запросу username: {}", username);
             return jsonProcessor.toJson(response);
@@ -92,14 +88,14 @@ public class MainService {
             }
         }
         var newLocationId = Long.parseLong("" + player.get().getX() + player.get().getY());
-        playerRepository.saveNewPlayerPosition(player.get().getX(), player.get().getY(), newLocationId, player.get().getId());
+        unitRepository.saveNewPosition(player.get().getX(), player.get().getY(), newLocationId, player.get().getId());
 
         //шанс появления enemy на локации
         if(randomUtil.getChanceCreateEnemy()) {
             var location = locationRepository.findById(newLocationId);
             if(location.isPresent()) {
-                Enemy newEnemy = getRandomEnemy(location.get());
-                enemyRepository.save(newEnemy);
+                Unit newEnemy = getRandomEnemy(location.get());
+                unitRepository.save(newEnemy);
             }
         }
 
@@ -107,7 +103,7 @@ public class MainService {
         if(location.isEmpty()) {
             var response = Response.builder()
                     .info("Локация не найдена")
-                    .status(HttpStatus.NO_CONTENT)
+                    .status(0)
                     .build();
             log.info("Не найдена newLocation в БД по запросу newLocationId: {}", newLocationId);
             return jsonProcessor.toJson(response);
@@ -116,15 +112,28 @@ public class MainService {
         var response = Response.builder()
                 .player(player.get())
                 .location(location.get())
-                .status(HttpStatus.OK)
+                .status(1)
                 .build();
         return jsonProcessor.toJson(response);
     }
 
     //возвращает случайного enemy в зависимости от локации
-    private Enemy getRandomEnemy(Location location) {
-        return new Enemy(randomUtil.getRandomId(), location.getX(), location.getY(), location.getLocationType(),
-                location, null, "Паук", Status.ACTIVE, 10, 10, 10, false,
-                null, null, null);
+    private Unit getRandomEnemy(Location location) {
+        return new Unit(
+                null,
+                "*Паук*",
+                Status.ACTIVE,
+                false,
+                location.getX(),
+                location.getY(),
+                location,
+                10,
+                10,
+                10,
+                null,
+                null,
+                null,
+                null,
+                null);
     }
 }

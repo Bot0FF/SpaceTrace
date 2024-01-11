@@ -4,14 +4,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bot0ff.dto.Response;
 import org.bot0ff.dto.auth.SettingRequest;
-import org.bot0ff.entity.Player;
+import org.bot0ff.entity.Unit;
 import org.bot0ff.entity.enums.Status;
 import org.bot0ff.repository.LocationRepository;
-import org.bot0ff.repository.PlayerRepository;
+import org.bot0ff.repository.UnitRepository;
 import org.bot0ff.repository.UserRepository;
 import org.bot0ff.service.MainService;
 import org.bot0ff.util.Constants;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 public class SettingController {
     private final MainService mainService;
     private final UserRepository userRepository;
-    private final PlayerRepository playerRepository;
+    private final UnitRepository unitRepository;
     private final LocationRepository locationRepository;
 
     //настройка нового пользователя
@@ -34,44 +33,38 @@ public class SettingController {
         if(user == null) {
             var response = Response.builder()
                     .info("Игрок не найден")
-                    .status(HttpStatus.NO_CONTENT)
+                    .status(0)
                     .build();
             return ResponseEntity.ok(response);
-        }
-        if(playerRepository.existsByName(user.getUsername())) {
-            var response = Response.builder()
-                    .info("Игрок с таким именем уже зарегистрирован")
-                    .status(HttpStatus.NO_CONTENT)
-                    .build();
-            return ResponseEntity.badRequest().body(response);
         }
         var locationId = Long.parseLong("" + Constants.START_POS_X + Constants.START_POS_Y);
         var location = locationRepository.findById(locationId).orElse(null);
         if(location == null) {
             var response = Response.builder()
                     .info("Локация не найдена")
-                    .status(HttpStatus.NO_CONTENT)
+                    .status(0)
                     .build();
             log.info("Не найдена location в БД по запросу locationId: {}", locationId);
             return ResponseEntity.ok(response);
         }
-        var player = new Player();
-        player.setName(user.getUsername());
-        player.setX(Constants.START_POS_X);
-        player.setY(Constants.START_POS_Y);
-        player.setMana(Constants.START_MANA);
-        player.setLocation(location);
-        player.setFight(null);
-        player.setStatus(Status.ACTIVE);
-        player.setHp(Constants.START_HP);
-        player.setMana(Constants.START_MANA);
-        player.setDamage(Constants.START_DAMAGE);
-        player.setRoundActionEnd(false);
-        player.setRoundChangeAbility(null);
-        player.setRoundTargetType(null);
-        player.setRoundTargetId(null);
-        playerRepository.save(player);
-        var response = mainService.getPlayerState(username);
+        var unit = new Unit();
+        unit.setId(null);
+        unit.setName(user.getUsername());
+        unit.setStatus(Status.ACTIVE);
+        unit.setActionEnd(false);
+        unit.setX(Constants.START_POS_X);
+        unit.setY(Constants.START_POS_Y);
+        unit.setLocation(location);
+        unit.setHp(Constants.START_HP);
+        unit.setMana(Constants.START_MANA);
+        unit.setDamage(Constants.START_DAMAGE);
+        unit.setFight(null);
+        unit.set_teamType(null);
+        unit.set_damage(null);
+        unit.set_attackType(null);
+        unit.set_targetId(null);
+        unitRepository.save(unit);
+        var response = mainService.getUserState(username);
         return ResponseEntity.ok(response);
     }
 }
