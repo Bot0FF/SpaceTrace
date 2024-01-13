@@ -55,7 +55,7 @@ public class FightService {
 
         //добавление нового сражения в map и запуск обработчика раундов
         Fight newFight = getNewFight(newFightId, player.get(), opponent.get());
-        RoundHandler.FIGHT_MAP.put(newFightId, 60);
+        RoundHandler.FIGHT_MAP.put(newFightId, newFight.getTimeToEndRound());
         fightRepository.save(newFight);
 
         //сохранение статуса FIGHT у player
@@ -67,7 +67,8 @@ public class FightService {
                 0L,
                 AttackType.NONE.name(),
                 0L,
-                player.get().getId());
+                player.get().getId()
+        );
 
         //сохранение статуса FIGHT у enemy
         unitRepository.saveNewFight(
@@ -78,7 +79,8 @@ public class FightService {
                 0L,
                 AttackType.NONE.name(),
                 0L,
-                opponent.get().getId());
+                opponent.get().getId()
+        );
 
         var response = Response.builder()
                 .player(player.get())
@@ -141,8 +143,6 @@ public class FightService {
         }
 
         Fight fight = player.get().getFight();
-        //начинает текущий раунд заново и добавляет в map, если отсутствует
-        RoundHandler.FIGHT_MAP.putIfAbsent(fight.getId(), 60);
         //устанавливает в ответе текущее время раунда
         fight.setTimeToEndRound(RoundHandler.FIGHT_MAP.get(fight.getId()));
 
@@ -174,8 +174,8 @@ public class FightService {
         //расчет и сохранение умения и цели, по которой произведено действие
         unitRepository.saveNewAttack(
                 true,
-                2L,
-                AttackType.ONE.name(),
+                6L,
+                AttackType.OPPONENT.name(),
                 targetId,
                 player.get().getId());
 
@@ -193,6 +193,6 @@ public class FightService {
     private Fight getNewFight(Long newFightId, Unit player, Unit opponent) {
         return new Fight(newFightId,
                 new ArrayList<>(List.of(player, opponent)),
-                1, false, 60);
+                1, false, 10);
     }
 }

@@ -20,7 +20,7 @@ public class Fight {
     @JsonIgnore
     private Long id;
 
-    @OneToMany(mappedBy = "fight", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "fight", fetch = FetchType.EAGER)
     @ToString.Exclude
     private List<Unit> units;
 

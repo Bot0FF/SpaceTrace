@@ -48,14 +48,14 @@ public interface UnitRepository extends JpaRepository<Unit, Long> {
     //сбрасывает настройки сражения
     @Modifying
     @Query(value = "UPDATE unit SET " +
+            "hp = :hp, " +
             "action_end = :actionEnd, " +
-            "_team_type = :_teamType, " +
             "_damage = :_damage, " +
             "_attack_type = :_attackType, " +
             "_target_id = :_targetId " +
             "WHERE id = :id", nativeQuery = true)
-    void clearFight(@Param("actionEnd") boolean actionEnd,
-                    @Param("_teamType") String _teamType,
+    void clearRound(@Param("hp") int hp,
+                    @Param("actionEnd") boolean actionEnd,
                     @Param("_damage") Long _damage,
                     @Param("_attackType") String _attackType,
                     @Param("_targetId") Long _targetId,
@@ -64,6 +64,7 @@ public interface UnitRepository extends JpaRepository<Unit, Long> {
     //удаляет сражение
     @Modifying
     @Query(value = "UPDATE unit SET " +
+            "hp = :hp, " +
             "action_end = :actionEnd, " +
             "status = :status, " +
             "fight = :fight, " +
@@ -72,7 +73,8 @@ public interface UnitRepository extends JpaRepository<Unit, Long> {
             "_attack_type = :_attackType, " +
             "_target_id = :_targetId " +
             "WHERE id = :id", nativeQuery = true)
-    void deleteFight(@Param("actionEnd") boolean actionEnd,
+    void deleteFight(@Param("hp") int hp,
+                     @Param("actionEnd") boolean actionEnd,
                      @Param("status") String status,
                      @Param("fight") Long fight,
                      @Param("_teamType") String _teamType,
