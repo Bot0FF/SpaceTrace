@@ -80,22 +80,19 @@ public class RoundHandler {
         //3. если инициатива одинаковая, выбор случайно
         //4. после каждого расчета обновляем лист с состояниями
 
-        //добавляем unit со статусом НЕ DIE
+        //добавляем unit в общий лист и по командам
         List<Unit> units = new ArrayList<>(fight.get().getUnits());
-        List<Unit> teamOne = new ArrayList<>(fight.get().getUnits().stream().filter(unit -> unit.get_teamType().equals(TeamType.ONE)).toList());
-        List<Unit> teamTwo = new ArrayList<>(fight.get().getUnits().stream().filter(unit -> unit.get_teamType().equals(TeamType.TWO)).toList());
 
         //Сортируем unit в порядке убывания инициативы
         units.sort(Comparator.comparingLong(Unit::getId));
+        System.out.println("Сортировка по убыванию инициативы " + units.get(0).getName() + "->" + units.get(1).getName());
 
         int count = 0;
-        while (count < teamOne.size() + teamTwo.size()) {
+        while (count < units.size()) {
             Optional<Unit> optionalUnit = units.stream().filter(Unit::isActionEnd).findFirst();
             //если unit, которые ходили не найдены, выходим из цикла
             if(optionalUnit.isEmpty()) break;
-            //если unit со статусом DIE, запускаем новую итерацию цикла
-            if(optionalUnit.get().getStatus().name().equals(Status.DIE.name())) continue;
-
+            System.out.println("Ходит юнит " + optionalUnit.get().getName());
             //проверяем на кого направлено умение и применяем его
             String attackType = optionalUnit.get().get_attackType().name();
             switch (attackType) {
@@ -106,24 +103,27 @@ public class RoundHandler {
                     Optional<Unit> optionalTarget = units.stream().filter(u -> u.getId().equals(optionalUnit.get().get_targetId())).findFirst();
                     //если текущий unit не найден или hp <= 0, начинаем новую итерацию цикла
                     if(optionalTarget.isEmpty()) continue;
-                    if(optionalTarget.get().getHp() <= 0) continue;
+
                     //рассчитываем урон, который нанес текущий unit противнику
                     Unit unit = optionalUnit.get();
                     Unit target = optionalTarget.get();
+                    System.out.println("Юнит " + unit.getName() + " атакует юнита " + target.getName());
                     int unitHit = Math.toIntExact(unit.get_damage());
                     //TODO добавить защиту
-                    int targetDefense = 0;
+                    int targetDefense = 1;
                     double unitHitDouble = unitHit * 1.0;
                     double targetDefenseDouble = targetDefense * 1.0;
-                    if(unitHit < 0) unitHit = 0;
-                    if(targetDefense < 0) targetDefense = 0;
+                    if(unitHit <= 1) unitHit = 1;
+                    if(targetDefense <= 1) targetDefense = 1;
                     int result = (int) ((int) (((unitHit - Math.random() * 10) * ((double) unitHit / (unitHit + targetDefense)))) * (unitHitDouble / targetDefenseDouble));
                     if(result <= 0) result = 0;
-                    if(result > unit.get_damage() * 2) result = randomUtil.getRNum30((int) (unit.get_damage() * 2));
-                    System.out.println("unit нанес урон " + result);
+                    if(result > unit.get_damage()) result = randomUtil.getRNum30(Math.toIntExact(unit.get_damage()));
+                    System.out.println("unit " + unit.getName() + " нанес урон " + result);
                     target.setHp(target.getHp() - result);
                     if(target.getHp() <= 0) {
+                        target.setActionEnd(false);
                         target.setStatus(Status.DIE);
+                        System.out.println(target.getName() + " ход отменен. HP <= 0");
                     }
                     unit.setActionEnd(false);
                 }
@@ -138,9 +138,10 @@ public class RoundHandler {
                 }
             }
             count++;
+            System.out.println("Переход хода к следующему юниту в раунде");
         }
 
-        //запускаем следующий раунд и сохраняем результаты предыдущего в бд
+        //сохраняем состояние всех unit,
         //если unit DIE, удаляем его настройки сражения
         for(Unit unit: units) {
             if(unit.getStatus().equals(Status.DIE)) {
@@ -155,6 +156,7 @@ public class RoundHandler {
                         null,
                         unit.getId()
                 );
+                System.out.println(unit.getName() + " удален из сражения");
             }
             else {
                 unitRepository.clearRound(
@@ -165,8 +167,66 @@ public class RoundHandler {
                         0L,
                         unit.getId()
                 );
+                System.out.println("Настройки " + unit.getName() + " сброшены для следующего раунда");
             }
         }
-        FIGHT_MAP.put(fightId, 10);
+
+        //если в обеих командах есть кто-то со статусом ACTIVE, сражение продолжается
+        if(units.stream().anyMatch(unit -> unit.get_teamType().equals(TeamType.ONE)
+                && unit.getStatus().equals(Status.FIGHT))
+                & units.stream().anyMatch(unit -> unit.get_teamType().equals(TeamType.TWO)
+                && unit.getStatus().equals(Status.FIGHT))) {
+            //запускаем следующий раунд
+            FIGHT_MAP.put(fightId, 10);
+            fightRepository.setNewRound(fight.get().getCountRound() + 1, fightId);
+            System.out.println("-->Запуск следующего раунда");
+        }
+        //если в первой команде нет игроков со статусом ACTIVE, завершаем бой,
+        //сохраняем результаты победы у unit из второй команды
+        else if(units.stream().noneMatch(unit -> unit.get_teamType().equals(TeamType.ONE)
+                && unit.getStatus().equals(Status.FIGHT))) {
+            List<Unit> teamTwo = new ArrayList<>(fight.get().getUnits().stream().filter(unit -> unit.get_teamType().equals(TeamType.TWO)
+                    && unit.getStatus().equals(Status.FIGHT)).toList());
+            for(Unit unit: teamTwo) {
+                unitRepository.saveVictoryFight(
+                        unit.getHp(),
+                        false,
+                        Status.ACTIVE.name(),
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        unit.getId()
+                );
+                System.out.println(unit.getName() + " победил в сражении");
+            }
+            FIGHT_MAP.remove(fightId);
+            fightRepository.setStatusFight(true, fightId);
+            System.out.println(fightId + " сражение завершено и удалено из map");
+        }
+        //если во второй команде нет игроков со статусом ACTIVE, завершаем бой,
+        //сохраняем результаты победы у unit из первой команды
+        else {
+            List<Unit> teamOne = new ArrayList<>(fight.get().getUnits().stream().filter(unit -> unit.get_teamType().equals(TeamType.ONE)
+                    && unit.getStatus().equals(Status.FIGHT)).toList());
+            for(Unit unit: teamOne) {
+                unitRepository.saveVictoryFight(
+                        unit.getHp(),
+                        false,
+                        Status.ACTIVE.name(),
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        unit.getId()
+                );
+                System.out.println(unit.getName() + " победил в сражении");
+            }
+            FIGHT_MAP.remove(fightId);
+            fightRepository.setStatusFight(true, fightId);
+            System.out.println(fightId + " сражение завершено и удалено из map");
+        }
     }
 }

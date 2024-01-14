@@ -10,8 +10,19 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface FightRepository extends JpaRepository<Fight, Long> {
 
+    //сохраняет новый раунд
+    @Modifying
+    @Query(value = "UPDATE fight SET " +
+            "count_round = :countRound " +
+            "WHERE id = :id", nativeQuery = true)
+    void setNewRound(@Param("countRound") int countRound,
+                        @Param("id") Long id);
+
     //устанавливает результат боя в бд
     @Modifying
-    @Query(value = "UPDATE fight SET fight_end = :fightEnd WHERE id = :id", nativeQuery = true)
-    void setStatusFight(@Param("fightEnd") boolean fightEnd, @Param("id") Long id);
+    @Query(value = "UPDATE fight SET " +
+            "fight_end = :fightEnd " +
+            "WHERE id = :id", nativeQuery = true)
+    void setStatusFight(@Param("fightEnd") boolean fightEnd,
+                        @Param("id") Long id);
 }

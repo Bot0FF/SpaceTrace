@@ -18,6 +18,7 @@ public class Fight {
 
     @Id
     @JsonIgnore
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @OneToMany(mappedBy = "fight", fetch = FetchType.EAGER)

@@ -50,13 +50,10 @@ public class FightService {
             return jsonProcessor.toJson(response);
         }
 
-        //создание id нового сражения
-        long newFightId = randomUtil.getRandomId();
-
         //добавление нового сражения в map и запуск обработчика раундов
-        Fight newFight = getNewFight(newFightId, player.get(), opponent.get());
+        Fight newFight = getNewFight(player.get(), opponent.get());
+        Long newFightId = fightRepository.save(newFight).getId();
         RoundHandler.FIGHT_MAP.put(newFightId, newFight.getTimeToEndRound());
-        fightRepository.save(newFight);
 
         //сохранение статуса FIGHT у player
         unitRepository.saveNewFight(
@@ -108,6 +105,14 @@ public class FightService {
         if(fight == null) {
             var response = Response.builder()
                     .info("Сражение не найдено")
+                    .status(0)
+                    .build();
+            return jsonProcessor.toJson(response);
+        }
+
+        if(fight.isFightEnd()) {
+            var response = Response.builder()
+                    .info("Сражение завершено")
                     .status(0)
                     .build();
             return jsonProcessor.toJson(response);
@@ -190,8 +195,8 @@ public class FightService {
     }
 
     //создание нового сражения
-    private Fight getNewFight(Long newFightId, Unit player, Unit opponent) {
-        return new Fight(newFightId,
+    private Fight getNewFight(Unit player, Unit opponent) {
+        return new Fight(null,
                 new ArrayList<>(List.of(player, opponent)),
                 1, false, 10);
     }
