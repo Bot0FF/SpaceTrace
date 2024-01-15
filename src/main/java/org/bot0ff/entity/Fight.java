@@ -28,6 +28,9 @@ public class Fight {
     @Column(name = "countRound")
     private int countRound;
 
+    @Column(name = "resultRound")
+    private String resultRound;
+
     @Column(name = "fightEnd")
     @JsonIgnore
     private boolean fightEnd;

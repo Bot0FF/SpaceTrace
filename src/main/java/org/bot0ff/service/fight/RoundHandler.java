@@ -64,8 +64,10 @@ public class RoundHandler {
         }
     }
 
+    //TODO сделать отображение результатов сражения для победивших unit
     @Async
     private void resultRoundHandler(Long fightId) {
+        StringBuffer resultRound = new StringBuffer();
         Optional<Fight> fight = fightRepository.findById(fightId);
 
         //если сражение не найдено в бд, удаляем fight из map
@@ -74,18 +76,13 @@ public class RoundHandler {
             return;
         }
 
-        //1. Разделить по командам
-        //1. расположить в порядке максимальной инициативы вне зависимости от массовости атаки
-        //2. если после нанесения урона hp 0 или меньше, выпадает из сражения
-        //3. если инициатива одинаковая, выбор случайно
-        //4. после каждого расчета обновляем лист с состояниями
-
-        //добавляем unit в общий лист и по командам
+        //добавляем unit в общий лист
         List<Unit> units = new ArrayList<>(fight.get().getUnits());
 
         //Сортируем unit в порядке убывания инициативы
         units.sort(Comparator.comparingLong(Unit::getId));
-        System.out.println("Сортировка по убыванию инициативы " + units.get(0).getName() + "->" + units.get(1).getName());
+        List<String> unitName = new ArrayList<>(units.stream().map(Unit::getName).toList());
+        System.out.println("Сортировка по убыванию инициативы " + unitName);
 
         int count = 0;
         while (count < units.size()) {
@@ -101,7 +98,7 @@ public class RoundHandler {
                 }
                 case "OPPONENT" -> {
                     Optional<Unit> optionalTarget = units.stream().filter(u -> u.getId().equals(optionalUnit.get().get_targetId())).findFirst();
-                    //если текущий unit не найден или hp <= 0, начинаем новую итерацию цикла
+                    //если текущий unit не найден, начинаем новую итерацию цикла
                     if(optionalTarget.isEmpty()) continue;
 
                     //рассчитываем урон, который нанес текущий unit противнику
@@ -126,6 +123,15 @@ public class RoundHandler {
                         System.out.println(target.getName() + " ход отменен. HP <= 0");
                     }
                     unit.setActionEnd(false);
+                    resultRound
+                            .append(count)
+                            .append("[")
+                            .append(unit.getName())
+                            .append(" нанес ")
+                            .append(result)
+                            .append(" урона противнику ")
+                            .append(target.getName())
+                            .append(" умением обычная атака]");
                 }
                 case "ALL_OPPONENT" -> {
                     System.out.println("Применено умение на всех противников");
@@ -178,7 +184,7 @@ public class RoundHandler {
                 && unit.getStatus().equals(Status.FIGHT))) {
             //запускаем следующий раунд
             FIGHT_MAP.put(fightId, 10);
-            fightRepository.setNewRound(fight.get().getCountRound() + 1, fightId);
+            fightRepository.setNewRound(fight.get().getCountRound() + 1, String.valueOf(resultRound), fightId);
             System.out.println("-->Запуск следующего раунда");
         }
         //если в первой команде нет игроков со статусом ACTIVE, завершаем бой,

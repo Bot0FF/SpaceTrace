@@ -13,10 +13,20 @@ public interface FightRepository extends JpaRepository<Fight, Long> {
     //сохраняет новый раунд
     @Modifying
     @Query(value = "UPDATE fight SET " +
-            "count_round = :countRound " +
+            "count_round = :countRound, " +
+            "result_round = :resultRound " +
             "WHERE id = :id", nativeQuery = true)
     void setNewRound(@Param("countRound") int countRound,
-                        @Param("id") Long id);
+                     @Param("resultRound") String resultRound,
+                     @Param("id") Long id);
+
+    //сохраняет текстовый результат раунда
+    @Modifying
+    @Query(value = "UPDATE fight SET " +
+            "result_round = :resultRound " +
+            "WHERE id = :id", nativeQuery = true)
+    void setTextResultRound(@Param("resultRound") String resultRound,
+                     @Param("id") Long id);
 
     //устанавливает результат боя в бд
     @Modifying

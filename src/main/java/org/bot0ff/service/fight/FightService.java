@@ -82,6 +82,7 @@ public class FightService {
         var response = Response.builder()
                 .player(player.get())
                 .fight(newFight)
+                .info(username + " напал на противника " + opponent.get().getName())
                 .status(1)
                 .build();
 
@@ -187,7 +188,7 @@ public class FightService {
         var response = Response.builder()
                 .player(player.get())
                 .fight(fight)
-                .info("Ход сделан")
+                .info("Использовано умение обычная атака")
                 .status(1)
                 .build();
 
@@ -198,6 +199,6 @@ public class FightService {
     private Fight getNewFight(Unit player, Unit opponent) {
         return new Fight(null,
                 new ArrayList<>(List.of(player, opponent)),
-                1, false, 10);
+                1, "", false, 10);
     }
 }
