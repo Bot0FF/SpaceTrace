@@ -29,8 +29,9 @@ public class FightController {
 
     //атака по выбранному противнику
     @GetMapping("/hit")
-    public ResponseEntity<?> actionFight(@RequestParam Long targetId) {
-        var response = fightService.setAttack("user", 0L, targetId);
+    public ResponseEntity<?> actionFight(@RequestParam Long abilityId,
+                                         @RequestParam Long targetId) {
+        var response = fightService.setAttack("user", abilityId, targetId);
         return ResponseEntity.ok(response);
     }
 }

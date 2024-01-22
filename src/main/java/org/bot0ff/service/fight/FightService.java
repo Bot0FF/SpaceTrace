@@ -6,16 +6,17 @@ import org.bot0ff.dto.Response;
 import org.bot0ff.entity.*;
 import org.bot0ff.entity.enums.AttackType;
 import org.bot0ff.entity.enums.Status;
-import org.bot0ff.entity.enums.TeamType;
 import org.bot0ff.repository.FightRepository;
 import org.bot0ff.repository.UnitRepository;
 import org.bot0ff.util.JsonProcessor;
 import org.bot0ff.util.RandomUtil;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 @Slf4j
 @Service
@@ -25,6 +26,9 @@ public class FightService {
     private final FightRepository fightRepository;
     private final JsonProcessor jsonProcessor;
     private final RandomUtil randomUtil;
+
+    public static final Executor EXECUTOR_SERVICE = Executors.newCachedThreadPool();
+    public static Map<Long, FightHandler> FIGHT_MAP = Collections.synchronizedMap(new HashMap<>());
 
     //начать сражение с выбранным enemy
     @Transactional
@@ -53,14 +57,13 @@ public class FightService {
         //добавление нового сражения в map и запуск обработчика раундов
         Fight newFight = getNewFight(player.get(), opponent.get());
         Long newFightId = fightRepository.save(newFight).getId();
-        RoundHandler.FIGHT_MAP.put(newFightId, newFight.getTimeToEndRound());
 
         //сохранение статуса FIGHT у player
         unitRepository.saveNewFight(
                 false,
                 Status.FIGHT.name(),
                 newFightId,
-                TeamType.ONE.name(),
+                1L,
                 0L,
                 AttackType.NONE.name(),
                 0L,
@@ -72,12 +75,14 @@ public class FightService {
                 false,
                 Status.FIGHT.name(),
                 newFightId,
-                TeamType.TWO.name(),
+                2L,
                 0L,
                 AttackType.NONE.name(),
                 0L,
                 opponent.get().getId()
         );
+
+        FIGHT_MAP.put(newFightId, new FightHandler(newFightId, unitRepository, fightRepository, randomUtil));
 
         var response = Response.builder()
                 .player(player.get())
@@ -113,16 +118,14 @@ public class FightService {
 
         if(fight.isFightEnd()) {
             var response = Response.builder()
-                    .info("Сражение завершено")
+                    .info("Сражение не найдено")
                     .status(0)
                     .build();
             return jsonProcessor.toJson(response);
         }
 
-        //начинает текущий раунд заново и добавляет в map, если отсутствует
-        RoundHandler.FIGHT_MAP.putIfAbsent(fight.getId(), 60);
         //устанавливает в ответе текущее время раунда
-        fight.setTimeToEndRound(RoundHandler.FIGHT_MAP.get(fight.getId()));
+        fight.setTimeToEndRound(FIGHT_MAP.get(fight.getId()).getRoundTimer());
 
         var response = Response.builder()
                 .player(player.get())
@@ -149,28 +152,16 @@ public class FightService {
         }
 
         Fight fight = player.get().getFight();
-        //устанавливает в ответе текущее время раунда
-        fight.setTimeToEndRound(RoundHandler.FIGHT_MAP.get(fight.getId()));
+        if(fight == null) {
+            var response = Response.builder()
+                    .info("Сражение не найдено")
+                    .status(0)
+                    .build();
+            return jsonProcessor.toJson(response);
+        }
 
-        //если ход уже был сделан, возвращает текущее состояние player
-        if(player.get().isActionEnd()) {
-            var response = Response.builder()
-                    .player(player.get())
-                    .fight(fight)
-                    .info("Ход уже сделан")
-                    .status(1)
-                    .build();
-            return jsonProcessor.toJson(response);
-        }
-        if(player.get().getStatus().equals(Status.DIE)) {
-            var response = Response.builder()
-                    .player(player.get())
-                    .fight(fight)
-                    .info("Поражение")
-                    .status(1)
-                    .build();
-            return jsonProcessor.toJson(response);
-        }
+        //устанавливает в ответе текущее время раунда
+        fight.setTimeToEndRound(FIGHT_MAP.get(fight.getId()).getRoundTimer());
 
         //TODO сделать поиск выбранного умения в бд и расчет предварительного урона
         // и уменьшение характеристик, если требуется
@@ -178,17 +169,24 @@ public class FightService {
         // добавлять тип (количество атакуемых) атаки, в зависимости от умения
 
         //расчет и сохранение умения и цели, по которой произведено действие
-        unitRepository.saveNewAttack(
-                true,
-                6L,
-                AttackType.OPPONENT.name(),
-                targetId,
-                player.get().getId());
+        String info;
+        if(!player.get().isActionEnd()) {
+            unitRepository.saveNewAttack(
+                    true,
+                    6L,
+                    AttackType.OPPONENT.name(),
+                    targetId,
+                    player.get().getId());
+            info = "Использовано умение: " + "Обычная атака";
+        }
+        else {
+            info = "Ход уже сделан";
+        }
 
         var response = Response.builder()
                 .player(player.get())
                 .fight(fight)
-                .info("Использовано умение обычная атака")
+                .info(info)
                 .status(1)
                 .build();
 
@@ -200,5 +198,25 @@ public class FightService {
         return new Fight(null,
                 new ArrayList<>(List.of(player, opponent)),
                 1, "", false, 10);
+    }
+
+
+
+    //заглушка на очистку статуса боя units
+    @Scheduled(fixedDelay = 3000000)
+    @Transactional
+    public void clearFightDB() {
+        List<Unit> units = unitRepository.findAll();
+        for(Unit unit: units) {
+            unit.setHp(unit.getHp());
+            unit.setActionEnd(false);
+            unit.setStatus(Status.ACTIVE);
+            unit.setFight(null);
+            unit.set_teamType(null);
+            unit.set_damage(null);
+            unit.set_attackType(null);
+            unit.set_targetId(null);
+            unitRepository.save(unit);
+        }
     }
 }

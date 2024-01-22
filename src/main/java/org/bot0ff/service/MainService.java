@@ -3,9 +3,11 @@ package org.bot0ff.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bot0ff.dto.Response;
+import org.bot0ff.entity.Fight;
 import org.bot0ff.entity.Location;
 import org.bot0ff.entity.Unit;
 import org.bot0ff.entity.enums.Status;
+import org.bot0ff.repository.FightRepository;
 import org.bot0ff.repository.LocationRepository;
 import org.bot0ff.repository.UnitRepository;
 import org.bot0ff.util.Constants;
@@ -42,6 +44,18 @@ public class MainService {
                     .status(0)
                     .build();
             log.info("Не найдена location в БД по запросу locationId: {}", player.get().getLocationId());
+            return jsonProcessor.toJson(response);
+        }
+        Fight fight = player.get().getFight();
+        if(fight != null) {
+            var response = Response.builder()
+                    .player(player.get())
+                    .location(location.get())
+                    .info(fight.getResultRound())
+                    .status(1)
+                    .build();
+            unitRepository.clearFightId(null, player.get().getId());
+
             return jsonProcessor.toJson(response);
         }
         var response = Response.builder()

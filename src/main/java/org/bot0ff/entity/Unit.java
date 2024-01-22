@@ -8,7 +8,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bot0ff.entity.enums.AttackType;
 import org.bot0ff.entity.enums.Status;
-import org.bot0ff.entity.enums.TeamType;
 
 @Entity
 @Table(name = "unit")
@@ -26,7 +25,6 @@ public class Unit {
     private String name;
 
     @Enumerated(value = EnumType.STRING)
-    @JsonIgnore
     private Status status;
 
     @Column(name = "actionEnd")
@@ -62,9 +60,8 @@ public class Unit {
     @JsonIgnore
     private Fight fight;
 
-    @Enumerated(value = EnumType.STRING)
-    @JsonIgnore
-    private TeamType _teamType;
+    @Column(name = "_teamType")
+    private Long _teamType;
 
     @Column(name = "_damage")
     @JsonIgnore

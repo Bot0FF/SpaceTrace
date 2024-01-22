@@ -39,8 +39,8 @@ public class WebSecurityConfig {
                  .authorizeHttpRequests(authorizeHttpRequest ->
                        authorizeHttpRequest
                                .requestMatchers("/**").permitAll()
-//                               .requestMatchers("/register").permitAll()
-//                               .requestMatchers("/news").permitAll()
+                               .requestMatchers("/login").permitAll()
+                               .requestMatchers("/register").permitAll()
                                .anyRequest().authenticated())
                  .logout(logout -> logout.logoutUrl("/logout").addLogoutHandler(new CookieClearingLogoutHandler("Token")));
         http.authenticationProvider(authenticationProvider());

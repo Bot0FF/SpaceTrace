@@ -1,6 +1,7 @@
 package org.bot0ff.util;
 
 public class Constants {
+
     //player
     public static int START_HP = 100;
     public static int START_MANA = 100;
@@ -17,4 +18,7 @@ public class Constants {
 
     //шанс появления противника на локации
     public static int CHANCE_CREATE_ENEMY = 50;
+
+    //длительность раундов
+    public static  int ROUND_LENGTH_TIME = 10;
 }

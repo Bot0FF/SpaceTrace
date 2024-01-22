@@ -1,9 +1,11 @@
 package org.bot0ff.util;
 
 import org.apache.commons.math3.random.RandomDataGenerator;
+import org.springframework.stereotype.Service;
 
 import java.util.Random;
 
+@Service
 public class RandomUtil {
 
     //TODO добавить навык игрока
