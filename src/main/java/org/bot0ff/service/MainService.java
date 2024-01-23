@@ -2,12 +2,11 @@ package org.bot0ff.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bot0ff.dto.Response;
-import org.bot0ff.entity.Fight;
+import org.bot0ff.dto.ErrorResponse;
+import org.bot0ff.dto.MainResponse;
 import org.bot0ff.entity.Location;
 import org.bot0ff.entity.Unit;
 import org.bot0ff.entity.enums.Status;
-import org.bot0ff.repository.FightRepository;
 import org.bot0ff.repository.LocationRepository;
 import org.bot0ff.repository.UnitRepository;
 import org.bot0ff.util.Constants;
@@ -30,41 +29,33 @@ public class MainService {
     public String getUserState(String username) {
         var player = unitRepository.findByName(username);
         if(player.isEmpty()) {
-            var response = Response.builder()
-                    .info("Игрок не найден")
-                    .status(0)
-                    .build();
+            var response = jsonProcessor
+                    .toJsonError(new ErrorResponse("Игрок не найден"));
             log.info("Не найден player в БД по запросу username: {}", username);
-            return jsonProcessor.toJson(response);
+            return response;
         }
         var location = locationRepository.findById(player.get().getLocationId());
         if(location.isEmpty()) {
-            var response = Response.builder()
-                    .info("Локация не найдена")
-                    .status(0)
-                    .build();
+            var response = jsonProcessor
+                    .toJsonError(new ErrorResponse("Локация не найдена"));
             log.info("Не найдена location в БД по запросу locationId: {}", player.get().getLocationId());
-            return jsonProcessor.toJson(response);
+            return response;
         }
-        Fight fight = player.get().getFight();
-        if(fight != null) {
-            var response = Response.builder()
-                    .player(player.get())
-                    .location(location.get())
-                    .info(fight.getResultRound())
-                    .status(1)
-                    .build();
-            unitRepository.clearFightId(null, player.get().getId());
-
-            return jsonProcessor.toJson(response);
+        if(player.get().getStatus().equals(Status.WIN)) {
+            var response = jsonProcessor
+                    .toJsonMain(new MainResponse(player.get(), location.get(), "Победа!"));
+            unitRepository.setStatus(Status.ACTIVE.name(), player.get().getId());
+            return response;
         }
-        var response = Response.builder()
-                .player(player.get())
-                .location(location.get())
-                .status(1)
-                .build();
+        if(player.get().getStatus().equals(Status.LOSS)) {
+            var response = jsonProcessor
+                    .toJsonMain(new MainResponse(player.get(), location.get(), "Поражение..."));
+            unitRepository.setStatus(Status.ACTIVE.name(), player.get().getId());
+            return response;
+        }
 
-        return jsonProcessor.toJson(response);
+        return jsonProcessor
+                .toJsonMain(new MainResponse(player.get(), location.get(), null));
     }
 
     //смена локации user
@@ -72,12 +63,10 @@ public class MainService {
     public String moveUser(String username, String direction) {
         var player = unitRepository.findByName(username);
         if(player.isEmpty()) {
-            var response = Response.builder()
-                    .info("Игрок не найден")
-                    .status(0)
-                    .build();
+            var response = jsonProcessor
+                    .toJsonError(new ErrorResponse("Игрок не найден"));
             log.info("Не найден player в БД по запросу username: {}", username);
-            return jsonProcessor.toJson(response);
+            return response;
         }
         switch (direction) {
             case "up" -> {
@@ -115,20 +104,14 @@ public class MainService {
 
         var location = locationRepository.findById(newLocationId);
         if(location.isEmpty()) {
-            var response = Response.builder()
-                    .info("Локация не найдена")
-                    .status(0)
-                    .build();
-            log.info("Не найдена newLocation в БД по запросу newLocationId: {}", newLocationId);
-            return jsonProcessor.toJson(response);
+            var response = jsonProcessor
+                    .toJsonError(new ErrorResponse("Локация не найдена"));
+            log.info("Не найдена location в БД по запросу locationId: {}", player.get().getLocationId());
+            return response;
         }
 
-        var response = Response.builder()
-                .player(player.get())
-                .location(location.get())
-                .status(1)
-                .build();
-        return jsonProcessor.toJson(response);
+        return jsonProcessor
+                .toJsonMain(new MainResponse(player.get(), location.get(), "Ты перешел на локацию: " + location.get().getName()));
     }
 
     //возвращает случайного enemy в зависимости от локации

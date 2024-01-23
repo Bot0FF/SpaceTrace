@@ -2,7 +2,9 @@ package org.bot0ff.service.fight;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bot0ff.dto.Response;
+import org.bot0ff.dto.ErrorResponse;
+import org.bot0ff.dto.FightResponse;
+import org.bot0ff.dto.MainResponse;
 import org.bot0ff.entity.*;
 import org.bot0ff.entity.enums.AttackType;
 import org.bot0ff.entity.enums.Status;
@@ -36,22 +38,18 @@ public class FightService {
         //поиск player в бд
         var player = unitRepository.findByName(username);
         if(player.isEmpty()) {
-            var response = Response.builder()
-                    .info("Игрок не найден")
-                    .status(0)
-                    .build();
+            var response = jsonProcessor
+                    .toJsonError(new ErrorResponse("Игрок не найден"));
             log.info("Не найден player в БД по запросу username: {}", username);
-            return jsonProcessor.toJson(response);
+            return response;
         }
         //поиск enemy в бд
         var opponent = unitRepository.findById(targetId);
         if(opponent.isEmpty()) {
-            var response = Response.builder()
-                    .info("Противник не найден")
-                    .status(0)
-                    .build();
-            log.info("Не найден enemy в БД по запросу enemyId: {}", targetId);
-            return jsonProcessor.toJson(response);
+            var response = jsonProcessor
+                    .toJsonError(new ErrorResponse("Противник не найден"));
+            log.info("Не найден opponent в БД по запросу username: {}", opponent);
+            return response;
         }
 
         //добавление нового сражения в map и запуск обработчика раундов
@@ -81,17 +79,10 @@ public class FightService {
                 0L,
                 opponent.get().getId()
         );
-
         FIGHT_MAP.put(newFightId, new FightHandler(newFightId, unitRepository, fightRepository, randomUtil));
 
-        var response = Response.builder()
-                .player(player.get())
-                .fight(newFight)
-                .info(username + " напал на противника " + opponent.get().getName())
-                .status(1)
-                .build();
-
-        return jsonProcessor.toJson(response);
+        return jsonProcessor
+                .toJsonFight(new FightResponse(player.get(), newFight, username + " напал на противника " + opponent.get().getName()));
     }
 
     //текущее состояние сражения
@@ -99,41 +90,32 @@ public class FightService {
         //поиск player в бд
         var player = unitRepository.findByName(username);
         if(player.isEmpty()) {
-            var response = Response.builder()
-                    .info("Игрок не найден")
-                    .status(0)
-                    .build();
+            var response = jsonProcessor
+                    .toJsonError(new ErrorResponse("Игрок не найден"));
             log.info("Не найден player в БД по запросу username: {}", username);
-            return jsonProcessor.toJson(response);
+            return response;
         }
 
-        Fight fight = player.get().getFight();
-        if(fight == null) {
-            var response = Response.builder()
-                    .info("Сражение не найдено")
-                    .status(0)
-                    .build();
-            return jsonProcessor.toJson(response);
+        Optional<Fight> fight = Optional.ofNullable(player.get().getFight());
+        if(fight.isEmpty()) {
+            var response = jsonProcessor
+                    .toJsonError(new ErrorResponse("Сражение не найдено"));
+            log.info("Не найдено сражение в БД по запросу обновления состояния от player: {}", player.get().getName());
+            return response;
         }
 
-        if(fight.isFightEnd()) {
-            var response = Response.builder()
-                    .info("Сражение не найдено")
-                    .status(0)
-                    .build();
-            return jsonProcessor.toJson(response);
+        if(fight.get().isFightEnd()) {
+            var response = jsonProcessor
+                    .toJsonError(new ErrorResponse("Сражение уже завершено"));
+            log.info("Попытка обращения к завершенному сражению от player: {}", player.get().getName());
+            return response;
         }
 
         //устанавливает в ответе текущее время раунда
-        fight.setTimeToEndRound(FIGHT_MAP.get(fight.getId()).getRoundTimer());
+        fight.get().setTimeToEndRound(FIGHT_MAP.get(fight.get().getId()).getRoundTimer());
 
-        var response = Response.builder()
-                .player(player.get())
-                .fight(fight)
-                .status(1)
-                .build();
-
-        return jsonProcessor.toJson(response);
+        return jsonProcessor
+                .toJsonFight(new FightResponse(player.get(), fight.get(), null));
     }
 
     //атака по выбранному противнику
@@ -143,25 +125,22 @@ public class FightService {
         //поиск player в бд
         var player = unitRepository.findByName(username);
         if(player.isEmpty()) {
-            var response = Response.builder()
-                    .info("Игрок не найден")
-                    .status(0)
-                    .build();
+            var response = jsonProcessor
+                    .toJsonError(new ErrorResponse("Игрок не найден"));
             log.info("Не найден player в БД по запросу username: {}", username);
-            return jsonProcessor.toJson(response);
+            return response;
         }
 
-        Fight fight = player.get().getFight();
-        if(fight == null) {
-            var response = Response.builder()
-                    .info("Сражение не найдено")
-                    .status(0)
-                    .build();
-            return jsonProcessor.toJson(response);
+        Optional<Fight> fight = Optional.ofNullable(player.get().getFight());
+        if(fight.isEmpty()) {
+            var response = jsonProcessor
+                    .toJsonError(new ErrorResponse("Сражение не найдено"));
+            log.info("Не найдено сражение в БД по запросу обновления состояния от player: {}", player.get().getName());
+            return response;
         }
 
         //устанавливает в ответе текущее время раунда
-        fight.setTimeToEndRound(FIGHT_MAP.get(fight.getId()).getRoundTimer());
+        fight.get().setTimeToEndRound(FIGHT_MAP.get(fight.get().getId()).getRoundTimer());
 
         //TODO сделать поиск выбранного умения в бд и расчет предварительного урона
         // и уменьшение характеристик, если требуется
@@ -183,14 +162,8 @@ public class FightService {
             info = "Ход уже сделан";
         }
 
-        var response = Response.builder()
-                .player(player.get())
-                .fight(fight)
-                .info(info)
-                .status(1)
-                .build();
-
-        return jsonProcessor.toJson(response);
+        return jsonProcessor
+                .toJsonFight(new FightResponse(player.get(), fight.get(), info));
     }
 
     //создание нового сражения

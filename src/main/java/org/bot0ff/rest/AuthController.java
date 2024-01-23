@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bot0ff.config.jwt.JwtUtils;
 import org.bot0ff.config.service.UserDetailsImpl;
-import org.bot0ff.dto.Response;
 import org.bot0ff.dto.auth.*;
 import org.bot0ff.entity.*;
 import org.bot0ff.entity.enums.Role;
@@ -53,18 +52,14 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
         if(registerRequest.getUsername().startsWith("*")) {
-            var response = Response.builder()
-                    .info("Имя не должно начинаться с символов '*'")
-                    .status(0)
-                    .build();
-            return ResponseEntity.badRequest().body(response);
+            var response = Map
+                    .of("info", "Имя не должно начинаться с символов '*'", "status", 0);
+            return ResponseEntity.ok(response);
         }
         if(userRepository.existsByUsername(registerRequest.getUsername())) {
-            var response = Response.builder()
-                    .info("Игрок с таким именем уже зарегистрирован")
-                    .status(0)
-                    .build();
-            return ResponseEntity.badRequest().body(response);
+            var response = Map
+                    .of("info", "Игрок с таким именем уже зарегистрирован", "status", 0);
+            return ResponseEntity.ok(response);
         }
         User user = new User();
         user.setUsername(registerRequest.getUsername());
@@ -89,5 +84,11 @@ public class AuthController {
     @GetMapping("/news")
     public ResponseEntity<?> getNews() {
         return ResponseEntity.ok().body("");
+    }
+
+    //проверка авторизации
+    @GetMapping("/check")
+    public ResponseEntity<?> checkAuth() {
+        return ResponseEntity.ok(Map.of("status", 1));
     }
 }

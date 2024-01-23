@@ -23,6 +23,7 @@ public class Fight {
 
     @OneToMany(mappedBy = "fight", fetch = FetchType.EAGER)
     @ToString.Exclude
+    @JsonIgnore
     private List<Unit> units;
 
     @Column(name = "countRound")

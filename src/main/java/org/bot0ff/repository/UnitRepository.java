@@ -62,8 +62,8 @@ public interface UnitRepository extends JpaRepository<Unit, Long> {
     //удаляет id сражения
     @Modifying
     @Query(value = "UPDATE unit SET " +
-            "fight = :fight " +
+            "status = :status " +
             "WHERE id = :id", nativeQuery = true)
-    void clearFightId(@Param("fight") Long fight,
-                      @Param("id") Long id);
+    void setStatus(@Param("status") String status,
+                   @Param("id") Long id);
 }

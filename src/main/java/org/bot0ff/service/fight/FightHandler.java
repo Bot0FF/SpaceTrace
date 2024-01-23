@@ -148,7 +148,7 @@ public class FightHandler {
             if(unit.getStatus().equals(Status.DIE)) {
                 unit.setHp(1);
                 unit.setActionEnd(false);
-                unit.setStatus(Status.ACTIVE);
+                unit.setStatus(Status.LOSS);
                 unit.setFight(null);
                 unit.set_teamType(null);
                 unit.set_damage(null);
@@ -198,43 +198,48 @@ public class FightHandler {
             fightRepository.save(fight.get());
             System.out.println("-->Запуск следующего раунда");
         }
-        //если в первой команде нет игроков со статусом FIGHT, а во второй есть, завершаем бой,
+        //если в первой команде есть игроки, а во второй нет, завершаем бой,
         //сохраняем результаты победы у unit из второй команды
         else if(!teamOne.isEmpty() & teamTwo.isEmpty()) {
+            StringBuilder wins = new StringBuilder();
             for(Unit unit: teamOne) {
                 unit.setHp(unit.getHp());
                 unit.setActionEnd(false);
-                unit.setStatus(Status.ACTIVE);
+                unit.setStatus(Status.WIN);
+                unit.setFight(null);
                 unit.set_teamType(null);
                 unit.set_damage(null);
                 unit.set_attackType(null);
                 unit.set_targetId(null);
                 unitRepository.save(unit);
+                wins.append("[").append(unit.getName()).append("]");
                 System.out.println(unit.getName() + " победил в сражении");
             }
             endFight = true;
             fight.get().setFightEnd(true);
-            fight.get().setResultRound(String.valueOf(resultRound));
+            fight.get().setResultRound(wins.toString());
             fightRepository.save(fight.get());
             System.out.println(fightId + " сражение завершено и удалено из map");
         }
         //если во второй команде нет игроков со статусом FIGHT, а в первой есть, завершаем бой,
         //сохраняем результаты победы у unit из первой команды
         else {
+            StringBuilder wins = new StringBuilder();
             for(Unit unit: teamTwo) {
                 unit.setHp(unit.getHp());
                 unit.setActionEnd(false);
-                unit.setStatus(Status.ACTIVE);
+                unit.setStatus(Status.WIN);
                 unit.set_teamType(null);
                 unit.set_damage(null);
                 unit.set_attackType(null);
                 unit.set_targetId(null);
                 unitRepository.save(unit);
+                wins.append("[").append(unit.getName()).append("]");
                 System.out.println(unit.getName() + " победил в сражении");
             }
             endFight = true;
             fight.get().setFightEnd(true);
-            fight.get().setResultRound(String.valueOf(resultRound));
+            fight.get().setResultRound(wins.toString());
             fightRepository.save(fight.get());
             System.out.println(fightId + " сражение завершено и удалено из map");
         }
