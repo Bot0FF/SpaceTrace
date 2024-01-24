@@ -4,18 +4,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bot0ff.dto.ErrorResponse;
 import org.bot0ff.dto.FightResponse;
-import org.bot0ff.dto.MainResponse;
 import org.bot0ff.entity.*;
 import org.bot0ff.entity.enums.AttackType;
 import org.bot0ff.entity.enums.Status;
 import org.bot0ff.repository.FightRepository;
 import org.bot0ff.repository.UnitRepository;
+import org.bot0ff.util.Constants;
 import org.bot0ff.util.JsonProcessor;
 import org.bot0ff.util.RandomUtil;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -34,7 +35,7 @@ public class FightService {
 
     //начать сражение с выбранным enemy
     @Transactional
-    public String getStartFight(String username, Long targetId) {
+    public String setStartFight(String username, Long targetId) {
         //поиск player в бд
         var player = unitRepository.findByName(username);
         if(player.isEmpty()) {
@@ -57,28 +58,27 @@ public class FightService {
         Long newFightId = fightRepository.save(newFight).getId();
 
         //сохранение статуса FIGHT у player
-        unitRepository.saveNewFight(
-                false,
-                Status.FIGHT.name(),
-                newFightId,
-                1L,
-                0L,
-                AttackType.NONE.name(),
-                0L,
-                player.get().getId()
-        );
+        player.get().setActionEnd(false);
+        player.get().setStatus(Status.FIGHT);
+        player.get().setFight(newFight);
+        player.get().set_teamType(1L);
+        player.get().set_damage(0L);
+        player.get().set_attackType(AttackType.NONE);
+        player.get().set_targetId(0L);
+        unitRepository.save(player.get());
 
         //сохранение статуса FIGHT у enemy
-        unitRepository.saveNewFight(
-                false,
-                Status.FIGHT.name(),
-                newFightId,
-                2L,
-                0L,
-                AttackType.NONE.name(),
-                0L,
-                opponent.get().getId()
-        );
+        opponent.get().setActionEnd(false);
+        opponent.get().setStatus(Status.FIGHT);
+        opponent.get().setFight(newFight);
+        opponent.get().set_teamType(2L);
+        opponent.get().set_damage(0L);
+        opponent.get().set_attackType(AttackType.NONE);
+        opponent.get().set_targetId(0L);
+        unitRepository.save(player.get());
+
+        newFight.setUnits(List.of(player.get(), opponent.get()));
+
         FIGHT_MAP.put(newFightId, new FightHandler(newFightId, unitRepository, fightRepository, randomUtil));
 
         return jsonProcessor
@@ -112,7 +112,7 @@ public class FightService {
         }
 
         //устанавливает в ответе текущее время раунда
-        fight.get().setTimeToEndRound(FIGHT_MAP.get(fight.get().getId()).getRoundTimer());
+        fight.get().setEndRoundTimer(FIGHT_MAP.get(fight.get().getId()).getEndRoundTimer().toEpochMilli());
 
         return jsonProcessor
                 .toJsonFight(new FightResponse(player.get(), fight.get(), null));
@@ -140,7 +140,7 @@ public class FightService {
         }
 
         //устанавливает в ответе текущее время раунда
-        fight.get().setTimeToEndRound(FIGHT_MAP.get(fight.get().getId()).getRoundTimer());
+        fight.get().setEndRoundTimer(FIGHT_MAP.get(fight.get().getId()).getEndRoundTimer().toEpochMilli());
 
         //TODO сделать поиск выбранного умения в бд и расчет предварительного урона
         // и уменьшение характеристик, если требуется
@@ -170,7 +170,7 @@ public class FightService {
     private Fight getNewFight(Unit player, Unit opponent) {
         return new Fight(null,
                 new ArrayList<>(List.of(player, opponent)),
-                1, "", false, 10);
+                1, "", false, Instant.now().plusSeconds(Constants.ROUND_LENGTH_TIME).toEpochMilli());
     }
 
 

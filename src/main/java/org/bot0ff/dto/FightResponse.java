@@ -20,7 +20,7 @@ public class FightResponse {
     public FightResponse(Unit player, Fight fight, String info) {
         this.player = player;
         this.fight = fight;
-        if(player.get_teamType() != null) {
+        if(!fight.getUnits().isEmpty()) {
             this.teamOne = new ArrayList<>(fight.getUnits().stream().filter(unit -> unit.get_teamType() == 1).toList());
             this.teamTwo = new ArrayList<>(fight.getUnits().stream().filter(unit -> unit.get_teamType() == 2).toList());
         }
@@ -28,7 +28,7 @@ public class FightResponse {
             this.teamOne = new ArrayList<>();
             this.teamTwo = new ArrayList<>();
         }
-        this.info = Objects.requireNonNullElse(info, "Идет сражение...");
+        this.info = info;
         this.status = 1;
     }
 }

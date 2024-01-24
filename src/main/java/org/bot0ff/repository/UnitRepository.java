@@ -25,26 +25,6 @@ public interface UnitRepository extends JpaRepository<Unit, Long> {
                          @Param("location") Long location,
                          @Param("id") Long id);
 
-    //сохраняет новое сражение и обнуляет характеристики сражения
-    @Modifying
-    @Query(value = "UPDATE unit SET " +
-            "action_end = :actionEnd, " +
-            "status = :status, " +
-            "fight = :fight, " +
-            "_team_type = :_teamType, " +
-            "_damage = :_damage, " +
-            "_attack_type = :_attackType, " +
-            "_target_id = :_targetId " +
-            "WHERE id = :id", nativeQuery = true)
-    void saveNewFight(@Param("actionEnd") boolean actionEnd,
-                      @Param("status") String status,
-                      @Param("fight") Long fight,
-                      @Param("_teamType") Long _teamType,
-                      @Param("_damage") Long _damage,
-                      @Param("_attackType") String _attackType,
-                      @Param("_targetId") Long _targetId,
-                      @Param("id") Long id);
-
     //сохраняет новую атаку
     @Modifying
     @Query(value = "UPDATE unit SET " +

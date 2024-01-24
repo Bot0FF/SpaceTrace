@@ -9,6 +9,6 @@ public class ErrorResponse {
 
     public ErrorResponse(String info) {
         this.info = info;
-        this.status = 0;
+        this.status = 2;
     }
 }

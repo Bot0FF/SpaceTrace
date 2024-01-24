@@ -42,10 +42,9 @@ public class AuthController {
          SecurityContextHolder.getContext().setAuthentication(authentication);
          UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
          ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
-         var response = mainService.getUserState(userDetails.getUsername());
 
          return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
-                 .body(response);
+                 .body(Map.of("status", 1));
     }
 
     //регистрация
@@ -87,7 +86,7 @@ public class AuthController {
     }
 
     //проверка авторизации
-    @GetMapping("/check")
+    @GetMapping("api/check")
     public ResponseEntity<?> checkAuth() {
         return ResponseEntity.ok(Map.of("status", 1));
     }

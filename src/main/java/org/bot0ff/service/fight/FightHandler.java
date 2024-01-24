@@ -12,6 +12,7 @@ import org.bot0ff.util.Constants;
 import org.bot0ff.util.RandomUtil;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -24,7 +25,7 @@ public class FightHandler {
     private UnitRepository unitRepository;
     private FightRepository fightRepository;
     private RandomUtil randomUtil;
-    private Integer roundTimer;
+    private Instant endRoundTimer;
     private boolean endFight;
     private ExecutorService EXECUTOR_SERVICE;
 
@@ -33,7 +34,7 @@ public class FightHandler {
         this.unitRepository = unitRepository;
         this.fightRepository = fightRepository;
         this.randomUtil = randomUtil;
-        roundTimer = Constants.ROUND_LENGTH_TIME;
+        endRoundTimer = Instant.now().plusSeconds(Constants.ROUND_LENGTH_TIME);
         endFight = false;
         EXECUTOR_SERVICE = Executors.newCachedThreadPool();
 
@@ -49,15 +50,14 @@ public class FightHandler {
     private void fightInitializer() throws InterruptedException {
         EXECUTOR_SERVICE.execute(() -> {
             do {
-                if (roundTimer <= 0) {
+                if (Instant.now().isAfter(endRoundTimer)) {
                     resultRoundHandler(fightId);
-                    this.roundTimer = Constants.ROUND_LENGTH_TIME;
+                    this.endRoundTimer = Instant.now().plusSeconds(Constants.ROUND_LENGTH_TIME);
                 } else {
-                    System.out.println(roundTimer);
-                    this.roundTimer = roundTimer - 1;
                     try {
                         TimeUnit.SECONDS.sleep(1);
                     } catch (InterruptedException e) {
+                        endFight = true;
                         e.printStackTrace();
                     }
                 }

@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.time.Instant;
 import java.util.List;
 
 @Data
@@ -37,5 +38,5 @@ public class Fight {
     private boolean fightEnd;
 
     @Transient
-    private int timeToEndRound;
+    private Long endRoundTimer;
 }
