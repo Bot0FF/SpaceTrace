@@ -14,6 +14,7 @@ public class FightResponse {
     private Fight fight;
     private List<Unit> teamOne;
     private List<Unit> teamTwo;
+    private String resultRound;
     private String info;
     private int status;
 
@@ -27,6 +28,12 @@ public class FightResponse {
         else {
             this.teamOne = new ArrayList<>();
             this.teamTwo = new ArrayList<>();
+        }
+        if(this.fight.getResultRound().isEmpty()) {
+            this.resultRound = "";
+        }
+        else {
+            this.resultRound = this.fight.getResultRound().get(this.fight.getResultRound().size() - 1);
         }
         this.info = info;
         this.status = 1;

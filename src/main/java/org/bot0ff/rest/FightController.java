@@ -27,6 +27,13 @@ public class FightController {
         return ResponseEntity.ok(response);
     }
 
+    //текущее состояние сражения
+    @GetMapping("/ability")
+    public ResponseEntity<?> getAbility() {
+        var response = fightService.getUnitAbility("user");
+        return ResponseEntity.ok(response);
+    }
+
     //атака по выбранному противнику
     @GetMapping("/hit")
     public ResponseEntity<?> actionFight(@RequestParam Long abilityId,

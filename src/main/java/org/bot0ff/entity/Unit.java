@@ -6,8 +6,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.bot0ff.entity.enums.AttackType;
+import org.bot0ff.entity.enums.ApplyType;
 import org.bot0ff.entity.enums.Status;
+import org.bot0ff.entity.enums.UnitType;
+
+import java.util.List;
 
 @Entity
 @Table(name = "unit")
@@ -23,6 +26,10 @@ public class Unit {
 
     @Column(name = "name")
     private String name;
+
+    @Enumerated(value = EnumType.STRING)
+    @JsonIgnore
+    private UnitType unitType;
 
     @Enumerated(value = EnumType.STRING)
     private Status status;
@@ -54,6 +61,10 @@ public class Unit {
     @Column(name = "damage")
     private int damage;
 
+    @Column(name = "ability")
+    @JsonIgnore
+    private List<Long> ability;
+
     //сражение
     @ManyToOne()
     @JoinColumn(name = "fight")
@@ -69,7 +80,7 @@ public class Unit {
 
     @Enumerated(value = EnumType.STRING)
     @JsonIgnore
-    private AttackType _attackType;
+    private ApplyType _applyType;
 
     @Column(name = "_targetId")
     @JsonIgnore

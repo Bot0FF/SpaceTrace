@@ -1,6 +1,6 @@
 package org.bot0ff.entity.enums;
 
-public enum AttackType {
+public enum ApplyType {
     NONE,
     MYSELF,
     OPPONENT,

@@ -24,7 +24,7 @@ public class MainResponse {
         this.location = location;
         this.enemies = new ArrayList<>(location.getUnits().stream().filter(unit -> unit.getName().startsWith("*")).toList());
         this.players = new ArrayList<>(location.getUnits().stream().filter(unit -> !unit.getName().startsWith("*")).toList());
-        this.info = Objects.requireNonNullElseGet(info, () -> new SimpleDateFormat("dd-MM-yyyy HH:mm:ss")
+        this.info = Objects.requireNonNullElseGet(info, () -> new SimpleDateFormat("dd-MM-yyyy HH:mm")
                 .format(new Date()));
         this.status = 1;
     }

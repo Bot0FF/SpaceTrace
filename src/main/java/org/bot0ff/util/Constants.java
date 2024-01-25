@@ -21,4 +21,7 @@ public class Constants {
 
     //длительность раундов
     public static  int ROUND_LENGTH_TIME = 10;
+
+    //значения в бд
+
 }

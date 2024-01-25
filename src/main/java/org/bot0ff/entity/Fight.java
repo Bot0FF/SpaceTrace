@@ -7,7 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import java.time.Instant;
 import java.util.List;
 
 @Data
@@ -31,7 +30,8 @@ public class Fight {
     private int countRound;
 
     @Column(name = "resultRound")
-    private String resultRound;
+    @JsonIgnore
+    private List<String> resultRound;
 
     @Column(name = "fightEnd")
     @JsonIgnore

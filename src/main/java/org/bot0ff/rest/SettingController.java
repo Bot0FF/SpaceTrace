@@ -60,7 +60,7 @@ public class SettingController {
         unit.setFight(null);
         unit.set_teamType(null);
         unit.set_damage(null);
-        unit.set_attackType(null);
+        unit.set_applyType(null);
         unit.set_targetId(null);
         unitRepository.save(unit);
         var response = mainService.getUserState(username);

@@ -7,6 +7,7 @@ import org.bot0ff.dto.MainResponse;
 import org.bot0ff.entity.Location;
 import org.bot0ff.entity.Unit;
 import org.bot0ff.entity.enums.Status;
+import org.bot0ff.entity.enums.UnitType;
 import org.bot0ff.repository.LocationRepository;
 import org.bot0ff.repository.UnitRepository;
 import org.bot0ff.util.Constants;
@@ -14,6 +15,8 @@ import org.bot0ff.util.JsonProcessor;
 import org.bot0ff.util.RandomUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Slf4j
 @Service
@@ -119,14 +122,16 @@ public class MainService {
         return new Unit(
                 null,
                 "*Паук*",
+                UnitType.AI,
                 Status.ACTIVE,
                 false,
                 location.getX(),
                 location.getY(),
                 location,
+                1,
                 10,
                 10,
-                10,
+                List.of(),
                 null,
                 null,
                 null,

@@ -10,6 +10,16 @@ import org.bot0ff.dto.MainResponse;
 public class JsonProcessor {
     private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
+    public String toJson(Object object) {
+        try {
+            return objectMapper
+                    .writerWithDefaultPrettyPrinter()
+                    .writeValueAsString(object);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public String toJsonFight(FightResponse response) {
         try {
             return objectMapper
