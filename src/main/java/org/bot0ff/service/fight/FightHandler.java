@@ -21,11 +21,13 @@ import java.util.concurrent.TimeUnit;
 @Data
 @Slf4j
 public class FightHandler {
-    private Long fightId;
     private UnitRepository unitRepository;
     private FightRepository fightRepository;
     private RandomUtil randomUtil;
+
+    private Long fightId;
     private Instant endRoundTimer;
+    private boolean endAiAttack;
     private boolean endFight;
 
     public FightHandler(Long fightId, UnitRepository unitRepository, FightRepository fightRepository, RandomUtil randomUtil) {
@@ -33,6 +35,7 @@ public class FightHandler {
         this.unitRepository = unitRepository;
         this.fightRepository = fightRepository;
         this.randomUtil = randomUtil;
+        this.endAiAttack = false;
         endRoundTimer = Instant.now().plusSeconds(Constants.ROUND_LENGTH_TIME);
         endFight = false;
 
@@ -54,6 +57,9 @@ public class FightHandler {
                 } else {
                     try {
                         TimeUnit.SECONDS.sleep(1);
+                        if(!endAiAttack) {
+                            setAiAttack();
+                        }
                     } catch (InterruptedException e) {
                         endFight = true;
                         e.printStackTrace();
@@ -249,5 +255,53 @@ public class FightHandler {
             fightRepository.save(fight);
             System.out.println(fightId + " сражение завершено и удалено из map");
         }
+    }
+
+    //установка урона AI
+    @Transactional
+    private void setAiAttack() {
+        Optional<Fight> fight = fightRepository.findById(fightId);
+        if(fight.isEmpty()) return;
+
+        //делим на команды всех unit
+        List<Unit> teamOne = new ArrayList<>();
+        List<Unit> teamTwo = new ArrayList<>();
+        for(Unit unit: fight.get().getUnits()) {
+            if(unit.get_teamType() == 1) {
+                teamOne.add(unit);
+            }
+            else {
+                teamTwo.add(unit);
+            }
+        }
+
+        //TODO сделать случайный выбор атаки
+        //все unit первой команды применяют атаку на любом unit из второй команды
+        for(Unit aiUnit : teamOne){
+            if(aiUnit.getUnitType().equals(UnitType.AI)) {
+                int target = randomUtil.getRandomFromTo(0, teamTwo.size() - 1);
+                Long targetId = teamTwo.get(target).getId();
+                aiUnit.set_damage(aiUnit.get_damage());
+                aiUnit.set_applyType(ApplyType.OPPONENT);
+                aiUnit.set_targetId(targetId);
+                aiUnit.setActionEnd(true);
+                unitRepository.save(aiUnit);
+            }
+        }
+
+        //все unit второй команды применяют атаку на любом unit из первой команды
+        for(Unit aiUnit : teamTwo){
+            if(aiUnit.getUnitType().equals(UnitType.AI)) {
+                int target = randomUtil.getRandomFromTo(0, teamOne.size() - 1);
+                Long targetId = teamOne.get(target).getId();
+                aiUnit.set_damage(aiUnit.get_damage());
+                aiUnit.set_applyType(ApplyType.OPPONENT);
+                aiUnit.set_targetId(targetId);
+                aiUnit.setActionEnd(true);
+                unitRepository.save(aiUnit);
+            }
+        }
+
+        endAiAttack = true;
     }
 }

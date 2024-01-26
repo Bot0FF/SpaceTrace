@@ -33,6 +33,12 @@ public class RandomUtil {
         return randomGenerator.nextInt(1, 2);
     }
 
+    //рандом от до
+    public int getRandomFromTo(int from, int to) {
+        RandomDataGenerator randomGenerator = new RandomDataGenerator();
+        return randomGenerator.nextInt(from, to);
+    }
+
     //рандом +-30% от числа
     public int getRNum30(int num) {
         Random random = new Random();
