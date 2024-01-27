@@ -57,10 +57,10 @@ public class SettingController {
         unit.setHp(Constants.START_HP);
         unit.setMana(Constants.START_MANA);
         unit.setDamage(Constants.START_DAMAGE);
+        unit.setDefense(Constants.START_DEFENSE);
         unit.setFight(null);
-        unit.set_teamType(null);
-        unit.set_damage(null);
-        unit.set_applyType(null);
+        unit.set_teamNumber(null);
+        unit.set_abilityId(null);
         unit.set_targetId(null);
         unitRepository.save(unit);
         var response = mainService.getUserState(username);

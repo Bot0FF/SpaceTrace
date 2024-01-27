@@ -3,6 +3,7 @@ package org.bot0ff.config;
 import jakarta.persistence.EntityManagerFactory;
 import org.bot0ff.util.JsonProcessor;
 import org.bot0ff.util.RandomUtil;
+import org.bot0ff.util.UnitJsonConverter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,6 +21,11 @@ public class AppConfig {
     @Bean
     public JsonProcessor getJsonProcessor() {
         return new JsonProcessor();
+    }
+
+    @Bean
+    public UnitJsonConverter getUnitJsonConverter() {
+        return new UnitJsonConverter();
     }
 
     @Bean

@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.bot0ff.dto.ErrorResponse;
 import org.bot0ff.dto.FightResponse;
 import org.bot0ff.entity.*;
-import org.bot0ff.entity.enums.ApplyType;
 import org.bot0ff.entity.enums.Status;
 import org.bot0ff.repository.FightRepository;
 import org.bot0ff.repository.SubjectRepository;
@@ -34,16 +33,16 @@ public class FightService {
 
     //начать сражение с выбранным enemy
     @Transactional
-    public String setStartFight(String username, Long targetId) {
+    public String setStartFight(String name, Long targetId) {
         //поиск player в бд
-        var player = unitRepository.findByName(username);
-        if(player.isEmpty()) {
+        var initiator = unitRepository.findByName(name);
+        if(initiator.isEmpty()) {
             var response = jsonProcessor
-                    .toJsonError(new ErrorResponse("Игрок не найден"));
-            log.info("Не найден player в БД по запросу username: {}", username);
+                    .toJsonError(new ErrorResponse("Unit не найден"));
+            log.info("Не найден unit в БД по запросу name: {}", name);
             return response;
         }
-        //поиск enemy в бд
+        //поиск opponent в бд
         var opponent = unitRepository.findById(targetId);
         if(opponent.isEmpty()) {
             var response = jsonProcessor
@@ -53,35 +52,35 @@ public class FightService {
         }
 
         //добавление нового сражения в map и запуск обработчика раундов
-        Fight newFight = getNewFight(player.get(), opponent.get());
+        Fight newFight = getNewFight(initiator.get(), opponent.get());
         Long newFightId = fightRepository.save(newFight).getId();
 
         //сохранение статуса FIGHT у player
-        player.get().setActionEnd(false);
-        player.get().setStatus(Status.FIGHT);
-        player.get().setFight(newFight);
-        player.get().set_teamType(1L);
-        player.get().set_damage(0L);
-        player.get().set_applyType(ApplyType.NONE);
-        player.get().set_targetId(0L);
-        unitRepository.save(player.get());
+        initiator.get().setActionEnd(false);
+        initiator.get().setStatus(Status.FIGHT);
+        initiator.get().setFight(newFight);
+        initiator.get().set_teamNumber(1L);
+        initiator.get().set_abilityId(0L);
+        initiator.get().set_targetId(0L);
+        unitRepository.save(initiator.get());
 
         //сохранение статуса FIGHT у enemy
         opponent.get().setActionEnd(true);
         opponent.get().setStatus(Status.FIGHT);
         opponent.get().setFight(newFight);
-        opponent.get().set_teamType(2L);
-        opponent.get().set_damage(4L);
-        opponent.get().set_applyType(ApplyType.OPPONENT);
-        opponent.get().set_targetId(player.get().getId());
-        unitRepository.save(player.get());
+        opponent.get().set_teamNumber(2L);
+        opponent.get().set_abilityId(0L);
+        opponent.get().set_targetId(0L);
+        unitRepository.save(initiator.get());
 
-        newFight.setUnits(List.of(player.get(), opponent.get()));
+        newFight.setUnits(List.of(initiator.get(), opponent.get()));
 
-        FIGHT_MAP.put(newFightId, new FightHandler(newFightId, unitRepository, fightRepository, randomUtil));
+        FIGHT_MAP.put(newFightId, new FightHandler(
+                newFightId, unitRepository, fightRepository, subjectRepository, randomUtil
+        ));
 
         return jsonProcessor
-                .toJsonFight(new FightResponse(player.get(), newFight, "Загрузка сражения..."));
+                .toJsonFight(new FightResponse(initiator.get(), newFight, "Загрузка сражения..."));
     }
 
     //текущее состояние сражения
@@ -105,13 +104,11 @@ public class FightService {
 
         //если сражение завершено и статус unit НЕ ACTIVE, сбрасываем настройки сражения unit
         if(fight.get().isFightEnd()) {
-            player.get().setHp(player.get().getHp());
             player.get().setActionEnd(false);
             player.get().setStatus(Status.ACTIVE);
             player.get().setFight(null);
-            player.get().set_teamType(null);
-            player.get().set_damage(null);
-            player.get().set_applyType(null);
+            player.get().set_teamNumber(null);
+            player.get().set_abilityId(null);
             player.get().set_targetId(null);
             unitRepository.save(player.get());
             var response = jsonProcessor
@@ -166,42 +163,16 @@ public class FightService {
             return response;
         }
 
-        //поиск enemy в бд
-        var opponent = unitRepository.findById(targetId);
-        if(opponent.isEmpty()) {
-            var response = jsonProcessor
-                    .toJsonError(new ErrorResponse("Противник не найден"));
-            log.info("Не найден opponent в БД по запросу username: {}", opponent);
-            return response;
+        if(player.get().isActionEnd()) {
+            return jsonProcessor
+                    .toJsonFight(new FightResponse(player.get(), fight.get(), "Ход уже сделан..."));
         }
 
-        //сохранение атаки у enemy
-        opponent.get().setActionEnd(true);
-        opponent.get().setFight(fight.get());
-        opponent.get().set_teamType(2L);
-        opponent.get().set_damage(4L);
-        opponent.get().set_applyType(ApplyType.OPPONENT);
-        opponent.get().set_targetId(player.get().getId());
+        //сохранение умения и цели, по которой произведено действие
+        player.get().setActionEnd(true);
+        player.get().set_abilityId(abilityId);
+        player.get().set_targetId(targetId);
         unitRepository.save(player.get());
-
-        //TODO сделать поиск выбранного умения в бд и расчет предварительного урона
-        // и уменьшение характеристик, если требуется
-        // если ability 0, то урон наносится простой атакой
-        // добавлять тип (количество атакуемых) атаки, в зависимости от умения
-
-        //расчет и сохранение умения и цели, по которой произведено действие
-        String info;
-        if(!player.get().isActionEnd()) {
-            player.get().setActionEnd(true);
-            player.get().set_damage(6L);
-            player.get().set_applyType(ApplyType.OPPONENT);
-            player.get().set_targetId(targetId);
-            unitRepository.save(player.get());
-            info = "Использовано умение: " + "Обычная атака";
-        }
-        else {
-            info = "Ход уже сделан";
-        }
 
         if(fight.get().getUnits().stream().allMatch(Unit::isActionEnd)) {
             FIGHT_MAP.get(player.get().getFight().getId()).setEndRoundTimer(Instant.now().plusSeconds(1));
@@ -211,13 +182,28 @@ public class FightService {
         fight.get().setEndRoundTimer(FIGHT_MAP.get(fight.get().getId()).getEndRoundTimer().toEpochMilli());
 
         return jsonProcessor
-                .toJsonFight(new FightResponse(player.get(), fight.get(), info));
+                .toJsonFight(new FightResponse(player.get(), fight.get(), ""));
     }
 
     //создание нового сражения
-    private Fight getNewFight(Unit player, Unit opponent) {
+    private Fight getNewFight(Unit initiator, Unit opponent) {
+        List<UnitJson> unitJsons = List.of(
+                new UnitJson(initiator.getId(),
+                        initiator.getHp(), 0, 0,
+                        initiator.getMana(), 0, 0,
+                        initiator.getDamage(), 0, 0,
+                        initiator.getDefense(), 0, 0
+                ),
+                new UnitJson(initiator.getId(),
+                        opponent.getHp(), 0, 0,
+                        initiator.getMana(), 0, 0,
+                        initiator.getDamage(), 0, 0,
+                        initiator.getDefense(), 0, 0)
+        );
+
         return new Fight(null,
-                new ArrayList<>(List.of(player, opponent)),
+                new ArrayList<>(List.of(initiator, opponent)),
+                unitJsons,
                 1, new ArrayList<>(), false,
                 Instant.now().plusSeconds(Constants.ROUND_LENGTH_TIME).toEpochMilli());
     }
@@ -234,10 +220,6 @@ public class FightService {
             unit.setActionEnd(false);
             unit.setStatus(Status.ACTIVE);
             unit.setFight(null);
-            unit.set_teamType(null);
-            unit.set_damage(null);
-            unit.set_applyType(null);
-            unit.set_targetId(null);
             unitRepository.save(unit);
         }
     }

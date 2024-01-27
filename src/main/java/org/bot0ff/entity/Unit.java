@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.bot0ff.entity.enums.ApplyType;
 import org.bot0ff.entity.enums.Status;
 import org.bot0ff.entity.enums.UnitType;
 
@@ -61,6 +60,9 @@ public class Unit {
     @Column(name = "damage")
     private int damage;
 
+    @Column(name = "defense")
+    private int defense;
+
     @Column(name = "ability")
     @JsonIgnore
     private List<Long> ability;
@@ -71,19 +73,13 @@ public class Unit {
     @JsonIgnore
     private Fight fight;
 
-    @Column(name = "_teamType")
-    private Long _teamType;
+    @Column(name = "_teamNumber")
+    private Long _teamNumber;
 
-    @Column(name = "_damage")
-    @JsonIgnore
-    private Long _damage;
-
-    @Enumerated(value = EnumType.STRING)
-    @JsonIgnore
-    private ApplyType _applyType;
+    @Column(name = "_abilityId")
+    private Long _abilityId;
 
     @Column(name = "_targetId")
-    @JsonIgnore
     private Long _targetId;
 
     @JsonIgnore

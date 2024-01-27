@@ -3,14 +3,18 @@ package org.bot0ff.service.fight;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.bot0ff.entity.Fight;
+import org.bot0ff.entity.Subject;
 import org.bot0ff.entity.Unit;
+import org.bot0ff.entity.UnitJson;
 import org.bot0ff.entity.enums.ApplyType;
 import org.bot0ff.entity.enums.Status;
 import org.bot0ff.entity.enums.UnitType;
 import org.bot0ff.repository.FightRepository;
+import org.bot0ff.repository.SubjectRepository;
 import org.bot0ff.repository.UnitRepository;
 import org.bot0ff.util.Constants;
 import org.bot0ff.util.RandomUtil;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
@@ -23,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 public class FightHandler {
     private UnitRepository unitRepository;
     private FightRepository fightRepository;
+    private SubjectRepository subjectRepository;
     private RandomUtil randomUtil;
 
     private Long fightId;
@@ -30,11 +35,17 @@ public class FightHandler {
     private boolean endAiAttack;
     private boolean endFight;
 
-    public FightHandler(Long fightId, UnitRepository unitRepository, FightRepository fightRepository, RandomUtil randomUtil) {
-        this.fightId = fightId;
+    public FightHandler(Long fightId,
+                        UnitRepository unitRepository,
+                        FightRepository fightRepository,
+                        SubjectRepository subjectRepository,
+                        RandomUtil randomUtil) {
         this.unitRepository = unitRepository;
         this.fightRepository = fightRepository;
+        this.subjectRepository = subjectRepository;
         this.randomUtil = randomUtil;
+
+        this.fightId = fightId;
         this.endAiAttack = false;
         endRoundTimer = Instant.now().plusSeconds(Constants.ROUND_LENGTH_TIME);
         endFight = false;
@@ -85,6 +96,12 @@ public class FightHandler {
         Fight fight = optionalFight.get();
         //добавляем unit в общий лист
         List<Unit> units = new ArrayList<>(fight.getUnits());
+        List<UnitJson> unitJsons = new ArrayList<>(fight.getUnitJson());
+        if(unitJsons.isEmpty()) {
+            endFight = true;
+            System.out.println("Не найдены unitJson в сражении: " + fightId + ", сражение завершено с ошибкой");
+            return;
+        }
 
         //Сортируем unit в порядке убывания инициативы
         units.sort(Comparator.comparingLong(Unit::getId));
@@ -93,47 +110,38 @@ public class FightHandler {
 
         for(Unit unit: units) {
             if(unit.isActionEnd() & unit.getStatus().equals(Status.FIGHT)) {
-                System.out.println("Обработка примененного умения " + unit.getName());
-                String applyType = unit.get_applyType().name();
+                Optional<Subject> ability = subjectRepository.findById(unit.get_abilityId());
+                if(ability.isEmpty()) {
+                    System.out.println("Не найдено умение " + unit.get_abilityId() + " при выборе игроком" + unit.getName() + " . Ход следующего unit");
+                    continue;
+                }
+                System.out.println(unit.getName() + "применил умение " + ability.get().getName());
+                String applyType = String.valueOf(ability.get().getApplyType());
                 switch (applyType) {
                     case "MYSELF" -> {
                         System.out.println("Применено умение на себя");
                     }
                     case "OPPONENT" -> {
-                        Optional<Unit> optionalTarget = units.stream().filter(u -> u.getId().equals(unit.get_targetId())).findFirst();
-                        //если цель-unit не найден, переходим к следующей итерации цикла
-                        if(optionalTarget.isEmpty()) continue;
-                        //рассчитываем урон, который нанес текущий unit противнику
-                        Unit target = optionalTarget.get();
-                        System.out.println("Юнит " + unit.getName() + " атакует юнита " + target.getName());
-                        int unitHit = Math.toIntExact(unit.get_damage());
-                        //TODO добавить защиту
-                        int targetDefense = 1;
-                        double unitHitDouble = unitHit * 1.0;
-                        double targetDefenseDouble = targetDefense * 1.0;
-                        if(unitHit <= 1) unitHit = 1;
-                        if(targetDefense <= 1) targetDefense = 1;
-                        int result = (int) ((int) (((unitHit - Math.random() * 10) * ((double) unitHit / (unitHit + targetDefense)))) * (unitHitDouble / targetDefenseDouble));
-                        if(result <= 0) result = 0;
-                        if(result > unit.get_damage()) result = randomUtil.getRNum30(Math.toIntExact(unit.get_damage()));
-                        System.out.println("unit " + unit.getName() + " нанес урон " + result);
-                        target.setHp(target.getHp() - result);
-
-                        if(target.getHp() <= 0) {
-                            target.setActionEnd(true);
-                            target.setStatus(Status.DIE);
-                            System.out.println(target.getName() + " ход отменен. HP <= 0");
+                        Optional<UnitJson> unitJson = unitJsons.stream().filter(u -> u.getId().equals(unit.getId())).findFirst();
+                        Optional<Unit> target = units.stream().filter(u -> u.getId().equals(unit.get_targetId())).findFirst();
+                        Optional<UnitJson> targetJson = unitJsons.stream().filter(u -> u.getId().equals(unit.get_targetId())).findFirst();
+                        //если unit или цель-unit не найден, переходим к следующей итерации цикла
+                        if(unitJson.isEmpty() | targetJson.isEmpty() | target.isEmpty()) continue;
+                        UnitJson uj = unitJson.get();
+                        Unit t = target.get();
+                        UnitJson tj = unitJson.get();
+                        System.out.println("Юнит " + unit.getName() + " применил умение на юнита " + target.getId());
+                        String hitType = String.valueOf(ability.get().getHitType());
+                        switch (hitType) {
+                            case "DAMAGE" -> {
+                                //рассчитываем урон и сохраняем результат
+                                StringBuilder result = calculateDamage(unit, unitJson, target, targetJson);
+                                resultRound.append(result);
+                            }
+                            case "RECOVERY" -> {
+                                System.out.println("Применено умение восстановления на unit");
+                            }
                         }
-                        unit.setActionEnd(true);
-                        resultRound
-                                .append("[")
-                                .append(unit.getName())
-                                .append(" нанес ")
-                                .append(result)
-                                .append(" урона противнику ")
-                                .append(target.getName())
-                                .append(" умением обычная атака")
-                                .append("]");
                     }
                     case "ALL_OPPONENT" -> {
                         System.out.println("Применено умение на всех противников");
@@ -146,6 +154,17 @@ public class FightHandler {
                     }
                 }
                 System.out.println("Переход хода к следующему юниту в раунде");
+            }
+        }
+
+        //меняем значения параметры unit на параметры из unitJson
+        for(Unit unit : units) {
+            Optional<UnitJson> unitJson = unitJsons.stream().filter(uj -> unit.getId().equals(uj.getId())).findFirst();
+            if(unitJson.isPresent()) {
+                unit.setHp(unitJson.get().getCurrentHp());
+                unit.setMana(unitJson.get().getCurrentMana());
+                unit.setDamage(unitJson.get().getCurrentDamage());
+                unit.setDefense(unitJson.get().getCurrentDefense());
             }
         }
 
@@ -257,6 +276,37 @@ public class FightHandler {
         }
     }
 
+    private StringBuilder calculateDamage(Unit unit, UnitJson unitJson, Unit target, UnitJson targetJson) {
+        //рассчитываем урон, который нанес текущий unit противнику
+        int unitHit = unit.getDamage();
+        int targetDefense = target.getDefense();
+        double unitHitDouble = unitHit * 1.0;
+        double targetDefenseDouble = targetDefense * 1.0;
+        if(unitHit <= 1) unitHit = 1;
+        if(targetDefense <= 1) targetDefense = 1;
+        int result = (int) ((int) (((unitHit - Math.random() * 10) * ((double) unitHit / (unitHit + targetDefense)))) * (unitHitDouble / targetDefenseDouble));
+        if(result <= 0) result = 0;
+        if(result > unit.getDamage()) result = randomUtil.getRNum30(Math.toIntExact(unit.getDamage()));
+        System.out.println("unit " + unit.getName() + " нанес урон " + result);
+        target.setHp(target.getHp() - result);
+
+        if(target.getHp() <= 0) {
+            target.setActionEnd(true);
+            target.setStatus(Status.DIE);
+            System.out.println(target.getName() + " ход отменен. HP <= 0");
+        }
+        unit.setActionEnd(true);
+        return new StringBuilder()
+                .append("[")
+                .append(unit.getName())
+                .append(" нанес ")
+                .append(result)
+                .append(" урона противнику ")
+                .append(target.getName())
+                .append(" умением обычная атака")
+                .append("]");
+    }
+
     //установка урона AI
     @Transactional
     private void setAiAttack() {
@@ -267,7 +317,7 @@ public class FightHandler {
         List<Unit> teamOne = new ArrayList<>();
         List<Unit> teamTwo = new ArrayList<>();
         for(Unit unit: fight.get().getUnits()) {
-            if(unit.get_teamType() == 1) {
+            if(unit.get_teamNumber() == 1) {
                 teamOne.add(unit);
             }
             else {
@@ -281,8 +331,7 @@ public class FightHandler {
             if(aiUnit.getUnitType().equals(UnitType.AI)) {
                 int target = randomUtil.getRandomFromTo(0, teamTwo.size() - 1);
                 Long targetId = teamTwo.get(target).getId();
-                aiUnit.set_damage(aiUnit.get_damage());
-                aiUnit.set_applyType(ApplyType.OPPONENT);
+                aiUnit.set_abilityId(0L);
                 aiUnit.set_targetId(targetId);
                 aiUnit.setActionEnd(true);
                 unitRepository.save(aiUnit);
@@ -294,8 +343,7 @@ public class FightHandler {
             if(aiUnit.getUnitType().equals(UnitType.AI)) {
                 int target = randomUtil.getRandomFromTo(0, teamOne.size() - 1);
                 Long targetId = teamOne.get(target).getId();
-                aiUnit.set_damage(aiUnit.get_damage());
-                aiUnit.set_applyType(ApplyType.OPPONENT);
+                aiUnit.set_abilityId(0L);
                 aiUnit.set_targetId(targetId);
                 aiUnit.setActionEnd(true);
                 unitRepository.save(aiUnit);

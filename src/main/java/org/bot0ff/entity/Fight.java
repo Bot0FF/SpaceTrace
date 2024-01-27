@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.bot0ff.util.UnitJsonConverter;
 
 import java.util.List;
 
@@ -25,6 +26,11 @@ public class Fight {
     @ToString.Exclude
     @JsonIgnore
     private List<Unit> units;
+
+    @Convert(converter = UnitJsonConverter.class)
+    @JsonIgnore
+    @Column(name = "unitJson")
+    private List<UnitJson> unitJson;
 
     @Column(name = "countRound")
     private int countRound;

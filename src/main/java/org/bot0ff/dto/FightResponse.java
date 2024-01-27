@@ -22,8 +22,8 @@ public class FightResponse {
         this.player = player;
         this.fight = fight;
         if(!fight.getUnits().isEmpty()) {
-            this.teamOne = new ArrayList<>(fight.getUnits().stream().filter(unit -> unit.get_teamType() == 1).toList());
-            this.teamTwo = new ArrayList<>(fight.getUnits().stream().filter(unit -> unit.get_teamType() == 2).toList());
+            this.teamOne = new ArrayList<>(fight.getUnits().stream().filter(unit -> unit.get_teamNumber() == 1).toList());
+            this.teamTwo = new ArrayList<>(fight.getUnits().stream().filter(unit -> unit.get_teamNumber() == 2).toList());
         }
         else {
             this.teamOne = new ArrayList<>();

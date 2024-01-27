@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bot0ff.entity.enums.ApplyType;
+import org.bot0ff.entity.enums.HitType;
 import org.bot0ff.entity.enums.SubjectType;
 
 @Data
@@ -42,4 +43,8 @@ public class Subject {
     @Enumerated(value = EnumType.STRING)
     @Column(name = "applyType")
     private ApplyType applyType;
+
+    @Enumerated(value = EnumType.STRING)
+    @Column(name = "hitType")
+    private HitType hitType;
 }

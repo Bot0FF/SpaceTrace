@@ -5,7 +5,8 @@ public class Constants {
     //player
     public static int START_HP = 100;
     public static int START_MANA = 100;
-    public static int START_DAMAGE = 1;
+    public static int START_DAMAGE = 4;
+    public static int START_DEFENSE = 4;
     public static int START_POS_X = 2;
     public static int START_POS_Y = 2;
 
