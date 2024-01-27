@@ -206,18 +206,10 @@ public class FightHandler {
         }
 
         //делим на команды всех unit
-        List<Unit> teamOne = new ArrayList<>();
-        List<Unit> teamTwo = new ArrayList<>();
-        for(Unit unit: units) {
-            if(unit.getUnitJson().getTeamNumber() == 1) {
-                teamOne.add(unit);
-            }
-            else {
-                teamTwo.add(unit);
-            }
-        }
+        List<Unit> teamOne = new ArrayList<>(units.stream().filter(unit -> unit.getUnitJson().getTeamNumber() == 1).toList());
+        List<Unit> teamTwo = new ArrayList<>(units.stream().filter(unit -> unit.getUnitJson().getTeamNumber() == 2).toList());
 
-        //если в обеих командах есть кто-то есть, сражение продолжается
+        //если в обеих командах кто-то есть, сражение продолжается
         Fight fight = optionalFight.get();
         if(!teamOne.isEmpty() & !teamTwo.isEmpty()) {
             //запускаем следующий раунд
@@ -253,6 +245,7 @@ public class FightHandler {
                 unit.setHp(unit.getHp());
                 unit.setActionEnd(false);
                 unit.setStatus(Status.WIN);
+                unit.setFight(null);
                 unit.setUnitJson(null);
                 unitRepository.save(unit);
                 System.out.println(unit.getName() + " победил в сражении");
@@ -310,16 +303,8 @@ public class FightHandler {
         if(fight.isEmpty()) return;
 
         //делим на команды всех unit
-        List<Unit> teamOne = new ArrayList<>();
-        List<Unit> teamTwo = new ArrayList<>();
-        for(Unit unit: fight.get().getUnits()) {
-            if(unit.getUnitJson().getTeamNumber() == 1) {
-                teamOne.add(unit);
-            }
-            else {
-                teamTwo.add(unit);
-            }
-        }
+        List<Unit> teamOne = new ArrayList<>(fight.get().getUnits().stream().filter(unit -> unit.getUnitJson().getTeamNumber() == 1).toList());
+        List<Unit> teamTwo = new ArrayList<>(fight.get().getUnits().stream().filter(unit -> unit.getUnitJson().getTeamNumber() == 2).toList());
 
         //TODO сделать случайный выбор атаки
         //все unit первой команды применяют атаку на любом unit из второй команды
