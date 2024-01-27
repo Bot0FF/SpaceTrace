@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.bot0ff.dto.ErrorResponse;
 import org.bot0ff.dto.FightResponse;
 import org.bot0ff.entity.*;
+import org.bot0ff.entity.enums.ApplyType;
+import org.bot0ff.entity.enums.HitType;
 import org.bot0ff.entity.enums.Status;
 import org.bot0ff.repository.FightRepository;
 import org.bot0ff.repository.SubjectRepository;
@@ -59,14 +61,14 @@ public class FightService {
         initiator.get().setActionEnd(false);
         initiator.get().setStatus(Status.FIGHT);
         initiator.get().setFight(newFight);
-        initiator.get().setUnitJson(getUnitJson(initiator.get(), 1));
+        initiator.get().setUnitJson(setUnitJson(initiator.get(), 1));
         unitRepository.save(initiator.get());
 
         //сохранение статуса FIGHT у enemy
-        opponent.get().setActionEnd(true);
+        opponent.get().setActionEnd(false);
         opponent.get().setStatus(Status.FIGHT);
         opponent.get().setFight(newFight);
-        initiator.get().setUnitJson(getUnitJson(opponent.get(), 2));
+        opponent.get().setUnitJson(setUnitJson(opponent.get(), 2));
         unitRepository.save(initiator.get());
 
         newFight.setUnits(List.of(initiator.get(), opponent.get()));
@@ -181,14 +183,13 @@ public class FightService {
                 .toJsonFight(new FightResponse(player.get(), fight.get(), ""));
     }
 
-    //создание объекта UnitJson для сражения
-    private UnitJson getUnitJson(Unit unit, int teamNumber) {
+    //создание UnitJson для сражения
+    private UnitJson setUnitJson(Unit unit, int teamNumber) {
         return new UnitJson(
-                unit.getId(),
-                unit.getHp(), unit.getHp(), 0,
-                unit.getMana(), unit.getMana(), 0,
-                unit.getDamage(), unit.getDamage(), 0,
-                unit.getDefense(), unit.getDefense(), 0,
+                0, 0,
+                0, 0,
+                unit.getDamage(), 0, 0,
+                unit.getDefense(), 0, 0,
                 teamNumber, 0L, 0L
         );
     }
@@ -213,6 +214,7 @@ public class FightService {
             unit.setActionEnd(false);
             unit.setStatus(Status.ACTIVE);
             unit.setFight(null);
+            unit.setUnitJson(null);
             unitRepository.save(unit);
         }
     }

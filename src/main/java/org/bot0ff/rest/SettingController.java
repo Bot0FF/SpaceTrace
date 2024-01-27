@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bot0ff.dto.ErrorResponse;
 import org.bot0ff.dto.auth.SettingRequest;
 import org.bot0ff.entity.Unit;
+import org.bot0ff.entity.UnitJson;
 import org.bot0ff.entity.enums.Status;
 import org.bot0ff.repository.LocationRepository;
 import org.bot0ff.repository.UnitRepository;
@@ -59,9 +60,7 @@ public class SettingController {
         unit.setDamage(Constants.START_DAMAGE);
         unit.setDefense(Constants.START_DEFENSE);
         unit.setFight(null);
-        unit.set_teamNumber(null);
-        unit.set_abilityId(null);
-        unit.set_targetId(null);
+        unit.setUnitJson(new UnitJson());
         unitRepository.save(unit);
         var response = mainService.getUserState(username);
         return ResponseEntity.ok(response);
