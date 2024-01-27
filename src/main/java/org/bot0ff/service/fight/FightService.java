@@ -59,18 +59,14 @@ public class FightService {
         initiator.get().setActionEnd(false);
         initiator.get().setStatus(Status.FIGHT);
         initiator.get().setFight(newFight);
-        initiator.get().set_teamNumber(1L);
-        initiator.get().set_abilityId(0L);
-        initiator.get().set_targetId(0L);
+        initiator.get().setUnitJson(getUnitJson(initiator.get(), 1));
         unitRepository.save(initiator.get());
 
         //сохранение статуса FIGHT у enemy
         opponent.get().setActionEnd(true);
         opponent.get().setStatus(Status.FIGHT);
         opponent.get().setFight(newFight);
-        opponent.get().set_teamNumber(2L);
-        opponent.get().set_abilityId(0L);
-        opponent.get().set_targetId(0L);
+        initiator.get().setUnitJson(getUnitJson(opponent.get(), 2));
         unitRepository.save(initiator.get());
 
         newFight.setUnits(List.of(initiator.get(), opponent.get()));
@@ -107,9 +103,7 @@ public class FightService {
             player.get().setActionEnd(false);
             player.get().setStatus(Status.ACTIVE);
             player.get().setFight(null);
-            player.get().set_teamNumber(null);
-            player.get().set_abilityId(null);
-            player.get().set_targetId(null);
+            player.get().setUnitJson(null);
             unitRepository.save(player.get());
             var response = jsonProcessor
                     .toJsonError(new ErrorResponse("Сражение завершено"));
@@ -169,9 +163,11 @@ public class FightService {
         }
 
         //сохранение умения и цели, по которой произведено действие
+        UnitJson unitJson = player.get().getUnitJson();
+        unitJson.setAbilityId(abilityId);
+        unitJson.setTargetId(targetId);
+        player.get().setUnitJson(unitJson);
         player.get().setActionEnd(true);
-        player.get().set_abilityId(abilityId);
-        player.get().set_targetId(targetId);
         unitRepository.save(player.get());
 
         if(fight.get().getUnits().stream().allMatch(Unit::isActionEnd)) {
@@ -185,25 +181,22 @@ public class FightService {
                 .toJsonFight(new FightResponse(player.get(), fight.get(), ""));
     }
 
+    //создание объекта UnitJson для сражения
+    private UnitJson getUnitJson(Unit unit, int teamNumber) {
+        return new UnitJson(
+                unit.getId(),
+                unit.getHp(), unit.getHp(), 0,
+                unit.getMana(), unit.getMana(), 0,
+                unit.getDamage(), unit.getDamage(), 0,
+                unit.getDefense(), unit.getDefense(), 0,
+                teamNumber, 0L, 0L
+        );
+    }
+
     //создание нового сражения
     private Fight getNewFight(Unit initiator, Unit opponent) {
-        List<UnitJson> unitJsons = List.of(
-                new UnitJson(initiator.getId(),
-                        initiator.getHp(), 0, 0,
-                        initiator.getMana(), 0, 0,
-                        initiator.getDamage(), 0, 0,
-                        initiator.getDefense(), 0, 0
-                ),
-                new UnitJson(initiator.getId(),
-                        opponent.getHp(), 0, 0,
-                        initiator.getMana(), 0, 0,
-                        initiator.getDamage(), 0, 0,
-                        initiator.getDefense(), 0, 0)
-        );
-
         return new Fight(null,
                 new ArrayList<>(List.of(initiator, opponent)),
-                unitJsons,
                 1, new ArrayList<>(), false,
                 Instant.now().plusSeconds(Constants.ROUND_LENGTH_TIME).toEpochMilli());
     }

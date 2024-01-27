@@ -1,5 +1,6 @@
 package org.bot0ff.entity;
 
+import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -26,5 +27,7 @@ public class UnitJson {
     private int currentDefense;
     private int durationEffectDefense;
 
-
+    private int teamNumber;
+    private Long abilityId;
+    private Long targetId;
 }

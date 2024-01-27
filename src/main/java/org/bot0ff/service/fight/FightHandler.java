@@ -14,7 +14,6 @@ import org.bot0ff.repository.SubjectRepository;
 import org.bot0ff.repository.UnitRepository;
 import org.bot0ff.util.Constants;
 import org.bot0ff.util.RandomUtil;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
@@ -96,13 +95,6 @@ public class FightHandler {
         Fight fight = optionalFight.get();
         //добавляем unit в общий лист
         List<Unit> units = new ArrayList<>(fight.getUnits());
-        List<UnitJson> unitJsons = new ArrayList<>(fight.getUnitJson());
-        if(unitJsons.isEmpty()) {
-            endFight = true;
-            System.out.println("Не найдены unitJson в сражении: " + fightId + ", сражение завершено с ошибкой");
-            return;
-        }
-
         //Сортируем unit в порядке убывания инициативы
         units.sort(Comparator.comparingLong(Unit::getId));
         List<String> unitName = units.stream().map(Unit::getName).toList();
@@ -110,9 +102,10 @@ public class FightHandler {
 
         for(Unit unit: units) {
             if(unit.isActionEnd() & unit.getStatus().equals(Status.FIGHT)) {
-                Optional<Subject> ability = subjectRepository.findById(unit.get_abilityId());
+                UnitJson unitJson = unit.getUnitJson();
+                Optional<Subject> ability = subjectRepository.findById(unitJson.getAbilityId());
                 if(ability.isEmpty()) {
-                    System.out.println("Не найдено умение " + unit.get_abilityId() + " при выборе игроком" + unit.getName() + " . Ход следующего unit");
+                    System.out.println("Не найдено умение " + unitJson.getAbilityId() + " при выборе игроком" + unit.getName() + " . Ход следующего unit");
                     continue;
                 }
                 System.out.println(unit.getName() + "применил умение " + ability.get().getName());
@@ -122,20 +115,18 @@ public class FightHandler {
                         System.out.println("Применено умение на себя");
                     }
                     case "OPPONENT" -> {
-                        Optional<UnitJson> unitJson = unitJsons.stream().filter(u -> u.getId().equals(unit.getId())).findFirst();
-                        Optional<Unit> target = units.stream().filter(u -> u.getId().equals(unit.get_targetId())).findFirst();
-                        Optional<UnitJson> targetJson = unitJsons.stream().filter(u -> u.getId().equals(unit.get_targetId())).findFirst();
-                        //если unit или цель-unit не найден, переходим к следующей итерации цикла
-                        if(unitJson.isEmpty() | targetJson.isEmpty() | target.isEmpty()) continue;
-                        UnitJson uj = unitJson.get();
-                        Unit t = target.get();
-                        UnitJson tj = unitJson.get();
-                        System.out.println("Юнит " + unit.getName() + " применил умение на юнита " + target.getId());
+                        Optional<Long> targetOptionalId = Optional.ofNullable(unitJson.getTargetId());
+                        //если цель-unit не найден, переходим к следующей итерации цикла
+                        if(targetOptionalId.isEmpty()) continue;
+                        Optional<Unit> targetOptional = units.stream().filter(t -> t.getId().equals(targetOptionalId.get())).findFirst();
+                        if(targetOptional.isEmpty()) continue;
+                        UnitJson targetJson = targetOptional.get().getUnitJson();
+                        System.out.println("Юнит " + unit.getName() + " применил умение на юнита " + targetOptional.get().getName());
                         String hitType = String.valueOf(ability.get().getHitType());
                         switch (hitType) {
                             case "DAMAGE" -> {
                                 //рассчитываем урон и сохраняем результат
-                                StringBuilder result = calculateDamage(unit, unitJson, target, targetJson);
+                                StringBuilder result = calculateDamage(unitJson, targetJson);
                                 resultRound.append(result);
                             }
                             case "RECOVERY" -> {
@@ -276,7 +267,7 @@ public class FightHandler {
         }
     }
 
-    private StringBuilder calculateDamage(Unit unit, UnitJson unitJson, Unit target, UnitJson targetJson) {
+    private StringBuilder calculateDamage(UnitJson unit, UnitJson target) {
         //рассчитываем урон, который нанес текущий unit противнику
         int unitHit = unit.getDamage();
         int targetDefense = target.getDefense();

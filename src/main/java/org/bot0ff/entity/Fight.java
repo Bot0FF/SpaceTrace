@@ -27,11 +27,6 @@ public class Fight {
     @JsonIgnore
     private List<Unit> units;
 
-    @Convert(converter = UnitJsonConverter.class)
-    @JsonIgnore
-    @Column(name = "unitJson")
-    private List<UnitJson> unitJson;
-
     @Column(name = "countRound")
     private int countRound;
 

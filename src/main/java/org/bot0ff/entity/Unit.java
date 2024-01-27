@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bot0ff.entity.enums.Status;
 import org.bot0ff.entity.enums.UnitType;
+import org.bot0ff.util.UnitJsonConverter;
 
 import java.util.List;
 
@@ -73,14 +74,10 @@ public class Unit {
     @JsonIgnore
     private Fight fight;
 
-    @Column(name = "_teamNumber")
-    private Long _teamNumber;
-
-    @Column(name = "_abilityId")
-    private Long _abilityId;
-
-    @Column(name = "_targetId")
-    private Long _targetId;
+    @Convert(converter = UnitJsonConverter.class)
+    @Column(name = "unitJson")
+    @JsonIgnore
+    private UnitJson unitJson;
 
     @JsonIgnore
     public Long getLocationId() {
