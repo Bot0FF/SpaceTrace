@@ -62,7 +62,7 @@ public class SettingController {
         unit.setFight(null);
         unit.setUnitJson(new UnitJson());
         unitRepository.save(unit);
-        var response = mainService.getUserState(username);
+        var response = mainService.getUnitState(username);
         return ResponseEntity.ok(response);
     }
 }

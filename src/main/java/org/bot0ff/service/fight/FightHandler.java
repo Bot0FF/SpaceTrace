@@ -115,7 +115,7 @@ public class FightHandler {
                         //если цель-unit не найден, переходим к следующей итерации цикла
                         Optional<Unit> target = units.stream().filter(t -> t.getId().equals(unit.getTargetId())).findFirst();
                         if (target.isEmpty()) continue;
-                        System.out.println("Юнит " + unit.getName() + " применил умение " + ability.get().getName() + " на юнита " + target.get().getName());
+                        System.out.println("Unit " + unit.getName() + " применил умение " + ability.get().getName() + " на юнита " + target.get().getName());
                         switch (ability.get().getHitType()) {
                             case DAMAGE -> {
                                 StringBuilder result = calculateDamage(unit, target.get(), ability.get());

@@ -18,14 +18,14 @@ public class MainController {
     //главная страница
     @GetMapping("/im")
     public ResponseEntity<?> mainPage() {
-        var response = mainService.getUserState("user");
+        var response = mainService.getUnitState("user");
         return ResponseEntity.ok(response);
     }
 
     //смена локации
     @GetMapping("/move")
     public ResponseEntity<?> movePlayer(@RequestParam String direction) {
-        var response = mainService.moveUser("user", direction);
+        var response = mainService.moveUnit("user", direction);
         return ResponseEntity.ok(response);
     }
 

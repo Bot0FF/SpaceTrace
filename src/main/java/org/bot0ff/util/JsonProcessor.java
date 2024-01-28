@@ -6,6 +6,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.bot0ff.dto.ErrorResponse;
 import org.bot0ff.dto.FightResponse;
 import org.bot0ff.dto.MainResponse;
+import org.bot0ff.dto.ReloadResponse;
 
 public class JsonProcessor {
     private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
@@ -44,6 +45,16 @@ public class JsonProcessor {
     }
 
     public String toJsonError(ErrorResponse response) {
+        try {
+            return objectMapper
+                    .writerWithDefaultPrettyPrinter()
+                    .writeValueAsString(response);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public String toJsonReload(ReloadResponse response) {
         try {
             return objectMapper
                     .writerWithDefaultPrettyPrinter()
