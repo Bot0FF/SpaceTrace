@@ -55,8 +55,14 @@ public class Unit {
     @Column(name = "hp")
     private int hp;
 
+    @Column(name = "maxHp")
+    private int maxHp;
+
     @Column(name = "mana")
     private int mana;
+
+    @Column(name = "maxMana")
+    private int maxMana;
 
     @Column(name = "damage")
     private int damage;

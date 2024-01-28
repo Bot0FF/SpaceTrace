@@ -37,6 +37,9 @@ public class Subject {
     @Column(name = "mana")
     private int mana;
 
+    @Column(name = "duration")
+    private int duration;
+
     @Column(name = "description")
     private String description;
 

@@ -108,40 +108,43 @@ public class FightHandler {
                     continue;
                 }
 
-                //определяем на кого применено умение
-                String applyType = String.valueOf(ability.get().getApplyType());
-                switch (applyType) {
-                    case "MYSELF" -> {
-                        System.out.println("Применено умение на себя");
-                    }
-                    case "OPPONENT" -> {
+                //определяем тип атаки и область применения
+                switch (ability.get().getApplyType()) {
+                    //одиночные умения
+                    case SINGLE -> {
                         //если цель-unit не найден, переходим к следующей итерации цикла
                         Optional<Unit> target = units.stream().filter(t -> t.getId().equals(unit.getUnitJson().getTargetId())).findFirst();
                         if(target.isEmpty()) continue;
                         System.out.println("Юнит " + unit.getName() + " применил умение " + ability.get().getName() + " на юнита " + target.get().getName());
-
-                        //определяем тип атаки
-                        String hitType = String.valueOf(ability.get().getHitType());
-                        switch (hitType) {
-                            case "DAMAGE" -> {
-                                //рассчитываем урон и сохраняем текстовый результат хода unit
-                                StringBuilder result = calculateDamage(unit, target.get());
+                        switch (ability.get().getHitType()) {
+                            case DAMAGE -> {
+                                //если цель-союзник, переходим к следующему unit
+                                if(unit.getUnitJson().getTeamNumber() == target.get().getUnitJson().getTeamNumber()) continue;
+                                StringBuilder result = calculateDamage(unit, target.get(), ability.get());
                                 resultRound.append(result);
+                                System.out.println("Применено одиночное умение атаки");
                             }
-                            case "RECOVERY" -> {
-                                System.out.println("Применено умение восстановления на unit");
+                            case RECOVERY -> {
+                                //если цель-противник, переходим к следующему unit
+                                if(unit.getUnitJson().getTeamNumber() != target.get().getUnitJson().getTeamNumber()) continue;
+                                StringBuilder result = calculateRecovery(unit, target.get(), ability.get());
+                                resultRound.append(result);
+                                System.out.println("Применено одиночное умение восстановления");
                             }
                         }
                     }
-                    case "ALL_OPPONENT" -> {
-                        System.out.println("Применено умение на всех противников");
+                    //массовые умения
+                    case TOTAL -> {
+                        switch (ability.get().getHitType()) {
+                            case DAMAGE -> {
+                                System.out.println("Применено массовое умение урона");
+                            }
+                            case RECOVERY -> {
+                                System.out.println("Применено массовое умение восстановления");
+                            }
+                        }
                     }
-                    case "ALL_ALLIES" -> {
-                        System.out.println("Применено умение на всех союзников");
-                    }
-                    default -> {
-                        System.out.println("Умение не выбрано");
-                    }
+                    default -> System.out.println("Умение не выбрано");
                 }
                 System.out.println("Переход хода к следующему юниту в раунде");
             }
@@ -187,9 +190,11 @@ public class FightHandler {
                 }
                 System.out.println(unit.getName() + " удален из сражения");
             }
-            //сбрасываем unitJson для следующего раунда
+            //сбрасываем настройки unit
             else {
                 unit.setActionEnd(false);
+                unit.getUnitJson().setAbilityId(0L);
+                unit.getUnitJson().setTargetId(0L);
                 unitRepository.save(unit);
                 System.out.println("Настройки " + unit.getName() + " сброшены для следующего раунда");
             }
@@ -260,20 +265,18 @@ public class FightHandler {
     }
 
     //рассчитываем нанесенный урон при типе атаки OPPONENT->DAMAGE
-    private StringBuilder calculateDamage(Unit unit, Unit target) {
-        System.out.println("Расчет нанесенного урона");
+    private StringBuilder calculateDamage(Unit unit, Unit target, Subject ability) {
         UnitJson unitJson = unit.getUnitJson();
         UnitJson targetJson = target.getUnitJson();
         //рассчитываем урон, который нанес текущий unit противнику
-        int unitHit = unit.getDamage() + unitJson.getEffectDamage();
-        int targetDefense = target.getDefense() + targetJson.getEffectDefense();
-        double unitHitDouble = unitHit * 1.0;
-        double targetDefenseDouble = targetDefense * 1.0;
+        double unitHit = (unit.getDamage() + unitJson.getEffectDamage()) * 1.0;
+        double targetDefense = (target.getDefense() + targetJson.getEffectDefense()) * 1.0;
         if(unitHit <= 1) unitHit = 1;
         if(targetDefense <= 1) targetDefense = 1;
-        int result = (int) ((int) (((unitHit - Math.random() * 10) * ((double) unitHit / (unitHit + targetDefense)))) * (unitHitDouble / targetDefenseDouble));
+        double damageMultiplier = unitHit / ( unitHit + targetDefense);
+        int totalDamage = (int) Math.round(unitHit * damageMultiplier);
+        int result = randomUtil.getRNum30(totalDamage);
         if(result <= 0) result = 0;
-        if(result > unit.getDamage()) result = randomUtil.getRNum30(Math.toIntExact(unit.getDamage()));
         System.out.println("unit " + unit.getName() + " нанес урон " + result);
         target.setHp(target.getHp() - result);
 
@@ -292,7 +295,82 @@ public class FightHandler {
                 .append(result)
                 .append(" урона противнику ")
                 .append(target.getName())
-                .append(" умением обычная атака")
+                .append(" умением ")
+                .append(ability.getName())
+                .append("]");
+    }
+
+    public StringBuilder calculateRecovery(Unit unit, Unit target, Subject ability) {
+        int result = 0;
+        String action = "";
+        String characteristic = "";
+        String duration = "";
+        if(ability.getDuration() == 0) {
+            action = " восстановил ";
+            if(ability.getHp() != 0) {
+                characteristic = " здоровья ";
+                result = ability.getHp();
+                target.setHp(target.getHp() + ability.getHp());
+                if(target.getHp() > target.getMaxHp()) {
+                    result = Math.abs(target.getMaxHp() - target.getHp());
+                    target.setHp(target.getMaxHp());
+                }
+            }
+            if(ability.getMana() != 0) {
+                characteristic = " маны ";
+                result = ability.getMana();
+                target.setMana(target.getMana() + ability.getMana());
+                if(target.getMana() > target.getMaxMana()) {
+                    result = Math.abs(target.getMaxMana() - target.getMana());
+                    target.setMana(target.getMaxMana());
+                }
+            }
+        }
+
+        //TODO добавить длительность умений
+        if(ability.getDuration() != 0) {
+            action = " повысил ";
+            duration = " на " + ability.getDuration() + " раунда";
+            if(ability.getHp() != 0) {
+                characteristic = " здоровье ";
+                result = ability.getHp();
+                target.setHp(target.getHp() + ability.getHp());
+                target.getUnitJson().setEffectHp(ability.getHp());
+                target.getUnitJson().setDurationEffectHp(ability.getDuration());
+            }
+            if(ability.getMana() != 0) {
+                characteristic = " ману ";
+                result = ability.getMana();
+                target.setMana(target.getMana() + ability.getMana());
+                target.getUnitJson().setEffectMana(ability.getMana());
+                target.getUnitJson().setDurationEffectMana(ability.getDuration());
+            }
+            if(ability.getDamage() != 0) {
+                characteristic = " урон ";
+                result = ability.getDamage();
+                target.setDamage(target.getDamage() + ability.getDamage());
+                target.getUnitJson().setEffectDamage(ability.getDamage());
+                target.getUnitJson().setDurationEffectDamage(ability.getDuration());
+            }
+            if(ability.getDefense() != 0) {
+                characteristic = " защиту ";
+                result = ability.getDefense();
+                target.setDefense(target.getDefense() + ability.getDefense());
+                target.getUnitJson().setEffectDefense(ability.getDefense());
+                target.getUnitJson().setDurationEffectDefense(ability.getDuration());
+            }
+        }
+
+        return new StringBuilder()
+                .append("[")
+                .append(unit.getName())
+                .append(action)
+                .append(result)
+                .append(characteristic)
+                .append(target.getName())
+                .append(" умением ")
+                .append(ability.getName())
+                .append(duration)
                 .append("]");
     }
 
