@@ -26,8 +26,4 @@ public class UnitJson {
     private int startDefense;
     private int effectDefense;
     private int durationEffectDefense;
-
-    private int teamNumber;
-    private Long abilityId;
-    private Long targetId;
 }

@@ -24,8 +24,8 @@ public class FightResponse {
         this.teamOne = new ArrayList<>();
         this.teamTwo = new ArrayList<>();
         if(!fight.getUnits().isEmpty()) {
-            this.teamOne = new ArrayList<>(fight.getUnits().stream().filter(unit -> unit.getUnitJson().getTeamNumber() == 1).toList());
-            this.teamTwo = new ArrayList<>(fight.getUnits().stream().filter(unit -> unit.getUnitJson().getTeamNumber() == 2).toList());
+            this.teamOne = new ArrayList<>(fight.getUnits().stream().filter(unit -> unit.getTeamNumber() == 1).toList());
+            this.teamTwo = new ArrayList<>(fight.getUnits().stream().filter(unit -> unit.getTeamNumber() == 2).toList());
         }
         else {
             this.teamOne = new ArrayList<>();

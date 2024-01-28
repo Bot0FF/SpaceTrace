@@ -85,6 +85,18 @@ public class Unit {
     @JsonIgnore
     private UnitJson unitJson;
 
+    @Column(name = "teamNumber")
+    @JsonIgnore
+    private Long teamNumber;
+
+    @Column(name = "abilityId")
+    @JsonIgnore
+    private Long abilityId;
+
+    @Column(name = "targetId")
+    @JsonIgnore
+    private Long targetId;
+
     @JsonIgnore
     public Long getLocationId() {
         return Long.parseLong("" + this.getX() + this.getY());

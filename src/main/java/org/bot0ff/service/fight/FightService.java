@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.bot0ff.dto.ErrorResponse;
 import org.bot0ff.dto.FightResponse;
 import org.bot0ff.entity.*;
-import org.bot0ff.entity.enums.ApplyType;
 import org.bot0ff.entity.enums.HitType;
 import org.bot0ff.entity.enums.Status;
 import org.bot0ff.repository.FightRepository;
@@ -49,7 +48,7 @@ public class FightService {
         if(opponent.isEmpty()) {
             var response = jsonProcessor
                     .toJsonError(new ErrorResponse("Противник не найден"));
-            log.info("Не найден opponent в БД по запросу username: {}", opponent);
+            log.info("Не найден opponent в БД по запросу name: {}", opponent);
             return response;
         }
 
@@ -61,14 +60,20 @@ public class FightService {
         initiator.get().setActionEnd(false);
         initiator.get().setStatus(Status.FIGHT);
         initiator.get().setFight(newFight);
-        initiator.get().setUnitJson(setUnitJson(initiator.get(), 1));
+        initiator.get().setTeamNumber(1L);
+        initiator.get().setAbilityId(0L);
+        initiator.get().setTargetId(0L);
+        initiator.get().setUnitJson(setUnitJson(initiator.get()));
         unitRepository.save(initiator.get());
 
         //сохранение статуса FIGHT у enemy
         opponent.get().setActionEnd(false);
         opponent.get().setStatus(Status.FIGHT);
         opponent.get().setFight(newFight);
-        opponent.get().setUnitJson(setUnitJson(opponent.get(), 2));
+        opponent.get().setTeamNumber(2L);
+        opponent.get().setAbilityId(0L);
+        opponent.get().setTargetId(0L);
+        opponent.get().setUnitJson(setUnitJson(opponent.get()));
         unitRepository.save(initiator.get());
 
         newFight.setUnits(List.of(initiator.get(), opponent.get()));
@@ -82,13 +87,13 @@ public class FightService {
     }
 
     //текущее состояние сражения
-    public String getRefreshCurrentRound(String username) {
+    public String getRefreshCurrentRound(String name) {
         //поиск player в бд
-        var player = unitRepository.findByName(username);
+        var player = unitRepository.findByName(name);
         if(player.isEmpty()) {
             var response = jsonProcessor
                     .toJsonError(new ErrorResponse("Игрок не найден"));
-            log.info("Не найден player в БД по запросу username: {}", username);
+            log.info("Не найден unit в БД по запросу username: {}", name);
             return response;
         }
 
@@ -121,13 +126,13 @@ public class FightService {
     }
 
     //возвращает умения unit
-    public String getUnitAbility(String username) {
+    public String getUnitAbility(String name) {
         //поиск player в бд
-        var player = unitRepository.findByName(username);
+        var player = unitRepository.findByName(name);
         if(player.isEmpty()) {
             var response = jsonProcessor
                     .toJsonError(new ErrorResponse("Игрок не найден"));
-            log.info("Не найден player в БД по запросу username: {}", username);
+            log.info("Не найден unit в БД по запросу username: {}", name);
             return response;
         }
 
@@ -141,16 +146,17 @@ public class FightService {
     //атака по выбранному противнику
     //TODO добавить id примененного умения
     @Transactional
-    public String setAttack(String username, Long abilityId, Long targetId) {
+    public String setAttack(String name, Long abilityId, Long targetId) {
         //поиск player в бд
-        var player = unitRepository.findByName(username);
+        var player = unitRepository.findByName(name);
         if(player.isEmpty()) {
             var response = jsonProcessor
                     .toJsonError(new ErrorResponse("Игрок не найден"));
-            log.info("Не найден player в БД по запросу username: {}", username);
+            log.info("Не найден unit в БД по запросу username: {}", name);
             return response;
         }
 
+        //поиск сражения
         Optional<Fight> fight = Optional.ofNullable(player.get().getFight());
         if(fight.isEmpty()) {
             var response = jsonProcessor
@@ -159,16 +165,56 @@ public class FightService {
             return response;
         }
 
+        //если ход уже сделан, возвращаем уведомление с текущим состоянием сражения
         if(player.get().isActionEnd()) {
             return jsonProcessor
-                    .toJsonFight(new FightResponse(player.get(), fight.get(), "Ход уже сделан..."));
+                    .toJsonFight(new FightResponse(player.get(), fight.get(), "Ход уже сделан"));
+        }
+
+        //находим примененное умение из бд
+        Optional<Subject> ability = subjectRepository.findById(abilityId);
+        if(ability.isEmpty()) {
+            return jsonProcessor
+                    .toJsonFight(new FightResponse(player.get(), fight.get(), "Умение не найдено"));
+        }
+        //находим выбранного unit
+        Optional<Unit> target = unitRepository.findById(targetId);
+        if(target.isEmpty()) {
+            return jsonProcessor
+                    .toJsonFight(new FightResponse(player.get(), fight.get(), "Противник не найден"));
+        }
+
+        //уведомление при попытке использовать восстанавливающие умения на противниках
+        if((ability.get().getHitType().equals(HitType.RECOVERY)
+                | ability.get().getHitType().equals(HitType.BOOST))
+                & player.get().getTeamNumber() != target.get().getTeamNumber()) {
+            return jsonProcessor
+                    .toJsonFight(new FightResponse(player.get(), fight.get(), "Это умение для союзников"));
+        }
+
+        //уведомление при попытке использовать понижающие умения на союзниках
+        if((ability.get().getHitType().equals(HitType.DAMAGE)
+                | ability.get().getHitType().equals(HitType.LOWER))
+                & player.get().getTeamNumber() == target.get().getTeamNumber()) {
+            return jsonProcessor
+                    .toJsonFight(new FightResponse(player.get(), fight.get(), "Это умение для противников"));
+        }
+
+        //если на цели уже применено данное умение, возвращаем уведомление
+        if(ability.get().getHitType().equals(HitType.BOOST)
+                | ability.get().getHitType().equals(HitType.LOWER)) {
+            if((ability.get().getHp() != 0 && target.get().getUnitJson().getDurationEffectHp() != 0)
+                    | (ability.get().getMana() != 0 && target.get().getUnitJson().getDurationEffectMana() != 0)
+                    | (ability.get().getDamage() != 0 && target.get().getUnitJson().getDurationEffectDamage() != 0)
+                    | (ability.get().getDefense() != 0 && target.get().getUnitJson().getDurationEffectDefense() != 0)) {
+                return jsonProcessor
+                        .toJsonFight(new FightResponse(player.get(), fight.get(), "Умение уже применено"));
+            }
         }
 
         //сохранение умения и цели, по которой произведено действие
-        UnitJson unitJson = player.get().getUnitJson();
-        unitJson.setAbilityId(abilityId);
-        unitJson.setTargetId(targetId);
-        player.get().setUnitJson(unitJson);
+        player.get().setAbilityId(abilityId);
+        player.get().setTargetId(targetId);
         player.get().setActionEnd(true);
         unitRepository.save(player.get());
 
@@ -180,17 +226,18 @@ public class FightService {
         fight.get().setEndRoundTimer(FIGHT_MAP.get(fight.get().getId()).getEndRoundTimer().toEpochMilli());
 
         return jsonProcessor
-                .toJsonFight(new FightResponse(player.get(), fight.get(), ""));
+                .toJsonFight(new FightResponse(player.get(), fight.get(), player.get().getName() + " применил умение " + ability.get().getName()));
     }
 
+    //TODO сделать метод для массовых умений
+
     //создание UnitJson для сражения
-    private UnitJson setUnitJson(Unit unit, int teamNumber) {
+    private UnitJson setUnitJson(Unit unit) {
         return new UnitJson(
                 0, 0,
                 0, 0,
                 unit.getDamage(), 0, 0,
-                unit.getDefense(), 0, 0,
-                teamNumber, 0L, 0L
+                unit.getDefense(), 0, 0
         );
     }
 

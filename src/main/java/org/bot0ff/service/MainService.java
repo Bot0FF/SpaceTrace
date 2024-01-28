@@ -29,12 +29,12 @@ public class MainService {
 
     //состояние user после обновления страницы
     @Transactional
-    public String getUserState(String username) {
-        var player = unitRepository.findByName(username);
+    public String getUserState(String name) {
+        var player = unitRepository.findByName(name);
         if(player.isEmpty()) {
             var response = jsonProcessor
                     .toJsonError(new ErrorResponse("Игрок не найден"));
-            log.info("Не найден player в БД по запросу username: {}", username);
+            log.info("Не найден unit в БД по запросу username: {}", name);
             return response;
         }
         var location = locationRepository.findById(player.get().getLocationId());
@@ -135,6 +135,9 @@ public class MainService {
                 10,
                 4,
                 List.of(1L),
+                null,
+                null,
+                null,
                 null,
                 null);
     }

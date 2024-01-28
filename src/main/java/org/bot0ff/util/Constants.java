@@ -2,6 +2,10 @@ package org.bot0ff.util;
 
 public class Constants {
 
+    //коды ответов
+    //1 - успешный ответ, метод отработал полностью
+    //2 - не найдена entity в БД
+
     //player
     public static int START_HP = 100;
     public static int START_MANA = 100;
