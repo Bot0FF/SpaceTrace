@@ -2,9 +2,9 @@ package org.bot0ff.service.fight;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bot0ff.dto.ErrorResponse;
+import org.bot0ff.dto.MistakeResponse;
 import org.bot0ff.dto.FightResponse;
-import org.bot0ff.dto.ReloadResponse;
+import org.bot0ff.dto.NavigateResponse;
 import org.bot0ff.entity.*;
 import org.bot0ff.entity.enums.HitType;
 import org.bot0ff.entity.enums.Status;
@@ -40,7 +40,7 @@ public class FightService {
         var initiator = unitRepository.findByName(name);
         if(initiator.isEmpty()) {
             var response = jsonProcessor
-                    .toJsonReload(new ReloadResponse("Игрок не найден"));
+                    .toJsonMistake(new MistakeResponse("Игрок не найден"));
             log.info("Не найден unit в БД по запросу name: {}", name);
             return response;
         }
@@ -48,10 +48,19 @@ public class FightService {
         //поиск opponent в бд
         var opponent = unitRepository.findById(targetId);
         if(opponent.isEmpty()) {
-            resetUnitFight(initiator.get());
+            resetUnitFight(initiator.get(), true);
             var response = jsonProcessor
-                    .toJsonReload(new ReloadResponse("Противник не найден"));
+                    .toJsonMistake(new MistakeResponse("Противник не найден"));
             log.info("Не найден opponent в БД по запросу name: {}", opponent);
+            return response;
+        }
+
+        //если противник уже в бою, возвращаем уведомление
+        Optional<Fight> fight = Optional.ofNullable(opponent.get().getFight());
+        if(fight.isPresent()) {
+            var response = jsonProcessor
+                    .toJsonMistake(new MistakeResponse("Противник уже сражается"));
+            log.info("Попытка сражения с противником, который уже в бою - opponentId: {}", opponent.get().getId());
             return response;
         }
 
@@ -65,12 +74,12 @@ public class FightService {
         //сохранение статуса FIGHT у enemy
         setUnitFight(opponent.get(), newFight, 2L);
 
-        //проверка успешного добавления сражения ответа в БД
+        //проверка успешного добавления сражения в БД
         Optional<Fight> currentFight = fightRepository.findById(newFightId);
         if(currentFight.isEmpty()) {
-            resetUnitFight(initiator.get());
+            resetUnitFight(initiator.get(), true);
             var response = jsonProcessor
-                    .toJsonReload(new ReloadResponse("Сражение не найдено"));
+                    .toJsonMistake(new MistakeResponse("Сражение не найдено"));
             log.info("Не найдено новое сражение в БД по запросу fightId: {}", newFightId);
             return response;
         }
@@ -90,25 +99,29 @@ public class FightService {
         var unit = unitRepository.findByName(name);
         if(unit.isEmpty()) {
             var response = jsonProcessor
-                    .toJsonReload(new ReloadResponse("Игрок не найден"));
+                    .toJsonNavigate(new NavigateResponse("Игрок не найден"));
             log.info("Не найден unit в БД по запросу username: {}", name);
             return response;
         }
 
+        //если сражение не найдено и статус unit WIN, LOSS, сбрасываем настройки сражения unit, не меняя статус
         Optional<Fight> fight = Optional.ofNullable(unit.get().getFight());
         if(fight.isEmpty()) {
-            resetUnitFight(unit.get());
+            switch (unit.get().getStatus()) {
+                case WIN, LOSS -> resetUnitFight(unit.get(), false);
+                default -> resetUnitFight(unit.get(), true);
+            }
             var response = jsonProcessor
-                    .toJsonReload(new ReloadResponse("Сражение не найдено"));
+                    .toJsonNavigate(new NavigateResponse("Сражение завершено"));
             log.info("Не найдено сражение в БД по запросу обновления состояния от player: {}", unit.get().getName());
             return response;
         }
 
         //если сражение завершено и статус unit НЕ ACTIVE, сбрасываем настройки сражения unit
         if(fight.get().isFightEnd()) {
-            resetUnitFight(unit.get());
+            resetUnitFight(unit.get(), true);
             var response = jsonProcessor
-                    .toJsonReload(new ReloadResponse("Сражение завершено"));
+                    .toJsonNavigate(new NavigateResponse("Сражение завершено"));
             log.info("Попытка обращения к завершенному сражению от player: {}", unit.get().getName());
             return response;
         }
@@ -126,7 +139,7 @@ public class FightService {
         var player = unitRepository.findByName(name);
         if(player.isEmpty()) {
             var response = jsonProcessor
-                    .toJsonReload(new ReloadResponse("Игрок не найден"));
+                    .toJsonNavigate(new NavigateResponse("Игрок не найден"));
             log.info("Не найден unit в БД по запросу username: {}", name);
             return response;
         }
@@ -146,7 +159,7 @@ public class FightService {
         var player = unitRepository.findByName(name);
         if(player.isEmpty()) {
             var response = jsonProcessor
-                    .toJsonReload(new ReloadResponse("Игрок не найден"));
+                    .toJsonNavigate(new NavigateResponse("Игрок не найден"));
             log.info("Не найден unit в БД по запросу username: {}", name);
             return response;
         }
@@ -155,7 +168,7 @@ public class FightService {
         Optional<Fight> fight = Optional.ofNullable(player.get().getFight());
         if(fight.isEmpty()) {
             var response = jsonProcessor
-                    .toJsonReload(new ReloadResponse("Сражение не найдено"));
+                    .toJsonNavigate(new NavigateResponse("Сражение не найдено"));
             log.info("Не найдено сражение в БД по запросу обновления состояния от player: {}", player.get().getName());
             return response;
         }
@@ -163,20 +176,20 @@ public class FightService {
         //если ход уже сделан, возвращаем уведомление с текущим состоянием сражения
         if(player.get().isActionEnd()) {
             return jsonProcessor
-                    .toJsonError(new ErrorResponse("Ход уже сделан"));
+                    .toJsonMistake(new MistakeResponse("Ход уже сделан"));
         }
 
         //находим примененное умение из бд
         Optional<Subject> ability = subjectRepository.findById(abilityId);
         if(ability.isEmpty()) {
             return jsonProcessor
-                    .toJsonError(new ErrorResponse("Умение не найдено"));
+                    .toJsonMistake(new MistakeResponse("Умение не найдено"));
         }
         //находим выбранного unit
         Optional<Unit> target = unitRepository.findById(targetId);
         if(target.isEmpty()) {
             return jsonProcessor
-                    .toJsonError(new ErrorResponse("Противник не найден"));
+                    .toJsonMistake(new MistakeResponse("Противник не найден"));
         }
 
         //уведомление при попытке использовать восстанавливающие умения на противниках
@@ -184,7 +197,7 @@ public class FightService {
                 | ability.get().getHitType().equals(HitType.BOOST))
                 & !player.get().getTeamNumber().equals(target.get().getTeamNumber())) {
             return jsonProcessor
-                    .toJsonError(new ErrorResponse("Это умение для союзников"));
+                    .toJsonMistake(new MistakeResponse("Это умение для союзников"));
         }
 
         //уведомление при попытке использовать понижающие умения на союзниках
@@ -192,7 +205,7 @@ public class FightService {
                 | ability.get().getHitType().equals(HitType.LOWER))
                 & player.get().getTeamNumber().equals(target.get().getTeamNumber())) {
             return jsonProcessor
-                    .toJsonError(new ErrorResponse("Это умение для противников"));
+                    .toJsonMistake(new MistakeResponse("Это умение для противников"));
         }
 
         //если на цели уже применено данное умение, возвращаем уведомление
@@ -203,7 +216,7 @@ public class FightService {
                     | (ability.get().getDamage() != 0 && target.get().getUnitJson().getDurationEffectDamage() != 0)
                     | (ability.get().getDefense() != 0 && target.get().getUnitJson().getDurationEffectDefense() != 0)) {
                 return jsonProcessor
-                        .toJsonError(new ErrorResponse("Умение уже применено"));
+                        .toJsonMistake(new MistakeResponse("Умение уже применено"));
             }
         }
 
@@ -258,9 +271,11 @@ public class FightService {
     }
 
     //сброс настроек сражения unit при ошибке
-    private void resetUnitFight(Unit unit) {
+    private void resetUnitFight(Unit unit, boolean isSetStatus) {
+        if(isSetStatus) {
+            unit.setStatus(Status.ACTIVE);
+        }
         unit.setActionEnd(false);
-        unit.setStatus(Status.ACTIVE);
         unit.setFight(null);
         unit.setTeamNumber(null);
         unit.setAbilityId(null);

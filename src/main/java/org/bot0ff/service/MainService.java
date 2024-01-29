@@ -2,7 +2,7 @@ package org.bot0ff.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bot0ff.dto.ErrorResponse;
+import org.bot0ff.dto.MistakeResponse;
 import org.bot0ff.dto.MainResponse;
 import org.bot0ff.entity.Location;
 import org.bot0ff.entity.Unit;
@@ -33,7 +33,7 @@ public class MainService {
         var unit = unitRepository.findByName(name);
         if(unit.isEmpty()) {
             var response = jsonProcessor
-                    .toJsonError(new ErrorResponse("Игрок не найден"));
+                    .toJsonMistake(new MistakeResponse("Игрок не найден"));
             log.info("Не найден unit в БД по запросу username: {}", name);
             return response;
         }
@@ -41,11 +41,10 @@ public class MainService {
         var location = locationRepository.findById(unit.get().getLocationId());
         if(location.isEmpty()) {
             var response = jsonProcessor
-                    .toJsonError(new ErrorResponse("Локация не найдена"));
+                    .toJsonMistake(new MistakeResponse("Локация не найдена"));
             log.info("Не найдена location в БД по запросу locationId: {}", unit.get().getLocationId());
             return response;
         }
-
         //если у unit статус WIN или LOSS, показываем результат сражения и меняем статус на ACTIVE
         if(unit.get().getStatus().equals(Status.WIN)) {
             var response = jsonProcessor
@@ -70,7 +69,7 @@ public class MainService {
         var unit = unitRepository.findByName(name);
         if(unit.isEmpty()) {
             var response = jsonProcessor
-                    .toJsonError(new ErrorResponse("Игрок не найден"));
+                    .toJsonMistake(new MistakeResponse("Игрок не найден"));
             log.info("Не найден unit в БД по запросу name: {}", name);
             return response;
         }
@@ -86,7 +85,7 @@ public class MainService {
         Optional<Location> newLocation = locationRepository.findById(Long.valueOf("" + unit.get().getX() + unit.get().getY()));
         if(newLocation.isEmpty()) {
             var response = jsonProcessor
-                    .toJsonError(new ErrorResponse("Туда нельзя перейти"));
+                    .toJsonMistake(new MistakeResponse("Туда нельзя перейти"));
             log.info("Не найдена location в БД по запросу locationId: {}", unit.get().getLocationId());
             return response;
         }

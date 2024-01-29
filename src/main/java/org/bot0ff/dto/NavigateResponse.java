@@ -3,11 +3,11 @@ package org.bot0ff.dto;
 import lombok.Data;
 
 @Data
-public class ReloadResponse {
+public class NavigateResponse {
     String info;
     int status;
 
-    public ReloadResponse(String info) {
+    public NavigateResponse(String info) {
         this.info = info;
         this.status = 3;
     }

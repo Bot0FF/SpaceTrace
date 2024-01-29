@@ -15,6 +15,8 @@ public class FightResponse {
     private List<Unit> teamOne;
     private List<Unit> teamTwo;
     private String resultRound;
+    private int countRound;
+    private Long endRoundTimer;
     private String info;
     private int status;
 
@@ -37,6 +39,8 @@ public class FightResponse {
         else {
             this.resultRound = this.fight.getResultRound().get(this.fight.getResultRound().size() - 1);
         }
+        this.countRound = this.fight.getCountRound();
+        this.endRoundTimer = this.fight.getEndRoundTimer();
         this.info = info;
         this.status = 1;
     }

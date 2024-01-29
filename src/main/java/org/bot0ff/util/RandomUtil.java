@@ -35,17 +35,14 @@ public class RandomUtil {
 
     //рандом от до
     public int getRandomFromTo(int from, int to) {
-        RandomDataGenerator randomGenerator = new RandomDataGenerator();
-        return randomGenerator.nextInt(from, to);
+        return new RandomDataGenerator().nextInt(from, to);
     }
 
     //рандом +-30% от числа
     public int getRNum30(int num) {
         Random random = new Random();
-        int min = (int) (num * 0.70);
-        int max = (int) (num * 1.30);
-        return random.ints(min, max)
-                .findFirst()
-                .getAsInt();
+        int min = (int) Math.round(num * 0.70);
+        int max = (int) Math.round(num * 1.30);
+        return new RandomDataGenerator().nextInt(min, max);
     }
 }
