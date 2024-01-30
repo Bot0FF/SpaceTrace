@@ -27,7 +27,7 @@ public class Constants {
     public static int CHANCE_CREATE_ENEMY = 50;
 
     //длительность раундов
-    public static  int ROUND_LENGTH_TIME = 10;
+    public static  int ROUND_LENGTH_TIME = 60;
 
     //значения в бд
 

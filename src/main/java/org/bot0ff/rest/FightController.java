@@ -16,7 +16,7 @@ public class FightController {
     //начать сражение с выбранным противником
     @GetMapping("/attack")
     public ResponseEntity<?> actionAttack(@RequestParam Long targetId) {
-        var response = fightService.setStartFight("user", targetId);
+        var response = fightService.setStartFight("user", null, targetId);
         return ResponseEntity.ok(response);
     }
 

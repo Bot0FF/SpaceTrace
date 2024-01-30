@@ -33,11 +33,18 @@ public class FightService {
 
     public static Map<Long, FightHandler> FIGHT_MAP = Collections.synchronizedMap(new HashMap<>());
 
-    //начать сражение с выбранным enemy
+    //начать сражение с выбранным unit
     @Transactional
-    public String setStartFight(String name, Long targetId) {
-        //поиск unit в бд
-        var initiator = unitRepository.findByName(name);
+    public String setStartFight(String name, Long initiatorId, Long targetId) {
+        //определяем инициатора сражения и противника, в зависимости от того, кто напал
+        Optional<Unit> initiator;
+        if(name != null) {
+            initiator = unitRepository.findByName(name);
+        }
+        else {
+            initiator = unitRepository.findById(initiatorId);
+        }
+
         if(initiator.isEmpty()) {
             var response = jsonProcessor
                     .toJsonMistake(new MistakeResponse("Игрок не найден"));
@@ -228,7 +235,7 @@ public class FightService {
 
         //если все участники сражения к этому времени сделали ходы, завершаем раунд
         if(fight.get().getUnits().stream().allMatch(Unit::isActionEnd)) {
-            FIGHT_MAP.get(player.get().getFight().getId()).setEndRoundTimer(Instant.now().plusSeconds(1));
+            FIGHT_MAP.get(player.get().getFight().getId()).setEndRoundTimer(Instant.now().plusSeconds(3));
         }
 
         //устанавливает в ответе текущее время раунда

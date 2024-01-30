@@ -10,6 +10,7 @@ import org.bot0ff.entity.enums.Status;
 import org.bot0ff.entity.enums.UnitType;
 import org.bot0ff.repository.LocationRepository;
 import org.bot0ff.repository.UnitRepository;
+import org.bot0ff.service.fight.FightService;
 import org.bot0ff.util.JsonProcessor;
 import org.bot0ff.util.RandomUtil;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ import java.util.Optional;
 public class MainService {
     private final UnitRepository unitRepository;
     private final LocationRepository locationRepository;
+    private final FightService fightService;
     private final JsonProcessor jsonProcessor;
     private final RandomUtil randomUtil;
 
@@ -99,8 +101,15 @@ public class MainService {
         //шанс появления enemy на локации
         if(randomUtil.getChanceCreateEnemy()) {
             Unit newEnemy = getRandomEnemy(newLocation.get());
-            unitRepository.save(newEnemy);
+            Long newEnemyId = unitRepository.save(newEnemy).getId();
+            //шанс нападения enemy на unit
+            if(randomUtil.getRandom1or2() == 1) {
+                fightService.setStartFight(null, newEnemyId, unit.get().getId());
+            }
         }
+
+
+
 
         return jsonProcessor
                 .toJsonMain(new MainResponse(unit.get(), newLocation.get(), "Ты перешел на локацию: " + newLocation.get().getName()));
@@ -122,7 +131,7 @@ public class MainService {
                 10,
                 10,
                 10,
-                10,
+                1,
                 4,
                 List.of(1L),
                 null,

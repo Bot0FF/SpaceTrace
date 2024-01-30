@@ -86,7 +86,6 @@ public class Unit {
     private UnitJson unitJson;
 
     @Column(name = "teamNumber")
-    @JsonIgnore
     private Long teamNumber;
 
     @Column(name = "abilityId")
