@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bot0ff.dto.MistakeResponse;
 import org.bot0ff.dto.MainResponse;
+import org.bot0ff.dto.unit.UnitArmor;
 import org.bot0ff.entity.Location;
 import org.bot0ff.entity.Unit;
 import org.bot0ff.entity.enums.Status;
@@ -40,11 +41,11 @@ public class MainService {
             return response;
         }
 
-        var location = locationRepository.findById(unit.get().getLocationId());
+        var location = locationRepository.findById(unit.get().getLocation().getId());
         if(location.isEmpty()) {
             var response = jsonProcessor
                     .toJsonMistake(new MistakeResponse("Локация не найдена"));
-            log.info("Не найдена location в БД по запросу locationId: {}", unit.get().getLocationId());
+            log.info("Не найдена location в БД по запросу locationId: {}", unit.get().getLocation().getId());
             return response;
         }
         //если у unit статус WIN или LOSS, показываем результат сражения и меняем статус на ACTIVE
@@ -77,24 +78,22 @@ public class MainService {
         }
 
         switch (direction) {
-            case "up" -> unit.get().setY(unit.get().getY() + 1);
-            case "left" -> unit.get().setX(unit.get().getX() - 1);
-            case "right" -> unit.get().setX(unit.get().getX() + 1);
-            case "down" -> unit.get().setY(unit.get().getY() - 1);
+            case "up" -> unit.get().getLocation().setY(unit.get().getLocation().getY() + 1);
+            case "left" -> unit.get().getLocation().setX(unit.get().getLocation().getX() - 1);
+            case "right" -> unit.get().getLocation().setX(unit.get().getLocation().getX() + 1);
+            case "down" -> unit.get().getLocation().setY(unit.get().getLocation().getY() - 1);
         }
 
         //поиск локации для перехода
-        Optional<Location> newLocation = locationRepository.findById(Long.valueOf("" + unit.get().getX() + unit.get().getY()));
+        Optional<Location> newLocation = locationRepository.findById(Long.valueOf("" + unit.get().getLocation().getX() + unit.get().getLocation().getY()));
         if(newLocation.isEmpty()) {
             var response = jsonProcessor
                     .toJsonMistake(new MistakeResponse("Туда нельзя перейти"));
-            log.info("Не найдена location в БД по запросу locationId: {}", unit.get().getLocationId());
+            log.info("Не найдена location в БД по запросу locationId: {}", unit.get().getLocation().getX() + "/" + unit.get().getLocation().getY());
             return response;
         }
 
         //сохранение новой локации у unit
-        unit.get().setX(newLocation.get().getX());
-        unit.get().setY(newLocation.get().getY());
         unit.get().setLocation(newLocation.get());
         unitRepository.save(unit.get());
 
@@ -107,9 +106,6 @@ public class MainService {
                 fightService.setStartFight(null, newEnemyId, unit.get().getId());
             }
         }
-
-
-
 
         return jsonProcessor
                 .toJsonMain(new MainResponse(unit.get(), newLocation.get(), "Ты перешел на локацию: " + newLocation.get().getName()));
@@ -124,9 +120,11 @@ public class MainService {
                 UnitType.AI,
                 Status.ACTIVE,
                 false,
-                location.getX(),
-                location.getY(),
                 location,
+                new UnitArmor(),
+                new UnitArmor(),
+                new UnitArmor(),
+                new UnitArmor(),
                 10,
                 10,
                 10,

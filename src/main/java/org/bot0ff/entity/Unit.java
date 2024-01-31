@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bot0ff.dto.unit.UnitArmor;
+import org.bot0ff.dto.unit.UnitEffect;
 import org.bot0ff.entity.enums.Status;
 import org.bot0ff.entity.enums.UnitType;
 import org.bot0ff.util.UnitJsonConverter;
@@ -38,18 +40,32 @@ public class Unit {
     private boolean actionEnd;
 
     //локация
-    @Column(name = "x")
-    @JsonIgnore
-    private int x;
-
-    @Column(name = "y")
-    @JsonIgnore
-    private int y;
 
     @ManyToOne()
     @JoinColumn(name = "location")
     @JsonIgnore
     private Location location;
+
+    //одежда
+    @Convert(converter = UnitJsonConverter.class)
+    @Column(name = "unitHead")
+    @JsonIgnore
+    private UnitArmor unitHead;
+
+    @Convert(converter = UnitJsonConverter.class)
+    @Column(name = "unitHand")
+    @JsonIgnore
+    private UnitArmor unitHand;
+
+    @Convert(converter = UnitJsonConverter.class)
+    @Column(name = "unitBody")
+    @JsonIgnore
+    private UnitArmor unitBody;
+
+    @Convert(converter = UnitJsonConverter.class)
+    @Column(name = "unitLeg")
+    @JsonIgnore
+    private UnitArmor unitLeg;
 
     //характеристики
     @Column(name = "hp")
@@ -70,6 +86,7 @@ public class Unit {
     @Column(name = "defense")
     private int defense;
 
+    //умения
     @Column(name = "ability")
     @JsonIgnore
     private List<Long> ability;
@@ -83,7 +100,7 @@ public class Unit {
     @Convert(converter = UnitJsonConverter.class)
     @Column(name = "unitJson")
     @JsonIgnore
-    private UnitJson unitJson;
+    private UnitEffect unitEffect;
 
     @Column(name = "teamNumber")
     private Long teamNumber;
@@ -95,9 +112,4 @@ public class Unit {
     @Column(name = "targetId")
     @JsonIgnore
     private Long targetId;
-
-    @JsonIgnore
-    public Long getLocationId() {
-        return Long.parseLong("" + this.getX() + this.getY());
-    }
 }

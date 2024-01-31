@@ -1,18 +1,13 @@
-package org.bot0ff.entity;
+package org.bot0ff.dto.unit;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.bot0ff.entity.enums.ApplyType;
-import org.bot0ff.entity.enums.HitType;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UnitJson {
+public class UnitEffect {
     private int effectHp;
     private int durationEffectHp;
 

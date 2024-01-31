@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bot0ff.entity.Fight;
 import org.bot0ff.entity.Subject;
 import org.bot0ff.entity.Unit;
-import org.bot0ff.entity.UnitJson;
+import org.bot0ff.dto.unit.UnitEffect;
 import org.bot0ff.entity.enums.Status;
 import org.bot0ff.entity.enums.UnitType;
 import org.bot0ff.repository.FightRepository;
@@ -180,11 +180,11 @@ public class FightHandler {
                 if (unit.getUnitType().equals(UnitType.USER)) {
                     unit.setHp(1);
                     unit.setMana(1);
-                    unit.setDamage(unit.getUnitJson().getStartDamage());
-                    unit.setDefense(unit.getUnitJson().getStartDefense());
+                    unit.setDamage(unit.getUnitEffect().getStartDamage());
+                    unit.setDefense(unit.getUnitEffect().getStartDefense());
                     unit.setStatus(Status.LOSS);
                     unit.setFight(null);
-                    unit.setUnitJson(null);
+                    unit.setUnitEffect(null);
                     unit.setTeamNumber(null);
                     unit.setAbilityId(null);
                     unit.setTargetId(null);
@@ -241,7 +241,7 @@ public class FightHandler {
                 unit.setTeamNumber(null);
                 unit.setAbilityId(null);
                 unit.setTargetId(null);
-                unit.setUnitJson(null);
+                unit.setUnitEffect(null);
                 unitRepository.save(unit);
                 System.out.println(unit.getName() + " победил в сражении");
             }
@@ -263,7 +263,7 @@ public class FightHandler {
                 unit.setTeamNumber(null);
                 unit.setAbilityId(null);
                 unit.setTargetId(null);
-                unit.setUnitJson(null);
+                unit.setUnitEffect(null);
                 unitRepository.save(unit);
                 System.out.println(unit.getName() + " победил в сражении");
             }
@@ -278,10 +278,10 @@ public class FightHandler {
 
     //рассчитываем нанесенный урон при типе атаки OPPONENT->DAMAGE
     private StringBuilder calculateDamage(Unit unit, Unit target, Subject ability) {
-        UnitJson unitJson = unit.getUnitJson();
-        UnitJson targetJson = target.getUnitJson();
+        UnitEffect unitEffect = unit.getUnitEffect();
+        UnitEffect targetJson = target.getUnitEffect();
         //рассчитываем урон, который нанес текущий unit противнику
-        double unitHit = (unit.getDamage() + unitJson.getEffectDamage()) * 1.0;
+        double unitHit = (unit.getDamage() + unitEffect.getEffectDamage()) * 1.0;
         double targetDefense = (target.getDefense() + targetJson.getEffectDefense()) * 1.0;
         if (unitHit <= 1) unitHit = 1;
         if (targetDefense <= 1) targetDefense = 1;
@@ -346,6 +346,7 @@ public class FightHandler {
                 .append(action)
                 .append(result)
                 .append(characteristic)
+                .append(" игроку ")
                 .append(target.getName())
                 .append(" умением ")
                 .append(ability.getName())
@@ -362,35 +363,59 @@ public class FightHandler {
 
         //TODO добавить длительность умений
         if(ability.getDuration() != 0) {
-            action = " повысил ";
+            action = "";
             duration = " на " + ability.getDuration() + " раунда";
             if(ability.getHp() != 0) {
+                if(ability.getHp() > 0) {
+                    action = " повысил ";
+                }
+                else {
+                    action = " понизил ";
+                }
                 characteristic = " максимальное здоровье ";
                 result = ability.getHp();
                 target.setMaxHp(target.getMaxHp() + ability.getHp());
-                target.getUnitJson().setEffectHp(ability.getHp());
-                target.getUnitJson().setDurationEffectHp(ability.getDuration());
+                target.getUnitEffect().setEffectHp(ability.getHp());
+                target.getUnitEffect().setDurationEffectHp(ability.getDuration());
             }
             if(ability.getMana() != 0) {
+                if(ability.getMana() > 0) {
+                    action = " повысил ";
+                }
+                else {
+                    action = " понизил ";
+                }
                 characteristic = " максимальную ману ";
                 result = ability.getMana();
                 target.setMaxMana(target.getMaxMana() + ability.getMana());
-                target.getUnitJson().setEffectMana(ability.getMana());
-                target.getUnitJson().setDurationEffectMana(ability.getDuration());
+                target.getUnitEffect().setEffectMana(ability.getMana());
+                target.getUnitEffect().setDurationEffectMana(ability.getDuration());
             }
             if(ability.getDamage() != 0) {
+                if(ability.getDamage() > 0) {
+                    action = " повысил ";
+                }
+                else {
+                    action = " понизил ";
+                }
                 characteristic = " урон ";
                 result = ability.getDamage();
                 target.setDamage(target.getDamage() + ability.getDamage());
-                target.getUnitJson().setEffectDamage(ability.getDamage());
-                target.getUnitJson().setDurationEffectDamage(ability.getDuration());
+                target.getUnitEffect().setEffectDamage(ability.getDamage());
+                target.getUnitEffect().setDurationEffectDamage(ability.getDuration());
             }
             if(ability.getDefense() != 0) {
+                if(ability.getDefense() > 0) {
+                    action = " повысил ";
+                }
+                else {
+                    action = " понизил ";
+                }
                 characteristic = " защиту ";
                 result = ability.getDefense();
                 target.setDefense(target.getDefense() + ability.getDefense());
-                target.getUnitJson().setEffectDefense(ability.getDefense());
-                target.getUnitJson().setDurationEffectDefense(ability.getDuration());
+                target.getUnitEffect().setEffectDefense(ability.getDefense());
+                target.getUnitEffect().setDurationEffectDefense(ability.getDuration());
             }
         }
 
@@ -398,8 +423,10 @@ public class FightHandler {
                 .append("[")
                 .append(unit.getName())
                 .append(action)
-                .append(result)
                 .append(characteristic)
+                .append(" на ")
+                .append(result)
+                .append(" единиц(ы) игроку ")
                 .append(target.getName())
                 .append(" умением ")
                 .append(ability.getName())
@@ -444,43 +471,43 @@ public class FightHandler {
         endAiAttack = false;
     }
 
-    //обновление UnitJson для следующего сражения
+    //обновление UnitEffect для следующего сражения
     private void setUnit(Unit unit) {
-        UnitJson unitJson = unit.getUnitJson();
+        UnitEffect unitEffect = unit.getUnitEffect();
         //расчет действующих эффектов hp
-        if(unitJson.getDurationEffectHp() > 0) {
-            unitJson.setDurationEffectHp(unitJson.getDurationEffectHp() - 1);
+        if(unitEffect.getDurationEffectHp() > 0) {
+            unitEffect.setDurationEffectHp(unitEffect.getDurationEffectHp() - 1);
         }
         else {
-            unit.setMaxHp(unit.getMaxHp() - unitJson.getEffectHp());
-            unitJson.setEffectHp(0);
+            unit.setMaxHp(unit.getMaxHp() - unitEffect.getEffectHp());
+            unitEffect.setEffectHp(0);
         }
 
         //расчет действующих эффектов mana
-        if(unitJson.getDurationEffectMana() > 0) {
-            unitJson.setDurationEffectMana(unitJson.getDurationEffectMana() - 1);
+        if(unitEffect.getDurationEffectMana() > 0) {
+            unitEffect.setDurationEffectMana(unitEffect.getDurationEffectMana() - 1);
         }
         else {
-            unit.setMaxMana(unit.getMaxMana() - unitJson.getEffectMana());
-            unitJson.setEffectMana(0);
+            unit.setMaxMana(unit.getMaxMana() - unitEffect.getEffectMana());
+            unitEffect.setEffectMana(0);
         }
 
         //расчет действующих эффектов damage
-        if(unitJson.getDurationEffectDamage() > 0) {
-            unitJson.setDurationEffectDamage(unitJson.getDurationEffectDamage() - 1);
+        if(unitEffect.getDurationEffectDamage() > 0) {
+            unitEffect.setDurationEffectDamage(unitEffect.getDurationEffectDamage() - 1);
         }
         else {
-            unit.setDamage(unit.getDamage() - unitJson.getEffectDamage());
-            unitJson.setEffectDamage(0);
+            unit.setDamage(unit.getDamage() - unitEffect.getEffectDamage());
+            unitEffect.setEffectDamage(0);
         }
 
         //расчет действующих эффектов defense
-        if(unitJson.getDurationEffectDefense() > 0) {
-            unitJson.setDurationEffectDefense(unitJson.getDurationEffectDefense() - 1);
+        if(unitEffect.getDurationEffectDefense() > 0) {
+            unitEffect.setDurationEffectDefense(unitEffect.getDurationEffectDefense() - 1);
         }
         else {
-            unit.setDefense(unit.getDefense() - unitJson.getEffectDefense());
-            unitJson.setEffectDefense(0);
+            unit.setDefense(unit.getDefense() - unitEffect.getEffectDefense());
+            unitEffect.setEffectDefense(0);
         }
     }
 }

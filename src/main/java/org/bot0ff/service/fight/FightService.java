@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bot0ff.dto.MistakeResponse;
 import org.bot0ff.dto.FightResponse;
 import org.bot0ff.dto.NavigateResponse;
+import org.bot0ff.dto.unit.UnitEffect;
 import org.bot0ff.entity.*;
 import org.bot0ff.entity.enums.HitType;
 import org.bot0ff.entity.enums.Status;
@@ -218,10 +219,10 @@ public class FightService {
         //если на цели уже применено данное умение, возвращаем уведомление
         if(ability.get().getHitType().equals(HitType.BOOST)
                 | ability.get().getHitType().equals(HitType.LOWER)) {
-            if((ability.get().getHp() != 0 && target.get().getUnitJson().getDurationEffectHp() != 0)
-                    | (ability.get().getMana() != 0 && target.get().getUnitJson().getDurationEffectMana() != 0)
-                    | (ability.get().getDamage() != 0 && target.get().getUnitJson().getDurationEffectDamage() != 0)
-                    | (ability.get().getDefense() != 0 && target.get().getUnitJson().getDurationEffectDefense() != 0)) {
+            if((ability.get().getHp() != 0 && target.get().getUnitEffect().getDurationEffectHp() != 0)
+                    | (ability.get().getMana() != 0 && target.get().getUnitEffect().getDurationEffectMana() != 0)
+                    | (ability.get().getDamage() != 0 && target.get().getUnitEffect().getDurationEffectDamage() != 0)
+                    | (ability.get().getDefense() != 0 && target.get().getUnitEffect().getDurationEffectDefense() != 0)) {
                 return jsonProcessor
                         .toJsonMistake(new MistakeResponse("Умение уже применено"));
             }
@@ -247,9 +248,9 @@ public class FightService {
 
     //TODO сделать метод для массовых умений
 
-    //создание UnitJson для сражения
-    private UnitJson setUnitJson(Unit unit) {
-        return new UnitJson(
+    //создание UnitEffect для сражения
+    private UnitEffect setUnitEffect(Unit unit) {
+        return new UnitEffect(
                 0, 0,
                 0, 0,
                 unit.getDamage(), 0, 0,
@@ -273,7 +274,7 @@ public class FightService {
         unit.setTeamNumber(teamNumber);
         unit.setAbilityId(0L);
         unit.setTargetId(0L);
-        unit.setUnitJson(setUnitJson(unit));
+        unit.setUnitEffect(setUnitEffect(unit));
         unitRepository.save(unit);
     }
 
@@ -287,7 +288,7 @@ public class FightService {
         unit.setTeamNumber(null);
         unit.setAbilityId(null);
         unit.setTargetId(null);
-        unit.setUnitJson(null);
+        unit.setUnitEffect(null);
         unitRepository.save(unit);
     }
 
@@ -303,7 +304,7 @@ public class FightService {
             unit.setActionEnd(false);
             unit.setStatus(Status.ACTIVE);
             unit.setFight(null);
-            unit.setUnitJson(null);
+            unit.setUnitEffect(null);
             unitRepository.save(unit);
         }
     }
