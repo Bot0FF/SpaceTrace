@@ -3,6 +3,7 @@ package org.bot0ff.service.fight;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.bot0ff.entity.Fight;
+import org.bot0ff.entity.Location;
 import org.bot0ff.entity.Subject;
 import org.bot0ff.entity.Unit;
 import org.bot0ff.dto.unit.UnitEffect;
@@ -91,8 +92,8 @@ public class FightHandler {
             return;
         }
 
-        //добавляем unit в общий лист
-        List<Unit> units = new ArrayList<>(optionalFight.get().getUnits());
+        //начинаем работу с листом units
+        List<Unit> units = optionalFight.get().getUnits();
 
         //Сортируем unit в порядке убывания инициативы
         units.sort(Comparator.comparingLong(Unit::getId));
@@ -174,27 +175,19 @@ public class FightHandler {
         });
 
         //сохраняем состояние всех unit,
-        //если unit DIE, удаляем его из сражения со сбросом статуса сражения
+        //если unit USER и DIE, удаляем его из сражения со сбросом статуса сражения, если AI удаляем из бд
         for (Unit unit : units) {
             if (unit.getStatus().equals(Status.DIE)) {
-                if (unit.getUnitType().equals(UnitType.USER)) {
-                    unit.setHp(1);
-                    unit.setMana(1);
-                    unit.setDamage(unit.getUnitEffect().getStartDamage());
-                    unit.setDefense(unit.getUnitEffect().getStartDefense());
-                    unit.setStatus(Status.LOSS);
-                    unit.setFight(null);
-                    unit.setUnitEffect(null);
-                    unit.setTeamNumber(null);
-                    unit.setAbilityId(null);
-                    unit.setTargetId(null);
-                    unit.setActionEnd(false);
-                    unitRepository.save(unit);
-                } else {
-                    unit.setStatus(Status.LOSS);
-                    unitRepository.delete(unit);
-                }
-                System.out.println(unit.getName() + " удален из сражения");
+                unit.setDamage(unit.getUnitEffect().getStartDamage());
+                unit.setDefense(unit.getUnitEffect().getStartDefense());
+                unit.setStatus(Status.LOSS);
+                unit.setFight(null);
+                unit.setUnitEffect(null);
+                unit.setTeamNumber(null);
+                unit.setAbilityId(null);
+                unit.setTargetId(null);
+                unit.setActionEnd(false);
+                unitRepository.save(unit);
             }
             //сбрасываем настройки unit
             else {
@@ -212,6 +205,8 @@ public class FightHandler {
         //если список units пуст, завершаем сражение
         if (units.isEmpty()) {
             endFight = true;
+            optionalFight.get().setFightEnd(true);
+            fightRepository.save(optionalFight.get());
             System.out.println(fightId + " сражение завершено и удалено из map. Ничья");
             return;
         }
@@ -230,10 +225,11 @@ public class FightHandler {
             fightRepository.save(fight);
             System.out.println("-->Запуск следующего раунда");
         }
-        //если в первой команде есть игроки, а во второй нет, завершаем бой,
-        //сохраняем результаты победы у unit из второй команды
+        //если во второй команде нет игроков, а в первой есть, завершаем бой,
+        //сохраняем результаты победы у unit из первой команды
         else if (!teamOne.isEmpty() & teamTwo.isEmpty()) {
             for (Unit unit : teamOne) {
+                System.out.println(unit.getName() + " победил в сражении");
                 unit.setHp(unit.getHp());
                 unit.setActionEnd(false);
                 unit.setStatus(Status.WIN);
@@ -243,7 +239,6 @@ public class FightHandler {
                 unit.setTargetId(null);
                 unit.setUnitEffect(null);
                 unitRepository.save(unit);
-                System.out.println(unit.getName() + " победил в сражении");
             }
             endFight = true;
             fight.setFightEnd(true);
@@ -252,10 +247,11 @@ public class FightHandler {
             fightRepository.save(fight);
             System.out.println(fightId + " сражение завершено и удалено из map");
         }
-        //если во второй команде нет игроков со статусом FIGHT, а в первой есть, завершаем бой,
-        //сохраняем результаты победы у unit из первой команды
+        //если в первой команде нет игроков, а во второй есть, завершаем бой,
+        //сохраняем результаты победы у unit из второй команды
         else {
             for (Unit unit : teamTwo) {
+                System.out.println(unit.getName() + " победил в сражении");
                 unit.setHp(unit.getHp());
                 unit.setActionEnd(false);
                 unit.setStatus(Status.WIN);
@@ -265,7 +261,6 @@ public class FightHandler {
                 unit.setTargetId(null);
                 unit.setUnitEffect(null);
                 unitRepository.save(unit);
-                System.out.println(unit.getName() + " победил в сражении");
             }
             endFight = true;
             fight.setFightEnd(true);

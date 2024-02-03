@@ -3,7 +3,8 @@ package org.bot0ff.config;
 import jakarta.persistence.EntityManagerFactory;
 import org.bot0ff.util.JsonProcessor;
 import org.bot0ff.util.RandomUtil;
-import org.bot0ff.util.UnitJsonConverter;
+import org.bot0ff.util.converter.UnitJsonSubjectToArmorConverter;
+import org.bot0ff.util.converter.UnitJsonSubjectToEffectConverter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,8 +25,13 @@ public class AppConfig {
     }
 
     @Bean
-    public UnitJsonConverter getUnitJsonConverter() {
-        return new UnitJsonConverter();
+    public UnitJsonSubjectToEffectConverter getUnitJsonEffectConverter() {
+        return new UnitJsonSubjectToEffectConverter();
+    }
+
+    @Bean
+    public UnitJsonSubjectToArmorConverter getUnitJsonArmorConverter() {
+        return new UnitJsonSubjectToArmorConverter();
     }
 
     @Bean

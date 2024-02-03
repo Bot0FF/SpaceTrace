@@ -10,6 +10,7 @@ import org.bot0ff.entity.*;
 import org.bot0ff.entity.enums.HitType;
 import org.bot0ff.entity.enums.Status;
 import org.bot0ff.repository.FightRepository;
+import org.bot0ff.repository.LocationRepository;
 import org.bot0ff.repository.SubjectRepository;
 import org.bot0ff.repository.UnitRepository;
 import org.bot0ff.util.Constants;
@@ -28,6 +29,7 @@ import java.util.*;
 public class FightService {
     private final UnitRepository unitRepository;
     private final FightRepository fightRepository;
+    private final LocationRepository locationRepository;
     private final SubjectRepository subjectRepository;
     private final JsonProcessor jsonProcessor;
     private final RandomUtil randomUtil;
@@ -91,6 +93,10 @@ public class FightService {
             log.info("Не найдено новое сражение в БД по запросу fightId: {}", newFightId);
             return response;
         }
+
+
+        //создание локаций для перемещения units со статусом LOSS после сражения
+        List<Location> lossLocations = locationRepository.findAllById(List.of(0L, 22L));
 
         //добавление нового сражения в map и запуск обработчика раундов
         FIGHT_MAP.put(newFightId, new FightHandler(
@@ -302,6 +308,7 @@ public class FightService {
         for(Unit unit: units) {
             unit.setHp(unit.getHp());
             unit.setActionEnd(false);
+            unit.setAbilityId(null);
             unit.setStatus(Status.ACTIVE);
             unit.setFight(null);
             unit.setUnitEffect(null);

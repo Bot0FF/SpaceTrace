@@ -48,6 +48,7 @@ public class MainService {
             log.info("Не найдена location в БД по запросу locationId: {}", unit.get().getLocation().getId());
             return response;
         }
+
         //если у unit статус WIN или LOSS, показываем результат сражения и меняем статус на ACTIVE
         if(unit.get().getStatus().equals(Status.WIN)) {
             var response = jsonProcessor
@@ -93,19 +94,24 @@ public class MainService {
             return response;
         }
 
-        //сохранение новой локации у unit
-        unit.get().setLocation(newLocation.get());
-        unitRepository.save(unit.get());
 
         //шанс появления enemy на локации
         if(randomUtil.getChanceCreateEnemy()) {
             Unit newEnemy = getRandomEnemy(newLocation.get());
             Long newEnemyId = unitRepository.save(newEnemy).getId();
+            newLocation.get().getUnits().add(newEnemy);
             //шанс нападения enemy на unit
             if(randomUtil.getRandom1or2() == 1) {
                 fightService.setStartFight(null, newEnemyId, unit.get().getId());
             }
         }
+
+        //сохранение новой локации у unit
+        unit.get().setLocation(newLocation.get());
+        unitRepository.save(unit.get());
+
+
+
 
         return jsonProcessor
                 .toJsonMain(new MainResponse(unit.get(), newLocation.get(), "Ты перешел на локацию: " + newLocation.get().getName()));
@@ -121,16 +127,14 @@ public class MainService {
                 Status.ACTIVE,
                 false,
                 location,
-                new UnitArmor(),
-                new UnitArmor(),
-                new UnitArmor(),
-                new UnitArmor(),
-                10,
+                1,
                 10,
                 10,
                 10,
                 1,
                 4,
+                null,
+                null,
                 List.of(1L),
                 null,
                 null,

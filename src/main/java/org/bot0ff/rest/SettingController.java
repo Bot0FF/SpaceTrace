@@ -58,7 +58,7 @@ public class SettingController {
         unit.setDamage(Constants.START_DAMAGE);
         unit.setDefense(Constants.START_DEFENSE);
         unit.setFight(null);
-        unit.setUnitJson(new UnitEffect());
+        unit.setUnitEffect(new UnitEffect());
         unitRepository.save(unit);
         var response = mainService.getUnitState(username);
         return ResponseEntity.ok(response);

@@ -12,7 +12,7 @@ import java.io.Serializable;
 import java.util.List;
 
 @Data
-@Table(name = "locations")
+@Table(name = "location")
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
@@ -35,7 +35,7 @@ public class Location implements Serializable {
     @Column(name = "locationType")
     private LocationType locationType;
 
-    @OneToMany(mappedBy = "location", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "location", fetch = FetchType.EAGER)
     @ToString.Exclude
     @JsonIgnore
     private List<Unit> units;
