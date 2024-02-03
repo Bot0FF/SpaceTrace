@@ -39,4 +39,8 @@ public class Location implements Serializable {
     @ToString.Exclude
     @JsonIgnore
     private List<Unit> units;
+
+    @Column(name = "things")
+    @JsonIgnore
+    private List<Long> things;
 }

@@ -29,4 +29,10 @@ public class MainController {
         return ResponseEntity.ok(response);
     }
 
+    //список вещей на локации
+    @GetMapping("/location/things")
+    public ResponseEntity<?> getLocationThings() {
+        var response = mainService.getLocationThings("user");
+        return ResponseEntity.ok(response);
+    }
 }

@@ -4,12 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bot0ff.dto.MistakeResponse;
 import org.bot0ff.dto.MainResponse;
-import org.bot0ff.dto.unit.UnitArmor;
 import org.bot0ff.entity.Location;
+import org.bot0ff.entity.Thing;
 import org.bot0ff.entity.Unit;
 import org.bot0ff.entity.enums.Status;
-import org.bot0ff.entity.enums.UnitType;
 import org.bot0ff.repository.LocationRepository;
+import org.bot0ff.repository.ThingRepository;
 import org.bot0ff.repository.UnitRepository;
 import org.bot0ff.service.fight.FightService;
 import org.bot0ff.util.JsonProcessor;
@@ -26,6 +26,9 @@ import java.util.Optional;
 public class MainService {
     private final UnitRepository unitRepository;
     private final LocationRepository locationRepository;
+    private final ThingRepository thingRepository;
+
+    private final EntityGenerator entityGenerator;
     private final FightService fightService;
     private final JsonProcessor jsonProcessor;
     private final RandomUtil randomUtil;
@@ -97,7 +100,7 @@ public class MainService {
 
         //шанс появления enemy на локации
         if(randomUtil.getChanceCreateEnemy()) {
-            Unit newEnemy = getRandomEnemy(newLocation.get());
+            Unit newEnemy = entityGenerator.getNewAiUnit(newLocation.get());
             Long newEnemyId = unitRepository.save(newEnemy).getId();
             newLocation.get().getUnits().add(newEnemy);
             //шанс нападения enemy на unit
@@ -110,36 +113,31 @@ public class MainService {
         unit.get().setLocation(newLocation.get());
         unitRepository.save(unit.get());
 
-
-
-
         return jsonProcessor
                 .toJsonMain(new MainResponse(unit.get(), newLocation.get(), "Ты перешел на локацию: " + newLocation.get().getName()));
     }
 
-    //TODO сделать генерацию случайного противника в зависимости от локации
-    //возвращает случайного enemy в зависимости от локации
-    private Unit getRandomEnemy(Location location) {
-        return new Unit(
-                null,
-                "*Паук*",
-                UnitType.AI,
-                Status.ACTIVE,
-                false,
-                location,
-                1,
-                10,
-                10,
-                10,
-                1,
-                4,
-                null,
-                null,
-                List.of(1L),
-                null,
-                null,
-                null,
-                null,
-                null);
+    //список вещей на локации
+    public String getLocationThings(String name) {
+        var unit = unitRepository.findByName(name);
+        if(unit.isEmpty()) {
+            var response = jsonProcessor
+                    .toJsonMistake(new MistakeResponse("Игрок не найден"));
+            log.info("Не найден unit в БД по запросу username: {}", name);
+            return response;
+        }
+
+        var location = locationRepository.findById(unit.get().getLocation().getId());
+        if(location.isEmpty()) {
+            var response = jsonProcessor
+                    .toJsonMistake(new MistakeResponse("Локация не найдена"));
+            log.info("Не найдена location в БД по запросу locationId: {}", unit.get().getLocation().getId());
+            return response;
+        }
+
+        //получаем список вещей на локации
+        List<Thing> things = thingRepository.findAllById(location.get().getThings());
+
+        return jsonProcessor.toJson(things);
     }
 }
