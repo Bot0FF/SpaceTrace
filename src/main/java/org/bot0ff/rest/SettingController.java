@@ -48,18 +48,6 @@ public class SettingController {
             return ResponseEntity.ok(response);
         }
         var unit = new Unit();
-        unit.setId(null);
-        unit.setName(user.getUsername());
-        unit.setStatus(Status.ACTIVE);
-        unit.setActionEnd(false);
-        unit.setLocation(location);
-        unit.setHp(Constants.START_HP);
-        unit.setMana(Constants.START_MANA);
-        unit.setDamage(Constants.START_DAMAGE);
-        unit.setDefense(Constants.START_DEFENSE);
-        unit.setFight(null);
-        unit.setUnitEffect(new UnitEffect());
-        unitRepository.save(unit);
         var response = mainService.getUnitState(username);
         return ResponseEntity.ok(response);
     }

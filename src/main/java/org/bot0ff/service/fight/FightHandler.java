@@ -3,7 +3,6 @@ package org.bot0ff.service.fight;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.bot0ff.entity.Fight;
-import org.bot0ff.entity.Location;
 import org.bot0ff.entity.Subject;
 import org.bot0ff.entity.Unit;
 import org.bot0ff.dto.unit.UnitEffect;
@@ -20,6 +19,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Data
 @Slf4j

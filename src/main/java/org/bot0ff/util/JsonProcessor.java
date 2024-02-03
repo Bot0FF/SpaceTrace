@@ -30,9 +30,6 @@ public class JsonProcessor {
 
     public String toJsonMain(MainResponse response) {
         try {
-            if(!response.getPlayers().isEmpty()) {
-                response.getPlayers().removeIf(p -> p.getId().equals(response.getPlayer().getId()));
-            }
             return objectMapper
                     .writerWithDefaultPrettyPrinter()
                     .writeValueAsString(response);

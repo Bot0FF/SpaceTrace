@@ -20,7 +20,7 @@ public class EntityGenerator {
                 Status.ACTIVE,
                 false,
                 //локация
-                location,
+                location.getId(),
                 //характеристики
                 1,
                 10,
@@ -28,12 +28,12 @@ public class EntityGenerator {
                 10,
                 1,
                 4,
-                //экипировка
-                null,
-                null,
-                null,
-                null,
-                null,
+//                //экипировка
+//                null,
+//                null,
+//                null,
+//                null,
+//                null,
                 //умения
                 List.of(1L),
                 //сражение

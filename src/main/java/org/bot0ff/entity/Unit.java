@@ -39,10 +39,9 @@ public class Unit {
     private boolean actionEnd;
 
     //локация
-    @ManyToOne(cascade=CascadeType.ALL)
-    @JoinColumn(name = "location")
+    @Column(name = "locationId")
     @JsonIgnore
-    private Location location;
+    private Long locationId;
 
     //характеристики
     @Column(name = "hp")
@@ -63,26 +62,26 @@ public class Unit {
     @Column(name = "defense")
     private int defense;
 
-    //экипировка
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "weapon")
-    private Thing weapon;
-
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "head")
-    private Thing head;
-
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "hand")
-    private Thing hand;
-
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "body")
-    private Thing body;
-
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "leg")
-    private Thing leg;
+//    //экипировка
+//    @OneToOne(cascade = CascadeType.ALL)
+//    @JoinColumn(name = "weapon")
+//    private Thing weapon;
+//
+//    @OneToOne(cascade = CascadeType.ALL)
+//    @JoinColumn(name = "head")
+//    private Thing head;
+//
+//    @OneToOne(cascade = CascadeType.ALL)
+//    @JoinColumn(name = "hand")
+//    private Thing hand;
+//
+//    @OneToOne(cascade = CascadeType.ALL)
+//    @JoinColumn(name = "body")
+//    private Thing body;
+//
+//    @OneToOne(cascade = CascadeType.ALL)
+//    @JoinColumn(name = "leg")
+//    private Thing leg;
 
     //умения
     @Column(name = "ability")
@@ -111,83 +110,83 @@ public class Unit {
     @JsonIgnore
     private Long targetId;
 
-    public int getFullDamage() {
-        int fullDamage = damage;
-        if(weapon != null && weapon.getDuration() > 0) {
-            fullDamage += weapon.getDamage();
-        }
-        if(head != null && head.getDuration() > 0) {
-            fullDamage += head.getDamage();
-        }
-        if(hand != null && hand.getDuration() > 0) {
-            fullDamage += hand.getDamage();
-        }
-        if(body != null && body.getDuration() > 0) {
-            fullDamage += body.getDamage();
-        }
-        if(leg != null && leg.getDuration() > 0) {
-            fullDamage += leg.getDamage();
-        }
-        return fullDamage;
-    }
-
-    public int getFullHp() {
-        int fullHp = hp;
-        if(weapon != null && weapon.getDuration() > 0) {
-            fullHp += weapon.getHp();
-        }
-        if(head != null && head.getDuration() > 0) {
-            fullHp += head.getHp();
-        }
-        if(hand != null && hand.getDuration() > 0) {
-            fullHp += hand.getHp();
-        }
-        if(body != null && body.getDuration() > 0) {
-            fullHp += body.getHp();
-        }
-        if(leg != null && leg.getDuration() > 0) {
-            fullHp += leg.getHp();
-        }
-        return fullHp;
-    }
-
-    public int getFullMana() {
-        int fullMana = mana;
-        if(weapon != null && weapon.getDuration() > 0) {
-            fullMana += weapon.getMana();
-        }
-        if(head != null && head.getDuration() > 0) {
-            fullMana += head.getMana();
-        }
-        if(hand != null && hand.getDuration() > 0) {
-            fullMana += hand.getMana();
-        }
-        if(body != null && body.getDuration() > 0) {
-            fullMana += body.getMana();
-        }
-        if(leg != null && leg.getDuration() > 0) {
-            fullMana += leg.getMana();
-        }
-        return fullMana;
-    }
-
-    public int getFullDefense() {
-        int fullDefense = defense;
-        if(weapon != null && weapon.getDuration() > 0) {
-            fullDefense += weapon.getDefense();
-        }
-        if(head != null && head.getDuration() > 0) {
-            fullDefense += head.getDefense();
-        }
-        if(hand != null && hand.getDuration() > 0) {
-            fullDefense += hand.getDefense();
-        }
-        if(body != null && body.getDuration() > 0) {
-            fullDefense += body.getDefense();
-        }
-        if(leg != null && leg.getDuration() > 0) {
-            fullDefense += leg.getDefense();
-        }
-        return fullDefense;
-    }
+//    public int getFullDamage() {
+//        int fullDamage = damage;
+//        if(weapon != null && weapon.getDuration() > 0) {
+//            fullDamage += weapon.getDamage();
+//        }
+//        if(head != null && head.getDuration() > 0) {
+//            fullDamage += head.getDamage();
+//        }
+//        if(hand != null && hand.getDuration() > 0) {
+//            fullDamage += hand.getDamage();
+//        }
+//        if(body != null && body.getDuration() > 0) {
+//            fullDamage += body.getDamage();
+//        }
+//        if(leg != null && leg.getDuration() > 0) {
+//            fullDamage += leg.getDamage();
+//        }
+//        return fullDamage;
+//    }
+//
+//    public int getFullHp() {
+//        int fullHp = hp;
+//        if(weapon != null && weapon.getDuration() > 0) {
+//            fullHp += weapon.getHp();
+//        }
+//        if(head != null && head.getDuration() > 0) {
+//            fullHp += head.getHp();
+//        }
+//        if(hand != null && hand.getDuration() > 0) {
+//            fullHp += hand.getHp();
+//        }
+//        if(body != null && body.getDuration() > 0) {
+//            fullHp += body.getHp();
+//        }
+//        if(leg != null && leg.getDuration() > 0) {
+//            fullHp += leg.getHp();
+//        }
+//        return fullHp;
+//    }
+//
+//    public int getFullMana() {
+//        int fullMana = mana;
+//        if(weapon != null && weapon.getDuration() > 0) {
+//            fullMana += weapon.getMana();
+//        }
+//        if(head != null && head.getDuration() > 0) {
+//            fullMana += head.getMana();
+//        }
+//        if(hand != null && hand.getDuration() > 0) {
+//            fullMana += hand.getMana();
+//        }
+//        if(body != null && body.getDuration() > 0) {
+//            fullMana += body.getMana();
+//        }
+//        if(leg != null && leg.getDuration() > 0) {
+//            fullMana += leg.getMana();
+//        }
+//        return fullMana;
+//    }
+//
+//    public int getFullDefense() {
+//        int fullDefense = defense;
+//        if(weapon != null && weapon.getDuration() > 0) {
+//            fullDefense += weapon.getDefense();
+//        }
+//        if(head != null && head.getDuration() > 0) {
+//            fullDefense += head.getDefense();
+//        }
+//        if(hand != null && hand.getDuration() > 0) {
+//            fullDefense += hand.getDefense();
+//        }
+//        if(body != null && body.getDuration() > 0) {
+//            fullDefense += body.getDefense();
+//        }
+//        if(leg != null && leg.getDuration() > 0) {
+//            fullDefense += leg.getDefense();
+//        }
+//        return fullDefense;
+//    }
 }

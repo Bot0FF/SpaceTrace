@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 import org.bot0ff.entity.enums.LocationType;
 
 import java.io.Serializable;
@@ -22,6 +21,11 @@ public class Location implements Serializable {
     @JsonIgnore
     private Long id;
 
+    @Enumerated(value = EnumType.STRING)
+    @Column(name = "locationType")
+    @JsonIgnore
+    private LocationType locationType;
+
     @Column(name = "name")
     private String name;
 
@@ -31,14 +35,13 @@ public class Location implements Serializable {
     @Column(name = "y")
     private int y;
 
-    @Enumerated(value = EnumType.STRING)
-    @Column(name = "locationType")
-    private LocationType locationType;
-
-    @OneToMany(mappedBy = "location", fetch = FetchType.EAGER)
-    @ToString.Exclude
+    @Column(name = "ais")
     @JsonIgnore
-    private List<Unit> units;
+    private List<Long> ais;
+
+    @Column(name = "units")
+    @JsonIgnore
+    private List<Long> units;
 
     @Column(name = "things")
     @JsonIgnore

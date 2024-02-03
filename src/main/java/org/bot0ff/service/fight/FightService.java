@@ -29,7 +29,6 @@ import java.util.*;
 public class FightService {
     private final UnitRepository unitRepository;
     private final FightRepository fightRepository;
-    private final LocationRepository locationRepository;
     private final SubjectRepository subjectRepository;
     private final JsonProcessor jsonProcessor;
     private final RandomUtil randomUtil;
@@ -66,8 +65,7 @@ public class FightService {
         }
 
         //если противник уже в бою, возвращаем уведомление
-        Optional<Fight> fight = Optional.ofNullable(opponent.get().getFight());
-        if(fight.isPresent()) {
+        if(opponent.get().getStatus().equals(Status.FIGHT)) {
             var response = jsonProcessor
                     .toJsonMistake(new MistakeResponse("Противник уже сражается"));
             log.info("Попытка сражения с противником, который уже в бою - opponentId: {}", opponent.get().getId());
@@ -84,27 +82,13 @@ public class FightService {
         //сохранение статуса FIGHT у enemy
         setUnitFight(opponent.get(), newFight, 2L);
 
-        //проверка успешного добавления сражения в БД
-        Optional<Fight> currentFight = fightRepository.findById(newFightId);
-        if(currentFight.isEmpty()) {
-            resetUnitFight(initiator.get(), true);
-            var response = jsonProcessor
-                    .toJsonMistake(new MistakeResponse("Сражение не найдено"));
-            log.info("Не найдено новое сражение в БД по запросу fightId: {}", newFightId);
-            return response;
-        }
-
-
-        //создание локаций для перемещения units со статусом LOSS после сражения
-        List<Location> lossLocations = locationRepository.findAllById(List.of(0L, 22L));
-
         //добавление нового сражения в map и запуск обработчика раундов
         FIGHT_MAP.put(newFightId, new FightHandler(
                 newFightId, unitRepository, fightRepository, subjectRepository, randomUtil
         ));
 
         return jsonProcessor
-                .toJsonFight(new FightResponse(initiator.get(), currentFight.get(), "Загрузка сражения..."));
+                .toJsonFight(new FightResponse(initiator.get(), newFight, "Загрузка сражения..."));
     }
 
     //текущее состояние сражения
@@ -146,6 +130,7 @@ public class FightService {
         return jsonProcessor
                 .toJsonFight(new FightResponse(unit.get(), fight.get(), null));
     }
+
 
     //возвращает умения unit
     public String getUnitAbility(String name) {
@@ -297,8 +282,6 @@ public class FightService {
         unit.setUnitEffect(null);
         unitRepository.save(unit);
     }
-
-
 
     //заглушка на очистку статуса боя units
     @Scheduled(fixedDelay = 3000000)

@@ -29,6 +29,20 @@ public class MainController {
         return ResponseEntity.ok(response);
     }
 
+    //список ais на локации
+    @GetMapping("/location/ais")
+    public ResponseEntity<?> getLocationAis() {
+        var response = mainService.getLocationAis("user");
+        return ResponseEntity.ok(response);
+    }
+
+    //список units на локации
+    @GetMapping("/location/units")
+    public ResponseEntity<?> getLocationUnits() {
+        var response = mainService.getLocationUnits("user");
+        return ResponseEntity.ok(response);
+    }
+
     //список вещей на локации
     @GetMapping("/location/things")
     public ResponseEntity<?> getLocationThings() {
