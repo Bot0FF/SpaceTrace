@@ -99,12 +99,12 @@ where not exists (select 1
                   where u2.id = d.id);
 
 --unit
-with data(id, name, unit_type, status, action_end, location_id, hp, max_hp, mana, max_mana, damage, defense, ability, unit_json)
+with data(id, name, unit_type, status, action_end, location_id, hp, max_hp, mana, max_mana, damage, defense, ability, unit_effect)
    as (values
         (1, 'user', 'USER', 'ACTIVE', false, 22, 20, 20, 20, 20, 8, 4, array[1, 2, 3],  '{}')
 )
-insert into unit (id, name, unit_type, status, action_end, location_id, hp, max_hp, mana, max_mana, damage, defense, ability, unit_json)
-select d.id, d.name, d.unit_type, d.status, d.action_end, d.location_id, d.hp, d.max_hp, d.mana, d.max_mana, d.damage, d.defense, d.ability, d.unit_json
+insert into unit (id, name, unit_type, status, action_end, location_id, hp, max_hp, mana, max_mana, damage, defense, ability, unit_effect)
+select d.id, d.name, d.unit_type, d.status, d.action_end, d.location_id, d.hp, d.max_hp, d.mana, d.max_mana, d.damage, d.defense, d.ability, d.unit_effect
 from data d
 where not exists (select 1
                   from unit u2

@@ -68,6 +68,7 @@ public class FightHandler {
                     try {
                         TimeUnit.SECONDS.sleep(1);
                         if (!endAiAttack) {
+                            System.out.println("asda");
                             setAiAttack();
                         }
                     } catch (InterruptedException e) {
@@ -463,7 +464,7 @@ public class FightHandler {
                 unitRepository.save(aiUnit);
             }
         }
-        endAiAttack = false;
+        endAiAttack = true;
     }
 
     //обновление UnitEffect для следующего сражения

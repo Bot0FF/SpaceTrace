@@ -10,4 +10,5 @@ public class UnitArmor {
     private int mana;
     private int damage;
     private int defense;
+    private int duration;
 }

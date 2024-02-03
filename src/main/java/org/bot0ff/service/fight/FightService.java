@@ -29,6 +29,7 @@ import java.util.*;
 public class FightService {
     private final UnitRepository unitRepository;
     private final FightRepository fightRepository;
+    private final LocationRepository locationRepository;
     private final SubjectRepository subjectRepository;
     private final JsonProcessor jsonProcessor;
     private final RandomUtil randomUtil;
@@ -289,13 +290,21 @@ public class FightService {
     public void clearFightDB() {
         List<Unit> units = unitRepository.findAll();
         for(Unit unit: units) {
-            unit.setHp(unit.getHp());
-            unit.setActionEnd(false);
-            unit.setAbilityId(null);
-            unit.setStatus(Status.ACTIVE);
-            unit.setFight(null);
-            unit.setUnitEffect(null);
-            unitRepository.save(unit);
+            if(unit.getStatus().equals(Status.LOSS)) {
+                Optional<Location> location = locationRepository.findById(unit.getLocationId());
+                location.get().getAis().removeIf(u -> u.equals(unit.getId()));
+                locationRepository.save(location.get());
+                unitRepository.delete(unit);
+            }
+            else {
+                unit.setHp(unit.getHp());
+                unit.setActionEnd(false);
+                unit.setAbilityId(null);
+                unit.setStatus(Status.ACTIVE);
+                unit.setFight(null);
+                unit.setUnitEffect(null);
+                unitRepository.save(unit);
+            }
         }
     }
 }

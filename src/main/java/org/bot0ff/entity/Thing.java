@@ -21,26 +21,6 @@ public class Thing {
     @Column(name = "owner")
     private Long owner;
 
-//    @OneToOne(mappedBy = "weapon")
-//    @JsonIgnore
-//    private Unit weapon;
-//
-//    @OneToOne(mappedBy = "head")
-//    @JsonIgnore
-//    private Unit head;
-//
-//    @OneToOne(mappedBy = "hand")
-//    @JsonIgnore
-//    private Unit hand;
-//
-//    @OneToOne(mappedBy = "body")
-//    @JsonIgnore
-//    private Unit body;
-//
-//    @OneToOne(mappedBy = "leg")
-//    @JsonIgnore
-//    private Unit leg;
-
     //тип экипировки
     @Enumerated(value = EnumType.STRING)
     @Column(name = "subjectType")

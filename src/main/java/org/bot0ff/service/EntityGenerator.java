@@ -1,5 +1,6 @@
 package org.bot0ff.service;
 
+import org.bot0ff.dto.unit.UnitArmor;
 import org.bot0ff.entity.Location;
 import org.bot0ff.entity.Unit;
 import org.bot0ff.entity.enums.Status;
@@ -28,12 +29,12 @@ public class EntityGenerator {
                 10,
                 1,
                 4,
-//                //экипировка
-//                null,
-//                null,
-//                null,
-//                null,
-//                null,
+                //экипировка
+                new UnitArmor(),
+                new UnitArmor(),
+                new UnitArmor(),
+                new UnitArmor(),
+                new UnitArmor(),
                 //умения
                 List.of(1L),
                 //сражение
