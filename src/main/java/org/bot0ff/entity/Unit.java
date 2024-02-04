@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import org.bot0ff.dto.unit.UnitArmor;
 import org.bot0ff.dto.unit.UnitEffect;
 import org.bot0ff.entity.enums.Status;
-import org.bot0ff.entity.enums.UnitType;
+import org.bot0ff.entity.enums.SubjectType;
 import org.bot0ff.util.converter.UnitJsonSubjectToArmorConverter;
 import org.bot0ff.util.converter.UnitJsonSubjectToEffectConverter;
 
@@ -31,8 +31,7 @@ public class Unit {
     private String name;
 
     @Enumerated(value = EnumType.STRING)
-    @JsonIgnore
-    private UnitType unitType;
+    private SubjectType subjectType;
 
     @Enumerated(value = EnumType.STRING)
     private Status status;
@@ -67,22 +66,27 @@ public class Unit {
     //экипировка
     @Convert(converter = UnitJsonSubjectToArmorConverter.class)
     @Column(name = "weapon")
+    @JsonIgnore
     private UnitArmor weapon;
 
     @Convert(converter = UnitJsonSubjectToArmorConverter.class)
     @Column(name = "head")
+    @JsonIgnore
     private UnitArmor head;
 
     @Convert(converter = UnitJsonSubjectToArmorConverter.class)
     @Column(name = "hand")
+    @JsonIgnore
     private UnitArmor hand;
 
     @Convert(converter = UnitJsonSubjectToArmorConverter.class)
     @Column(name = "body")
+    @JsonIgnore
     private UnitArmor body;
 
     @Convert(converter = UnitJsonSubjectToArmorConverter.class)
     @Column(name = "leg")
+    @JsonIgnore
     private UnitArmor leg;
 
     //умения

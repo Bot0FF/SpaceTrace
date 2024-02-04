@@ -1,6 +1,5 @@
 package org.bot0ff.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,8 +17,8 @@ public class Thing {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "owner")
-    private Long owner;
+    @Column(name = "ownerId")
+    private Long ownerId;
 
     //тип экипировки
     @Enumerated(value = EnumType.STRING)
@@ -41,10 +40,13 @@ public class Thing {
     @Column(name = "mana")
     private int mana;
 
-    //здесь - прочность экипировки
+    //прочность экипировки
     @Column(name = "duration")
     private int duration;
 
     @Column(name = "description")
     private String description;
+
+    @Column(name = "isUse")
+    private boolean isUse;
 }

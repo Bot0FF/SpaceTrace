@@ -38,7 +38,7 @@ public class JsonProcessor {
         }
     }
 
-    public String toJsonMistake(MistakeResponse response) {
+    public String toJsonInfo(InfoResponse response) {
         try {
             return objectMapper
                     .writerWithDefaultPrettyPrinter()

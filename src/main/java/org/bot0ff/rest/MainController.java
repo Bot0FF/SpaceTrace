@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bot0ff.service.MainService;
+import org.bot0ff.service.PlayerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class MainController {
     private final MainService mainService;
+    private final PlayerService playerService;
     //@AuthenticationPrincipal(expression = "username") String username
     //главная страница
     @GetMapping("/im")
@@ -47,6 +49,13 @@ public class MainController {
     @GetMapping("/location/things")
     public ResponseEntity<?> getLocationThings() {
         var response = mainService.getLocationThings("user");
+        return ResponseEntity.ok(response);
+    }
+
+    //забрать вещь
+    @GetMapping("/thing/take")
+    public ResponseEntity<?> getThing(@RequestParam Long thingId) {
+        var response = playerService.takeThing("user", thingId);
         return ResponseEntity.ok(response);
     }
 }

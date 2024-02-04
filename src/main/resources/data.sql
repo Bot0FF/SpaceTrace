@@ -99,12 +99,18 @@ where not exists (select 1
                   where u2.id = d.id);
 
 --unit
-with data(id, name, unit_type, status, action_end, location_id, hp, max_hp, mana, max_mana, damage, defense, ability, unit_effect)
+with data(id, name, subject_type, status, action_end, location_id, hp, max_hp, mana, max_mana, damage, defense, weapon, head, hand, body, leg, ability, unit_effect)
    as (values
-        (1, 'user', 'USER', 'ACTIVE', false, 22, 20, 20, 20, 20, 8, 4, array[1, 2, 3],  '{}')
+        (1, 'user', 'USER', 'ACTIVE', false, 22, 20, 20, 20, 20, 8, 4,
+         '{"id": "", "name": "", "hp": "", "mana": "", "damage": "", "defense": "", "duration": ""}',
+         '{"id": "", "name": "", "hp": "", "mana": "", "damage": "", "defense": "", "duration": ""}',
+         '{"id": "", "name": "", "hp": "", "mana": "", "damage": "", "defense": "", "duration": ""}',
+         '{"id": "", "name": "", "hp": "", "mana": "", "damage": "", "defense": "", "duration": ""}',
+         '{"id": "", "name": "", "hp": "", "mana": "", "damage": "", "defense": "", "duration": ""}',
+         array[1, 2, 3],  '{}')
 )
-insert into unit (id, name, unit_type, status, action_end, location_id, hp, max_hp, mana, max_mana, damage, defense, ability, unit_effect)
-select d.id, d.name, d.unit_type, d.status, d.action_end, d.location_id, d.hp, d.max_hp, d.mana, d.max_mana, d.damage, d.defense, d.ability, d.unit_effect
+insert into unit (id, name, subject_type, status, action_end, location_id, hp, max_hp, mana, max_mana, damage, defense,  weapon, head, hand, body, leg, ability, unit_effect)
+select d.id, d.name, d.subject_type, d.status, d.action_end, d.location_id, d.hp, d.max_hp, d.mana, d.max_mana, d.damage, d.defense,  d.weapon, d.head, d.hand, d.body, d.leg, d.ability, d.unit_effect
 from data d
 where not exists (select 1
                   from unit u2
@@ -115,7 +121,8 @@ with data(id, subject_type, name, hp, damage, defense, mana, duration, descripti
    as (values
         (1, 'ABILITY', 'Обычная атака', 0, 4, 0, 0, 0, 'Простая атака, наносящая урон, равный базовому урону игрока', 'SINGLE', 'DAMAGE'),
  	    (2, 'ABILITY', 'Малое лечение +5', 5, 0, 0, 0, 0, 'Разовое восстановление здоровья на 5 единиц', 'SINGLE', 'RECOVERY'),
- 	    (3, 'ABILITY', 'Повышение здоровья +10', 100, 0, 0, 0, 3, 'Повышение максимального уровня здоровья на 10 единиц на 3 раунда', 'SINGLE', 'BOOST')
+ 	    (3, 'ABILITY', 'Повышение здоровья +10', 100, 0, 0, 0, 3, 'Повышение максимального уровня здоровья на 10 единиц на 3 раунда', 'SINGLE', 'BOOST'),
+ 	    (4, 'ARMOR', 'Пушка пердушка', 10, 10, 0, 0, 10, 'Ударная пушка пердушка', 'WEAPON', 'NONE')
 )
 insert into subject (id, subject_type, name, hp, damage, defense, mana, duration, description, apply_type, hit_type)
 select d.id, d.subject_type, d.name, d.hp, d.damage, d.defense, d.mana, d.duration, d.description, d.apply_type, d.hit_type

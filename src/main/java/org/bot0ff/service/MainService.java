@@ -2,7 +2,7 @@ package org.bot0ff.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bot0ff.dto.MistakeResponse;
+import org.bot0ff.dto.InfoResponse;
 import org.bot0ff.dto.MainResponse;
 import org.bot0ff.entity.Location;
 import org.bot0ff.entity.Thing;
@@ -12,6 +12,7 @@ import org.bot0ff.repository.LocationRepository;
 import org.bot0ff.repository.ThingRepository;
 import org.bot0ff.repository.UnitRepository;
 import org.bot0ff.service.fight.FightService;
+import org.bot0ff.service.generate.EntityGenerator;
 import org.bot0ff.util.JsonProcessor;
 import org.bot0ff.util.RandomUtil;
 import org.springframework.stereotype.Service;
@@ -36,166 +37,190 @@ public class MainService {
     //состояние user после обновления страницы
     @Transactional
     public String getUnitState(String name) {
-        var unit = unitRepository.findByName(name);
-        if(unit.isEmpty()) {
+        var optionalPlayer = unitRepository.findByName(name);
+        if(optionalPlayer.isEmpty()) {
             var response = jsonProcessor
-                    .toJsonMistake(new MistakeResponse("Игрок не найден"));
-            log.info("Не найден unit в БД по запросу username: {}", name);
+                    .toJsonInfo(new InfoResponse("Игрок не найден"));
+            log.info("Не найден player в БД по запросу username: {}", name);
             return response;
         }
+        Unit player = optionalPlayer.get();
 
-        var location = locationRepository.findById(unit.get().getLocationId());
-        if(location.isEmpty()) {
+        var optionalLocation = locationRepository.findById(player.getLocationId());
+        if(optionalLocation.isEmpty()) {
             var response = jsonProcessor
-                    .toJsonMistake(new MistakeResponse("Локация не найдена"));
-            log.info("Не найдена location в БД по запросу locationId: {}", unit.get().getLocationId());
+                    .toJsonInfo(new InfoResponse("Локация не найдена"));
+            log.info("Не найдена location в БД по запросу locationId: {}", optionalPlayer.get().getLocationId());
             return response;
         }
+        Location location = optionalLocation.get();
 
         //если у unit статус WIN или LOSS, показываем результат сражения и меняем статус на ACTIVE
-        if(unit.get().getStatus().equals(Status.WIN)) {
+        if(player.getStatus().equals(Status.WIN)) {
             var response = jsonProcessor
-                    .toJsonMain(new MainResponse(unit.get(), location.get(), "Победа!"));
-            unitRepository.setStatus(Status.ACTIVE.name(), unit.get().getId());
+                    .toJsonMain(new MainResponse(player, location, "Победа!"));
+            unitRepository.setStatus(Status.ACTIVE.name(), player.getId());
             return response;
         }
-        if(unit.get().getStatus().equals(Status.LOSS)) {
+        if(player.getStatus().equals(Status.LOSS)) {
             var response = jsonProcessor
-                    .toJsonMain(new MainResponse(unit.get(), location.get(), "Поражение..."));
-            unitRepository.setStatus(Status.ACTIVE.name(), unit.get().getId());
+                    .toJsonMain(new MainResponse(player, location, "Поражение..."));
+            unitRepository.setStatus(Status.ACTIVE.name(), player.getId());
             return response;
         }
 
         return jsonProcessor
-                .toJsonMain(new MainResponse(unit.get(), location.get(), null));
+                .toJsonMain(new MainResponse(player, location, null));
     }
 
     //смена локации unit
     @Transactional
     public String moveUnit(String name, String direction) {
-        var unit = unitRepository.findByName(name);
-        if(unit.isEmpty()) {
+        var optionalPlayer = unitRepository.findByName(name);
+        if(optionalPlayer.isEmpty()) {
             var response = jsonProcessor
-                    .toJsonMistake(new MistakeResponse("Игрок не найден"));
-            log.info("Не найден unit в БД по запросу name: {}", name);
+                    .toJsonInfo(new InfoResponse("Игрок не найден"));
+            log.info("Не найден player в БД по запросу username: {}", name);
             return response;
         }
+        Unit player = optionalPlayer.get();
 
-        var location = locationRepository.findById(unit.get().getLocationId());
-        if(location.isEmpty()) {
+        var optionalLocation = locationRepository.findById(player.getLocationId());
+        if(optionalLocation.isEmpty()) {
             var response = jsonProcessor
-                    .toJsonMistake(new MistakeResponse("Локация не найдена"));
-            log.info("Не найдена location в БД по запросу locationId: {}", unit.get().getLocationId());
+                    .toJsonInfo(new InfoResponse("Локация не найдена"));
+            log.info("Не найдена location в БД по запросу locationId: {}", optionalPlayer.get().getLocationId());
             return response;
         }
+        Location location = optionalLocation.get();
 
+        int newPosX = 0;
+        int newPosY = 0;
         switch (direction) {
-            case "up" -> location.get().setY(location.get().getY() + 1);
-            case "left" -> location.get().setX(location.get().getX() - 1);
-            case "right" -> location.get().setX(location.get().getX() + 1);
-            case "down" -> location.get().setY(location.get().getY() - 1);
+            case "up" -> {
+                newPosX = location.getX();
+                newPosY = location.getY() + 1;
+            }
+            case "left" -> {
+                newPosX = location.getX() - 1;
+                newPosY = location.getY();
+            }
+            case "right" -> {
+                newPosX = location.getX() + 1;
+                newPosY = location.getY();
+            }
+            case "down" -> {
+                newPosX = location.getX();
+                newPosY = location.getY() - 1;
+            }
         }
 
         //поиск локации для перехода
-        Optional<Location> newLocation = locationRepository.findById(Long.valueOf("" + location.get().getX() + location.get().getY()));
-        if(newLocation.isEmpty()) {
+        Optional<Location> optionalNewLocation = locationRepository.findById(Long.valueOf("" + newPosX + newPosY));
+        if(optionalNewLocation.isEmpty()) {
             var response = jsonProcessor
-                    .toJsonMistake(new MistakeResponse("Туда нельзя перейти"));
-            log.info("Не найдена location в БД по запросу locationId: {}", location.get().getX() + "/" + location.get().getY());
+                    .toJsonInfo(new InfoResponse("Туда нельзя перейти"));
+            log.info("Не найдена location в БД по запросу locationId: {}", newPosX + "/" + newPosY);
             return response;
         }
+        Location newLocation = optionalNewLocation.get();
 
 
         //шанс появления enemy на локации
         if(randomUtil.getChanceCreateEnemy()) {
-            Unit newEnemy = entityGenerator.getNewAiUnit(newLocation.get());
-            Long newEnemyId = unitRepository.save(newEnemy).getId();
-            newLocation.get().getAis().add(newEnemy.getId());
+            Long newEnemyId = entityGenerator.setNewAiUnit(newLocation);
+            newLocation.getAis().add(newEnemyId);
             //шанс нападения enemy на unit
             if(randomUtil.getRandom1or2() == 1) {
-                fightService.setStartFight(null, newEnemyId, unit.get().getId());
+                fightService.setStartFight(null, newEnemyId, player.getId());
             }
         }
 
         //сохранение новой локации у unit
-        location.get().getUnits().removeIf(u -> u.equals(unit.get().getId()));
-        locationRepository.save(location.get());
-        newLocation.get().getUnits().add(unit.get().getId());
-        locationRepository.save(newLocation.get());
-        unit.get().setLocationId(newLocation.get().getId());
-        unitRepository.save(unit.get());
+        location.getUnits().removeIf(u -> u.equals(player.getId()));
+        locationRepository.save(location);
+        optionalNewLocation.get().getUnits().add(player.getId());
+        locationRepository.save(newLocation);
+        player.setLocationId(newLocation.getId());
+        unitRepository.save(player);
 
         return jsonProcessor
-                .toJsonMain(new MainResponse(unit.get(), newLocation.get(), "Ты перешел на локацию: " + newLocation.get().getName()));
+                .toJsonMain(new MainResponse(player, newLocation, "Ты перешел на локацию: " + optionalNewLocation.get().getName()));
     }
 
     //список ais на локации
     public String getLocationAis(String name) {
-        var unit = unitRepository.findByName(name);
-        if(unit.isEmpty()) {
+        var optionalPlayer = unitRepository.findByName(name);
+        if(optionalPlayer.isEmpty()) {
             var response = jsonProcessor
-                    .toJsonMistake(new MistakeResponse("Игрок не найден"));
-            log.info("Не найден unit в БД по запросу username: {}", name);
+                    .toJsonInfo(new InfoResponse("Игрок не найден"));
+            log.info("Не найден player в БД по запросу username: {}", name);
             return response;
         }
+        Unit player = optionalPlayer.get();
 
-        var location = locationRepository.findById(unit.get().getLocationId());
-        if(location.isEmpty()) {
+        var optionalLocation = locationRepository.findById(player.getLocationId());
+        if(optionalLocation.isEmpty()) {
             var response = jsonProcessor
-                    .toJsonMistake(new MistakeResponse("Локация не найдена"));
-            log.info("Не найдена location в БД по запросу locationId: {}", unit.get().getLocationId());
+                    .toJsonInfo(new InfoResponse("Локация не найдена"));
+            log.info("Не найдена location в БД по запросу locationId: {}", optionalPlayer.get().getLocationId());
             return response;
         }
+        Location location = optionalLocation.get();
 
-        List<Unit> ais = unitRepository.findAllById(location.get().getAis());
+        List<Unit> ais = unitRepository.findAllById(location.getAis());
 
         return jsonProcessor.toJson(ais);
     }
 
     //список units на локации
     public String getLocationUnits(String name) {
-        var unit = unitRepository.findByName(name);
-        if(unit.isEmpty()) {
+        var optionalPlayer = unitRepository.findByName(name);
+        if(optionalPlayer.isEmpty()) {
             var response = jsonProcessor
-                    .toJsonMistake(new MistakeResponse("Игрок не найден"));
-            log.info("Не найден unit в БД по запросу username: {}", name);
+                    .toJsonInfo(new InfoResponse("Игрок не найден"));
+            log.info("Не найден player в БД по запросу username: {}", name);
             return response;
         }
+        Unit player = optionalPlayer.get();
 
-        var location = locationRepository.findById(unit.get().getLocationId());
-        if(location.isEmpty()) {
+        var optionalLocation = locationRepository.findById(player.getLocationId());
+        if(optionalLocation.isEmpty()) {
             var response = jsonProcessor
-                    .toJsonMistake(new MistakeResponse("Локация не найдена"));
-            log.info("Не найдена location в БД по запросу locationId: {}", unit.get().getLocationId());
+                    .toJsonInfo(new InfoResponse("Локация не найдена"));
+            log.info("Не найдена location в БД по запросу locationId: {}", optionalPlayer.get().getLocationId());
             return response;
         }
+        Location location = optionalLocation.get();
 
-        location.get().getUnits().removeIf(u -> u.equals(unit.get().getId()));
-        List<Unit> units = unitRepository.findAllById(location.get().getUnits());
+        location.getUnits().removeIf(u -> u.equals(player.getId()));
+        List<Unit> units = unitRepository.findAllById(location.getUnits());
 
         return jsonProcessor.toJson(units);
     }
 
     //список вещей на локации
     public String getLocationThings(String name) {
-        var unit = unitRepository.findByName(name);
-        if(unit.isEmpty()) {
+        var optionalPlayer = unitRepository.findByName(name);
+        if(optionalPlayer.isEmpty()) {
             var response = jsonProcessor
-                    .toJsonMistake(new MistakeResponse("Игрок не найден"));
-            log.info("Не найден unit в БД по запросу username: {}", name);
+                    .toJsonInfo(new InfoResponse("Игрок не найден"));
+            log.info("Не найден player в БД по запросу username: {}", name);
             return response;
         }
+        Unit player = optionalPlayer.get();
 
-        var location = locationRepository.findById(unit.get().getLocationId());
-        if(location.isEmpty()) {
+        var optionalLocation = locationRepository.findById(player.getLocationId());
+        if(optionalLocation.isEmpty()) {
             var response = jsonProcessor
-                    .toJsonMistake(new MistakeResponse("Локация не найдена"));
-            log.info("Не найдена location в БД по запросу locationId: {}", unit.get().getLocationId());
+                    .toJsonInfo(new InfoResponse("Локация не найдена"));
+            log.info("Не найдена location в БД по запросу locationId: {}", optionalPlayer.get().getLocationId());
             return response;
         }
+        Location location = optionalLocation.get();
 
         //получаем список вещей на локации
-        List<Thing> things = thingRepository.findAllById(location.get().getThings());
+        List<Thing> things = thingRepository.findAllById(location.getThings());
 
         return jsonProcessor.toJson(things);
     }

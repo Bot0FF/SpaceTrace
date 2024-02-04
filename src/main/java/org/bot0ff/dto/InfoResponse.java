@@ -3,11 +3,11 @@ package org.bot0ff.dto;
 import lombok.Data;
 
 @Data
-public class MistakeResponse {
+public class InfoResponse {
     private String info;
     private int status;
 
-    public MistakeResponse(String info) {
+    public InfoResponse(String info) {
         this.info = info;
         this.status = 2;
     }

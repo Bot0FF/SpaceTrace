@@ -2,11 +2,9 @@ package org.bot0ff.rest;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bot0ff.dto.MistakeResponse;
+import org.bot0ff.dto.InfoResponse;
 import org.bot0ff.dto.auth.SettingRequest;
 import org.bot0ff.entity.Unit;
-import org.bot0ff.dto.unit.UnitEffect;
-import org.bot0ff.entity.enums.Status;
 import org.bot0ff.repository.LocationRepository;
 import org.bot0ff.repository.UnitRepository;
 import org.bot0ff.repository.UserRepository;
@@ -35,7 +33,7 @@ public class SettingController {
         var user = userRepository.findByUsername(username).orElse(null);
         if(user == null) {
             var response = jsonProcessor
-                    .toJsonMistake(new MistakeResponse("Игрок не найден"));
+                    .toJsonInfo(new InfoResponse("Игрок не найден"));
             log.info("Не найден player в БД по запросу username: {}", username);
             return ResponseEntity.ok(response);
         }
@@ -43,7 +41,7 @@ public class SettingController {
         var location = locationRepository.findById(locationId).orElse(null);
         if(location == null) {
             var response = jsonProcessor
-                    .toJsonMistake(new MistakeResponse("Локация не найдена"));
+                    .toJsonInfo(new InfoResponse("Локация не найдена"));
             log.info("Не найдена location в БД по запросу locationId: {}", locationId);
             return ResponseEntity.ok(response);
         }

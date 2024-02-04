@@ -7,10 +7,11 @@ import org.bot0ff.entity.Subject;
 import org.bot0ff.entity.Unit;
 import org.bot0ff.dto.unit.UnitEffect;
 import org.bot0ff.entity.enums.Status;
-import org.bot0ff.entity.enums.UnitType;
+import org.bot0ff.entity.enums.SubjectType;
 import org.bot0ff.repository.FightRepository;
 import org.bot0ff.repository.SubjectRepository;
 import org.bot0ff.repository.UnitRepository;
+import org.bot0ff.service.generate.EntityGenerator;
 import org.bot0ff.util.Constants;
 import org.bot0ff.util.RandomUtil;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +20,6 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Data
 @Slf4j
@@ -27,6 +27,7 @@ public class FightHandler {
     private UnitRepository unitRepository;
     private FightRepository fightRepository;
     private SubjectRepository subjectRepository;
+    private EntityGenerator entityGenerator;
     private RandomUtil randomUtil;
 
     private Long fightId;
@@ -38,10 +39,12 @@ public class FightHandler {
                         UnitRepository unitRepository,
                         FightRepository fightRepository,
                         SubjectRepository subjectRepository,
+                        EntityGenerator entityGenerator,
                         RandomUtil randomUtil) {
         this.unitRepository = unitRepository;
         this.fightRepository = fightRepository;
         this.subjectRepository = subjectRepository;
+        this.entityGenerator = entityGenerator;
         this.randomUtil = randomUtil;
 
         this.fightId = fightId;
@@ -64,12 +67,13 @@ public class FightHandler {
                 if (Instant.now().isAfter(endRoundTimer)) {
                     resultRoundHandler(fightId);
                     this.endRoundTimer = Instant.now().plusSeconds(Constants.ROUND_LENGTH_TIME);
+                    endAiAttack = false;
                 } else {
                     try {
                         TimeUnit.SECONDS.sleep(1);
                         if (!endAiAttack) {
-                            System.out.println("asda");
                             setAiAttack();
+                            endAiAttack = true;
                         }
                     } catch (InterruptedException e) {
                         endFight = true;
@@ -179,6 +183,10 @@ public class FightHandler {
         //если unit USER и DIE, удаляем его из сражения со сбросом статуса сражения, если AI удаляем из бд
         for (Unit unit : units) {
             if (unit.getStatus().equals(Status.DIE)) {
+                //сохранение вещи на локации в случае поражения aiUnit
+                if(unit.getSubjectType().equals(SubjectType.AI)) {
+                    entityGenerator.setNewThing(unit.getLocationId());
+                }
                 unit.setDamage(unit.getUnitEffect().getStartDamage());
                 unit.setDefense(unit.getUnitEffect().getStartDefense());
                 unit.setStatus(Status.LOSS);
@@ -443,7 +451,7 @@ public class FightHandler {
         //TODO сделать случайный выбор атаки
         //все unit первой команды применяют атаку на любом unit из второй команды
         for(Unit aiUnit : teamOne){
-            if(aiUnit.getUnitType().equals(UnitType.AI)) {
+            if(aiUnit.getSubjectType().equals(SubjectType.AI)) {
                 int target = randomUtil.getRandomFromTo(0, teamTwo.size() - 1);
                 Long targetId = teamTwo.get(target).getId();
                 aiUnit.setAbilityId(1L);
@@ -455,7 +463,7 @@ public class FightHandler {
 
         //все unit второй команды применяют атаку на любом unit из первой команды
         for(Unit aiUnit : teamTwo){
-            if(aiUnit.getUnitType().equals(UnitType.AI)) {
+            if(aiUnit.getSubjectType().equals(SubjectType.AI)) {
                 int target = randomUtil.getRandomFromTo(0, teamOne.size() - 1);
                 Long targetId = teamOne.get(target).getId();
                 aiUnit.setAbilityId(1L);
@@ -464,7 +472,6 @@ public class FightHandler {
                 unitRepository.save(aiUnit);
             }
         }
-        endAiAttack = true;
     }
 
     //обновление UnitEffect для следующего сражения
