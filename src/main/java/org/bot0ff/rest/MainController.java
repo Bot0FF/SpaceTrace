@@ -45,6 +45,8 @@ public class MainController {
         return ResponseEntity.ok(response);
     }
 
+    /** Взаимодействие с вещами на локации **/
+
     //список вещей на локации
     @GetMapping("/location/things")
     public ResponseEntity<?> getLocationThings() {
@@ -52,10 +54,40 @@ public class MainController {
         return ResponseEntity.ok(response);
     }
 
-    //забрать вещь
-    @GetMapping("/thing/take")
-    public ResponseEntity<?> getThing(@RequestParam Long thingId) {
-        var response = playerService.takeThing("user", thingId);
+    //забрать вещь с локации
+    @GetMapping("/location/take")
+    public ResponseEntity<?> takeLocationThing(@RequestParam Long thingId) {
+        var response = playerService.takeLocationThing("user", thingId);
+        return ResponseEntity.ok(response);
+    }
+
+    /** Взаимодействие с вещами в инвентаре **/
+
+    //список вещей в инвентаре
+    @GetMapping("/inventory/things")
+    public ResponseEntity<?> getInventoryThings() {
+        var response = playerService.getInventoryThings("user");
+        return ResponseEntity.ok(response);
+    }
+
+    //удалить вещь из инвентаря
+    @GetMapping("/inventory/remove")
+    public ResponseEntity<?> removeInventoryThings(@RequestParam Long thingId) {
+        var response = playerService.removeInventoryThing("user", thingId);
+        return ResponseEntity.ok(response);
+    }
+
+    //надеть вещь из инвентаря
+    @GetMapping("/inventory/puton")
+    public ResponseEntity<?> putOnInventoryThings(@RequestParam Long thingId) {
+        var response = playerService.putOnInventoryThing("user", thingId);
+        return ResponseEntity.ok(response);
+    }
+
+    //надеть снять надетую вещь
+    @GetMapping("/inventory/takeoff")
+    public ResponseEntity<?> takeOffInventoryThings(@RequestParam Long thingId) {
+        var response = playerService.takeOffInventoryThing("user", thingId);
         return ResponseEntity.ok(response);
     }
 }

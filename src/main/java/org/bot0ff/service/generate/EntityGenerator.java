@@ -73,6 +73,7 @@ public class EntityGenerator {
                 null,
                 null,
                 subject.getSubjectType(),
+                subject.getApplyType(),
                 subject.getName(),
                 subject.getHp(),
                 subject.getDamage(),

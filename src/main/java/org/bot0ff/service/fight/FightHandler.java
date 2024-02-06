@@ -285,8 +285,8 @@ public class FightHandler {
         UnitEffect unitEffect = unit.getUnitEffect();
         UnitEffect targetJson = target.getUnitEffect();
         //рассчитываем урон, который нанес текущий unit противнику
-        double unitHit = (unit.getDamage() + unitEffect.getEffectDamage()) * 1.0;
-        double targetDefense = (target.getDefense() + targetJson.getEffectDefense()) * 1.0;
+        double unitHit = (unit.getFullDamage() + unitEffect.getEffectDamage()) * 1.0;
+        double targetDefense = (target.getFullDefense() + targetJson.getEffectDefense()) * 1.0;
         if (unitHit <= 1) unitHit = 1;
         if (targetDefense <= 1) targetDefense = 1;
         double damageMultiplier = unitHit / (unitHit + targetDefense);

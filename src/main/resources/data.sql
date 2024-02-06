@@ -122,7 +122,7 @@ with data(id, subject_type, name, hp, damage, defense, mana, duration, descripti
         (1, 'ABILITY', 'Обычная атака', 0, 4, 0, 0, 0, 'Простая атака, наносящая урон, равный базовому урону игрока', 'SINGLE', 'DAMAGE'),
  	    (2, 'ABILITY', 'Малое лечение +5', 5, 0, 0, 0, 0, 'Разовое восстановление здоровья на 5 единиц', 'SINGLE', 'RECOVERY'),
  	    (3, 'ABILITY', 'Повышение здоровья +10', 100, 0, 0, 0, 3, 'Повышение максимального уровня здоровья на 10 единиц на 3 раунда', 'SINGLE', 'BOOST'),
- 	    (4, 'ARMOR', 'Пушка пердушка', 10, 10, 0, 0, 10, 'Ударная пушка пердушка', 'WEAPON', 'NONE')
+ 	    (4, 'WEAPON', 'Пушка пердушка', 10, 10, 0, 0, 10, 'Ударная пушка пердушка', 'WEAPON', 'NONE')
 )
 insert into subject (id, subject_type, name, hp, damage, defense, mana, duration, description, apply_type, hit_type)
 select d.id, d.subject_type, d.name, d.hp, d.damage, d.defense, d.mana, d.duration, d.description, d.apply_type, d.hit_type

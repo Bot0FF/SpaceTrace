@@ -25,8 +25,7 @@ public class MainResponse {
         location.getUnits().removeIf(u -> u.equals(player.getId()));
         this.units = location.getUnits().size();
         this.things = location.getThings().size();
-        this.info = Objects.requireNonNullElseGet(info, () -> new SimpleDateFormat("dd-MM-yyyy HH:mm")
-                .format(new Date()));
+        this.info = info;
         this.status = 1;
     }
 }

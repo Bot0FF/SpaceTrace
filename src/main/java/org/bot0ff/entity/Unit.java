@@ -49,18 +49,22 @@ public class Unit {
     private int hp;
 
     @Column(name = "maxHp")
+    @JsonIgnore
     private int maxHp;
 
     @Column(name = "mana")
     private int mana;
 
     @Column(name = "maxMana")
+    @JsonIgnore
     private int maxMana;
 
     @Column(name = "damage")
+    @JsonIgnore
     private int damage;
 
     @Column(name = "defense")
+    @JsonIgnore
     private int defense;
 
     //экипировка
@@ -137,7 +141,7 @@ public class Unit {
     }
 
     public int getFullHp() {
-        int fullHp = hp;
+        int fullHp = maxHp;
         if(weapon != null && weapon.getDuration() > 0) {
             fullHp += weapon.getHp();
         }
@@ -157,7 +161,7 @@ public class Unit {
     }
 
     public int getFullMana() {
-        int fullMana = mana;
+        int fullMana = maxMana;
         if(weapon != null && weapon.getDuration() > 0) {
             fullMana += weapon.getMana();
         }

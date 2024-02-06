@@ -2,7 +2,13 @@ package org.bot0ff.entity.enums;
 
 public enum ApplyType {
     NONE,
+    //для умений
     SINGLE,
     TOTAL,
-    WEAPON
+    //для вещей
+    WEAPON,
+    HEAD,
+    HAND,
+    BODY,
+    LEG
 }

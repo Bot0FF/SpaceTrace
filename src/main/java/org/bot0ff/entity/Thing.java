@@ -1,9 +1,11 @@
 package org.bot0ff.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bot0ff.entity.enums.ApplyType;
 import org.bot0ff.entity.enums.SubjectType;
 
 @Data
@@ -24,6 +26,11 @@ public class Thing {
     @Enumerated(value = EnumType.STRING)
     @Column(name = "subjectType")
     private SubjectType subjectType;
+
+    @Enumerated(value = EnumType.STRING)
+    @Column(name = "applyType")
+    @JsonIgnore
+    private ApplyType applyType;
 
     @Column(name = "name")
     private String name;
