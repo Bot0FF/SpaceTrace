@@ -4,8 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
-import org.bot0ff.dto.unit.UnitArmor;
-import org.bot0ff.dto.unit.UnitEffect;
+import org.bot0ff.entity.unit.UnitArmor;
 
 @Converter(autoApply = true)
 public class UnitJsonSubjectToArmorConverter implements AttributeConverter<UnitArmor, String> {

@@ -6,7 +6,6 @@ import org.bot0ff.entity.Unit;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Data
 public class FightResponse {
@@ -28,10 +27,6 @@ public class FightResponse {
         if(!fight.getUnits().isEmpty()) {
             this.teamOne = new ArrayList<>(fight.getUnits().stream().filter(unit -> unit.getTeamNumber() == 1).toList());
             this.teamTwo = new ArrayList<>(fight.getUnits().stream().filter(unit -> unit.getTeamNumber() == 2).toList());
-        }
-        else {
-            this.teamOne = new ArrayList<>();
-            this.teamTwo = new ArrayList<>();
         }
         if(this.fight.getResultRound().isEmpty()) {
             this.resultRound = "";

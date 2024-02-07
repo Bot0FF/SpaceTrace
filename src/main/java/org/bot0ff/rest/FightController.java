@@ -27,18 +27,32 @@ public class FightController {
         return ResponseEntity.ok(response);
     }
 
-    //текущее состояние сражения
+    //умения unit
     @GetMapping("/ability")
     public ResponseEntity<?> getAbility() {
         var response = fightService.getUnitAbility("user");
         return ResponseEntity.ok(response);
     }
 
-    //атака по выбранному противнику
-    @GetMapping("/hit")
-    public ResponseEntity<?> actionFight(@RequestParam Long abilityId,
+    //перемещение по полю сражения
+    @GetMapping("/move")
+    public ResponseEntity<?> moveOnFightFiled(@RequestParam String direction) {
+        var response = fightService.moveOnFightFiled("user", direction);
+        return ResponseEntity.ok(response);
+    }
+
+    //атака по выбранному противнику оружием
+    @GetMapping("/hit/weapon")
+    public ResponseEntity<?> hitWeapon(@RequestParam Long targetId) {
+        var response = fightService.setApplyWeapon("user", targetId);
+        return ResponseEntity.ok(response);
+    }
+
+    //атака по выбранному противнику умением
+    @GetMapping("/hit/ability")
+    public ResponseEntity<?> hitAbility(@RequestParam Long abilityId,
                                          @RequestParam Long targetId) {
-        var response = fightService.setAttack("user", abilityId, targetId);
+        var response = fightService.setApplyAbility("user", abilityId, targetId);
         return ResponseEntity.ok(response);
     }
 }

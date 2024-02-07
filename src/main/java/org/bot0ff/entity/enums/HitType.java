@@ -1,10 +1,10 @@
 package org.bot0ff.entity.enums;
 
+//тип действия
 public enum HitType {
     NONE,
-    //для умений
     DAMAGE,
     RECOVERY,
     BOOST,
-    LOWER
+    LOWER,
 }

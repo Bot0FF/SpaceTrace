@@ -2,13 +2,14 @@ package org.bot0ff.service.generate;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bot0ff.dto.unit.UnitArmor;
+import org.bot0ff.entity.unit.UnitArmor;
 import org.bot0ff.entity.Location;
 import org.bot0ff.entity.Subject;
 import org.bot0ff.entity.Thing;
 import org.bot0ff.entity.Unit;
 import org.bot0ff.entity.enums.Status;
 import org.bot0ff.entity.enums.SubjectType;
+import org.bot0ff.entity.unit.UnitSkill;
 import org.bot0ff.repository.LocationRepository;
 import org.bot0ff.repository.SubjectRepository;
 import org.bot0ff.repository.ThingRepository;
@@ -32,17 +33,19 @@ public class EntityGenerator {
         Unit aiUnit = new Unit(
                 //общее
                 null,
-                "*Паук*",
+                "*Муравей*",
                 SubjectType.AI,
                 Status.ACTIVE,
                 false,
                 //локация
                 location.getId(),
-                //характеристики
+                //текущие характеристики
+                10,
+                10,
+                10,
+                10,
                 1,
-                10,
-                10,
-                10,
+                5,
                 1,
                 4,
                 //экипировка
@@ -51,9 +54,19 @@ public class EntityGenerator {
                 new UnitArmor(),
                 new UnitArmor(),
                 new UnitArmor(),
+                //основные характеристики (не влияют)
+                0,
+                0,
+                0,
+                0,
+                0,
+                //навыки
+                new UnitSkill(),
                 //умения
                 List.of(1L),
                 //сражение
+                null,
+                null,
                 null,
                 null,
                 null,
@@ -79,6 +92,7 @@ public class EntityGenerator {
                 subject.getDamage(),
                 subject.getDefense(),
                 subject.getMana(),
+                subject.getDistance(),
                 subject.getDuration(),
                 subject.getDescription(),
                 false

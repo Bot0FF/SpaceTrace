@@ -1,4 +1,4 @@
-package org.bot0ff.dto.unit;
+package org.bot0ff.entity.unit;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,18 +7,16 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UnitEffect {
+public class UnitFightEffect {
     private int effectHp;
     private int durationEffectHp;
 
     private int effectMana;
     private int durationEffectMana;
 
-    private int startDamage;
     private int effectDamage;
     private int durationEffectDamage;
 
-    private int startDefense;
     private int effectDefense;
     private int durationEffectDefense;
 }

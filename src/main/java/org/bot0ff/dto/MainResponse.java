@@ -4,10 +4,6 @@ import lombok.Data;
 import org.bot0ff.entity.Location;
 import org.bot0ff.entity.Unit;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Objects;
-
 @Data
 public class MainResponse {
     private Unit player;

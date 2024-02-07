@@ -47,6 +47,9 @@ public class Thing {
     @Column(name = "mana")
     private int mana;
 
+    @Column(name = "distance")
+    private int distance;
+
     //прочность экипировки
     @Column(name = "duration")
     private int duration;

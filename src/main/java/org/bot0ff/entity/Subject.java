@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bot0ff.entity.enums.ApplyType;
 import org.bot0ff.entity.enums.HitType;
+import org.bot0ff.entity.enums.RangeType;
 import org.bot0ff.entity.enums.SubjectType;
 
 @Data
@@ -18,12 +19,24 @@ public class Subject {
     @Id
     private Long id;
 
+    @Column(name = "name")
+    private String name;
+
     @Enumerated(value = EnumType.STRING)
     @Column(name = "subjectType")
     private SubjectType subjectType;
 
-    @Column(name = "name")
-    private String name;
+    @Enumerated(value = EnumType.STRING)
+    @Column(name = "applyType")
+    private ApplyType applyType;
+
+    @Enumerated(value = EnumType.STRING)
+    @Column(name = "hitType")
+    private HitType hitType;
+
+    @Enumerated(value = EnumType.STRING)
+    @Column(name = "rangeType")
+    private RangeType rangeType;
 
     @Column(name = "hp")
     private int hp;
@@ -37,17 +50,15 @@ public class Subject {
     @Column(name = "mana")
     private int mana;
 
+    @Column(name = "distance")
+    private int distance;
+
+    @Column(name = "movePoint")
+    private Long movePoint;
+
     @Column(name = "duration")
     private int duration;
 
     @Column(name = "description")
     private String description;
-
-    @Enumerated(value = EnumType.STRING)
-    @Column(name = "applyType")
-    private ApplyType applyType;
-
-    @Enumerated(value = EnumType.STRING)
-    @Column(name = "hitType")
-    private HitType hitType;
 }

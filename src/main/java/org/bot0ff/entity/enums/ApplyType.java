@@ -1,12 +1,18 @@
 package org.bot0ff.entity.enums;
 
+//тип использования
 public enum ApplyType {
     NONE,
+    //для оружия
+    ONE_HAND,
+    TWO_HAND,
+    BOW,
     //для умений
-    SINGLE,
-    TOTAL,
+    FIRE,
+    WATER,
+    LAND,
+    AIR,
     //для вещей
-    WEAPON,
     HEAD,
     HAND,
     BODY,

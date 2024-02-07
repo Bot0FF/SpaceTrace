@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bot0ff.dto.InfoResponse;
 import org.bot0ff.dto.MainResponse;
-import org.bot0ff.dto.unit.UnitArmor;
+import org.bot0ff.entity.unit.UnitArmor;
 import org.bot0ff.entity.Location;
 import org.bot0ff.entity.Thing;
 import org.bot0ff.entity.Unit;
@@ -113,7 +113,7 @@ public class PlayerService {
 
         if(thing.isUse()) {
             switch (thing.getApplyType()) {
-                case WEAPON -> {
+                case ONE_HAND, TWO_HAND, BOW -> {
                     player.setWeapon(new UnitArmor());
                     thing.setUse(false);
                 }
@@ -176,16 +176,19 @@ public class PlayerService {
         }
 
         switch (thing.getApplyType()) {
-            case WEAPON -> {
+            case ONE_HAND, TWO_HAND, BOW -> {
                 if(player.getWeapon().getId() != null) {
                     takeOffExistThing(player.getWeapon().getId());
                 }
                 player.setWeapon(new UnitArmor(
                         thing.getId(),
                         thing.getName(),
+                        thing.getSubjectType(),
+                        thing.getApplyType(),
                         thing.getHp(),
                         thing.getMana(),
                         thing.getDamage(),
+                        thing.getDistance(),
                         thing.getDefense(),
                         thing.getDuration()
                 ));
@@ -198,9 +201,12 @@ public class PlayerService {
                 player.setHead(new UnitArmor(
                         thing.getId(),
                         thing.getName(),
+                        thing.getSubjectType(),
+                        thing.getApplyType(),
                         thing.getHp(),
                         thing.getMana(),
                         thing.getDamage(),
+                        thing.getDistance(),
                         thing.getDefense(),
                         thing.getDuration()
                 ));
@@ -213,9 +219,12 @@ public class PlayerService {
                 player.setHand(new UnitArmor(
                         thing.getId(),
                         thing.getName(),
+                        thing.getSubjectType(),
+                        thing.getApplyType(),
                         thing.getHp(),
                         thing.getMana(),
                         thing.getDamage(),
+                        thing.getDistance(),
                         thing.getDefense(),
                         thing.getDuration()
                 ));
@@ -228,9 +237,12 @@ public class PlayerService {
                 player.setBody(new UnitArmor(
                         thing.getId(),
                         thing.getName(),
+                        thing.getSubjectType(),
+                        thing.getApplyType(),
                         thing.getHp(),
                         thing.getMana(),
                         thing.getDamage(),
+                        thing.getDistance(),
                         thing.getDefense(),
                         thing.getDuration()
                 ));
@@ -243,9 +255,12 @@ public class PlayerService {
                 player.setLeg(new UnitArmor(
                         thing.getId(),
                         thing.getName(),
+                        thing.getSubjectType(),
+                        thing.getApplyType(),
                         thing.getHp(),
                         thing.getMana(),
                         thing.getDamage(),
+                        thing.getDistance(),
                         thing.getDefense(),
                         thing.getDuration()
                 ));
@@ -289,7 +304,7 @@ public class PlayerService {
         }
 
         switch (thing.getApplyType()) {
-            case WEAPON -> player.setWeapon(new UnitArmor());
+            case ONE_HAND, TWO_HAND, BOW -> player.setWeapon(new UnitArmor());
             case HEAD -> player.setHead(new UnitArmor());
             case HAND -> player.setHand(new UnitArmor());
             case BODY -> player.setBody(new UnitArmor());

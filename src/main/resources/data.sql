@@ -99,33 +99,68 @@ where not exists (select 1
                   where u2.id = d.id);
 
 --unit
-with data(id, name, subject_type, status, action_end, location_id, hp, max_hp, mana, max_mana, damage, defense, weapon, head, hand, body, leg, ability, unit_effect)
+with data(id, name, subject_type, status, action_end,
+            location_id,
+            hp, max_hp, mana, max_mana, damage, defense, evade, max_move_point,
+            weapon, head, hand, body, leg,
+            power, agility, endurance, magic, free_point,
+            unit_skill,
+            ability,
+            unit_fight_effect)
    as (values
-        (1, 'user', 'USER', 'ACTIVE', false, 22, 20, 20, 20, 20, 8, 4,
-         '{"id": "", "name": "", "hp": "", "mana": "", "damage": "", "defense": "", "duration": ""}',
-         '{"id": "", "name": "", "hp": "", "mana": "", "damage": "", "defense": "", "duration": ""}',
-         '{"id": "", "name": "", "hp": "", "mana": "", "damage": "", "defense": "", "duration": ""}',
-         '{"id": "", "name": "", "hp": "", "mana": "", "damage": "", "defense": "", "duration": ""}',
-         '{"id": "", "name": "", "hp": "", "mana": "", "damage": "", "defense": "", "duration": ""}',
-         array[1, 2, 3],  '{}')
+        (1, 'user', 'USER', 'ACTIVE', false,
+            22,
+            10, 10, 10, 10, 1, 1, 1, 4,
+            '{"id": "", "name": "", "hp": "", "mana": "", "damage": "", "defense": "", "duration": ""}',
+            '{"id": "", "name": "", "hp": "", "mana": "", "damage": "", "defense": "", "duration": ""}',
+            '{"id": "", "name": "", "hp": "", "mana": "", "damage": "", "defense": "", "duration": ""}',
+            '{"id": "", "name": "", "hp": "", "mana": "", "damage": "", "defense": "", "duration": ""}',
+            '{"id": "", "name": "", "hp": "", "mana": "", "damage": "", "defense": "", "duration": ""}',
+            1, 1, 1, 1, 3,
+            '{"oneHand": 0, "twoHand": 0, "bow": 0, "stick": 0, "fire": 0, "water": 0, "land": 0, "air": 0, "regeneration": 0, "meditation": 0, "block": 0, "evade": 0}',
+            array[1],
+            '{}')
 )
-insert into unit (id, name, subject_type, status, action_end, location_id, hp, max_hp, mana, max_mana, damage, defense,  weapon, head, hand, body, leg, ability, unit_effect)
-select d.id, d.name, d.subject_type, d.status, d.action_end, d.location_id, d.hp, d.max_hp, d.mana, d.max_mana, d.damage, d.defense,  d.weapon, d.head, d.hand, d.body, d.leg, d.ability, d.unit_effect
+insert into unit (id, name, subject_type, status, action_end,
+                    location_id,
+                    hp, max_hp, mana, max_mana, damage, defense, evade, max_move_point,
+                    weapon, head, hand, body, leg,
+                    power, agility, endurance, magic, free_point,
+                    unit_skill,
+                    ability,
+                    unit_fight_effect)
+select d.id, d.name, d.subject_type, d.status, d.action_end,
+            d.location_id,
+            d.hp, d.max_hp, d.mana, d.max_mana, d.damage, d.defense, d.evade, d.max_move_point,
+            d.weapon, d.head, d.hand, d.body, d.leg,
+            d.power, d.agility, d.endurance, d.magic, d.free_point,
+            d.unit_skill,
+            d.ability,
+            d.unit_fight_effect
 from data d
 where not exists (select 1
                   from unit u2
                   where u2.id = d.id);
 
 --subject
-with data(id, subject_type, name, hp, damage, defense, mana, duration, description, apply_type, hit_type)
+with data(id, name,
+            subject_type, apply_type, hit_type, range_type,
+            hp, damage, defense, mana,
+            distance, move_point, duration, description)
    as (values
-        (1, 'ABILITY', 'Обычная атака', 0, 4, 0, 0, 0, 'Простая атака, наносящая урон, равный базовому урону игрока', 'SINGLE', 'DAMAGE'),
- 	    (2, 'ABILITY', 'Малое лечение +5', 5, 0, 0, 0, 0, 'Разовое восстановление здоровья на 5 единиц', 'SINGLE', 'RECOVERY'),
- 	    (3, 'ABILITY', 'Повышение здоровья +10', 100, 0, 0, 0, 3, 'Повышение максимального уровня здоровья на 10 единиц на 3 раунда', 'SINGLE', 'BOOST'),
- 	    (4, 'WEAPON', 'Пушка пердушка', 10, 10, 0, 0, 10, 'Ударная пушка пердушка', 'WEAPON', 'NONE')
+        (1, 'Одноручный меч', 'WEAPON', 'ONE_HAND', 'NONE', 'ONE', 0, 0, 0, 0, 1, 0, 100, 'Простой одноручный меч'),
+        (2, 'Двуручный меч', 'WEAPON', 'TWO_HAND', 'NONE', 'ONE', 0, 0, 0, 0, 2, 0, 100, 'Простой двуручный меч'),
+        (3, 'Лук', 'WEAPON', 'BOW', 'NONE', 'ONE', 0, 0, 0, 0, 10, 0, 100, 'Простой лук'),
+        (4, 'Посох', 'STICK', 'ONE_HAND', 'NONE', 'ONE', 0, 0, 0, 0, 1, 0, 100, 'Простой посох')
 )
-insert into subject (id, subject_type, name, hp, damage, defense, mana, duration, description, apply_type, hit_type)
-select d.id, d.subject_type, d.name, d.hp, d.damage, d.defense, d.mana, d.duration, d.description, d.apply_type, d.hit_type
+insert into subject (id, name,
+                        subject_type, apply_type, hit_type, range_type,
+                        hp, damage, defense, mana,
+                        distance, move_point, duration, description)
+select d.id, d.name,
+            d.subject_type, d.apply_type, d.hit_type, d.range_type,
+            d.hp, d.damage, d.defense, d.mana,
+            d.distance, d.move_point, d.duration, d.description
 from data d
 where not exists (select 1
                   from subject u2

@@ -5,6 +5,7 @@ import org.bot0ff.util.JsonProcessor;
 import org.bot0ff.util.RandomUtil;
 import org.bot0ff.util.converter.UnitJsonSubjectToArmorConverter;
 import org.bot0ff.util.converter.UnitJsonSubjectToEffectConverter;
+import org.bot0ff.util.converter.UnitJsonSubjectToSkillConverter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,6 +33,11 @@ public class AppConfig {
     @Bean
     public UnitJsonSubjectToArmorConverter getUnitJsonArmorConverter() {
         return new UnitJsonSubjectToArmorConverter();
+    }
+
+    @Bean
+    public UnitJsonSubjectToSkillConverter getUnitJsonSkillConverter() {
+        return new UnitJsonSubjectToSkillConverter();
     }
 
     @Bean
