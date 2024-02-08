@@ -11,16 +11,19 @@ public class UnitSkill {
     private int oneHand;
     private int twoHand;
     private int bow;
-    private int stick;
 
     private int fire;
     private int water;
     private int land;
     private int air;
 
+    //живучесть
+    private int vitality;
+    //духовность
+    private int spirituality;
     //регенерация
     private int regeneration;
-    //восстановление маны
+    //медитация
     private int meditation;
     //блокирование
     private int block;

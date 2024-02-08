@@ -183,13 +183,14 @@ public class PlayerService {
                 player.setWeapon(new UnitArmor(
                         thing.getId(),
                         thing.getName(),
-                        thing.getSubjectType(),
-                        thing.getApplyType(),
+                        thing.getApplyType().name(),
                         thing.getHp(),
                         thing.getMana(),
-                        thing.getDamage(),
+                        thing.getPhysDamage(),
+                        thing.getMagDamage(),
+                        thing.getPhysDefense(),
+                        thing.getMagDefense(),
                         thing.getDistance(),
-                        thing.getDefense(),
                         thing.getDuration()
                 ));
                 thing.setUse(true);
@@ -201,13 +202,14 @@ public class PlayerService {
                 player.setHead(new UnitArmor(
                         thing.getId(),
                         thing.getName(),
-                        thing.getSubjectType(),
-                        thing.getApplyType(),
+                        thing.getApplyType().name(),
                         thing.getHp(),
                         thing.getMana(),
-                        thing.getDamage(),
+                        thing.getPhysDamage(),
+                        thing.getMagDamage(),
+                        thing.getPhysDefense(),
+                        thing.getMagDefense(),
                         thing.getDistance(),
-                        thing.getDefense(),
                         thing.getDuration()
                 ));
                 thing.setUse(true);
@@ -219,13 +221,14 @@ public class PlayerService {
                 player.setHand(new UnitArmor(
                         thing.getId(),
                         thing.getName(),
-                        thing.getSubjectType(),
-                        thing.getApplyType(),
+                        thing.getApplyType().name(),
                         thing.getHp(),
                         thing.getMana(),
-                        thing.getDamage(),
+                        thing.getPhysDamage(),
+                        thing.getMagDamage(),
+                        thing.getPhysDefense(),
+                        thing.getMagDefense(),
                         thing.getDistance(),
-                        thing.getDefense(),
                         thing.getDuration()
                 ));
                 thing.setUse(true);
@@ -237,13 +240,14 @@ public class PlayerService {
                 player.setBody(new UnitArmor(
                         thing.getId(),
                         thing.getName(),
-                        thing.getSubjectType(),
-                        thing.getApplyType(),
+                        thing.getApplyType().name(),
                         thing.getHp(),
                         thing.getMana(),
-                        thing.getDamage(),
+                        thing.getPhysDamage(),
+                        thing.getMagDamage(),
+                        thing.getPhysDefense(),
+                        thing.getMagDefense(),
                         thing.getDistance(),
-                        thing.getDefense(),
                         thing.getDuration()
                 ));
                 thing.setUse(true);
@@ -255,13 +259,14 @@ public class PlayerService {
                 player.setLeg(new UnitArmor(
                         thing.getId(),
                         thing.getName(),
-                        thing.getSubjectType(),
-                        thing.getApplyType(),
+                        thing.getApplyType().name(),
                         thing.getHp(),
                         thing.getMana(),
-                        thing.getDamage(),
+                        thing.getPhysDamage(),
+                        thing.getMagDamage(),
+                        thing.getPhysDefense(),
+                        thing.getMagDefense(),
                         thing.getDistance(),
-                        thing.getDefense(),
                         thing.getDuration()
                 ));
                 thing.setUse(true);

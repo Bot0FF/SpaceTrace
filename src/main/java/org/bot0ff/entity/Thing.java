@@ -22,6 +22,9 @@ public class Thing {
     @Column(name = "ownerId")
     private Long ownerId;
 
+    @Column(name = "name")
+    private String name;
+
     //тип экипировки
     @Enumerated(value = EnumType.STRING)
     @Column(name = "subjectType")
@@ -32,28 +35,57 @@ public class Thing {
     @JsonIgnore
     private ApplyType applyType;
 
-    @Column(name = "name")
-    private String name;
-
+    /** для экипировки, боевых умений */
     @Column(name = "hp")
     private int hp;
-
-    @Column(name = "damage")
-    private int damage;
-
-    @Column(name = "defense")
-    private int defense;
 
     @Column(name = "mana")
     private int mana;
 
+    @Column(name = "physDamage")
+    private double physDamage;
+
+    @Column(name = "magDamage")
+    private double magDamage;
+
+    @Column(name = "physDefense")
+    private int physDefense;
+
+    @Column(name = "magDefense")
+    private int magDefense;
+
+    /** для книг */
+    @Column(name = "vitality")
+    private int vitality;
+
+    @Column(name = "spirituality")
+    private int spirituality;
+
+    @Column(name = "regeneration")
+    private int regeneration;
+
+    @Column(name = "meditation")
+    private int meditation;
+
+    @Column(name = "evade")
+    private int evade;
+
+    @Column(name = "block")
+    private int block;
+
+    /** для оружия, боевых умений */
+    //дистанция применения
     @Column(name = "distance")
     private int distance;
 
-    //прочность экипировки
+    //требуемое количество очков действия
+    @Column(name = "actionPoint")
+    private Long actionPoint;
+
     @Column(name = "duration")
     private int duration;
 
+    /** описание */
     @Column(name = "description")
     private String description;
 

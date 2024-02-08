@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bot0ff.entity.Fight;
 import org.bot0ff.entity.Subject;
 import org.bot0ff.entity.Unit;
-import org.bot0ff.entity.unit.UnitFightEffect;
+import org.bot0ff.entity.unit.UnitEffect;
 import org.bot0ff.entity.enums.Status;
 import org.bot0ff.entity.enums.SubjectType;
 import org.bot0ff.repository.FightRepository;
@@ -189,12 +189,6 @@ public class FightHandler {
             if (unit.getMana() <= 0) {
                 unit.setMana(0);
             }
-            if (unit.getDamage() <= 0) {
-                unit.setDamage(0);
-            }
-            if (unit.getDefense() <= 0) {
-                unit.setDefense(0);
-            }
         });
 
         //сохраняем состояние всех unit,
@@ -218,6 +212,7 @@ public class FightHandler {
             //сбрасываем настройки unit
             else {
                 unit.setActionEnd(false);
+                unit.setPointAction(unit.getMaxPointAction());
                 unit.setAbilityId(0L);
                 unit.setTargetId(0L);
                 unitRepository.save(unit);
@@ -299,14 +294,14 @@ public class FightHandler {
         }
     }
 
-    //рассчитываем нанесенный урон при атаке оружием
+    //рассчитываем нанесенный физический урон
     //TODO настроить блок и уворот, расход маны
     private StringBuilder calculateDamageWeapon(Unit unit, Unit target) {
         //рассчитываем урон, который нанес текущий unit противнику
-        double unitHit = (unit.getFullDamage()) * 1.0;
-        double targetDefense = (target.getFullDefense()) * 1.0;
+        double unitHit = (unit.getPhysDamage()) * 1.0;
+        double targetDefense = (target.getPhysDefense()) * 1.0;
         double targetBlock = (target.getChanceBlock()) * 1.0;
-        double targetEvade = (target.getEvade()) * 1.0;
+        double targetEvade = (target.getChanceEvade()) * 1.0;
 
         //расчет блока
         if(randomUtil.getRandomFromTo(1, 100) <= targetBlock) {
@@ -347,6 +342,18 @@ public class FightHandler {
         }
         unit.setActionEnd(true);
 
+        if(unit.getWeapon() == null) {
+            return new StringBuilder()
+                    .append("[")
+                    .append(unit.getName())
+                    .append(" нанес ")
+                    .append(result)
+                    .append(" урона противнику ")
+                    .append(target.getName())
+                    .append(" голыми руками")
+                    .append("]");
+        }
+
         return new StringBuilder()
                 .append("[")
                 .append(unit.getName())
@@ -362,32 +369,32 @@ public class FightHandler {
     //рассчитываем нанесенный урон при атаке умением
     //TODO настроить блок и уворот, расход маны
     private StringBuilder calculateDamageAbility(Unit unit, Unit target, Subject ability) {
-        //рассчитываем урон, который нанес текущий unit противнику
-        double unitHit = ((unit.getFullDamage()) + ability.getDamage())* 1.0;
-        double targetDefense = (target.getFullDefense()) * 1.0;
-
-        if (unitHit <= 1) unitHit = 1;
-        if (targetDefense <= 1) targetDefense = 1;
-        double damageMultiplier = unitHit / (unitHit + targetDefense);
-        int totalDamage = (int) Math.round(unitHit * damageMultiplier);
-        int result = randomUtil.getRNum30(totalDamage);
-        if (result <= 0) result = 0;
-        System.out.println("unit " + unit.getName() + " нанес урон оружием равный " + result);
-        target.setHp(target.getHp() - result);
-
-        //устанавливаем target параметры по результатам расчета
-        if (target.getHp() <= 0) {
-            target.setActionEnd(true);
-            target.setStatus(Status.DIE);
-            System.out.println(target.getName() + " ход отменен. HP <= 0");
-        }
+//        //рассчитываем урон, который нанес текущий unit противнику
+//        double unitHit = ((unit.getFullDamage()) + ability.getDamage())* 1.0;
+//        double targetDefense = (target.getFullDefense()) * 1.0;
+//
+//        if (unitHit <= 1) unitHit = 1;
+//        if (targetDefense <= 1) targetDefense = 1;
+//        double damageMultiplier = unitHit / (unitHit + targetDefense);
+//        int totalDamage = (int) Math.round(unitHit * damageMultiplier);
+//        int result = randomUtil.getRNum30(totalDamage);
+//        if (result <= 0) result = 0;
+//        System.out.println("unit " + unit.getName() + " нанес урон оружием равный " + result);
+//        target.setHp(target.getHp() - result);
+//
+//        //устанавливаем target параметры по результатам расчета
+//        if (target.getHp() <= 0) {
+//            target.setActionEnd(true);
+//            target.setStatus(Status.DIE);
+//            System.out.println(target.getName() + " ход отменен. HP <= 0");
+//        }
         unit.setActionEnd(true);
 
         return new StringBuilder()
                 .append("[")
                 .append(unit.getName())
                 .append(" нанес ")
-                .append(result)
+//                .append(result)
                 .append(" урона противнику ")
                 .append(target.getName())
                 .append(" оружием ")
@@ -470,26 +477,48 @@ public class FightHandler {
                 result = ability.getMana();
                 target.getUnitFightEffect().put(ability.getId(), addFightEffect(ability));
             }
-            if(ability.getDamage() != 0) {
-                if(ability.getDamage() > 0) {
+            if(ability.getPhysDamage() != 0) {
+                if(ability.getPhysDamage() > 0) {
                     action = " повысил ";
                 }
                 else {
                     action = " понизил ";
                 }
-                characteristic = " урон ";
-                result = ability.getDamage();
+                characteristic = " физический урон ";
+                result = ability.getPhysDamage();
                 target.getUnitFightEffect().put(ability.getId(), addFightEffect(ability));
             }
-            if(ability.getDefense() != 0) {
-                if(ability.getDefense() > 0) {
+            if(ability.getPhysDefense() != 0) {
+                if(ability.getPhysDefense() > 0) {
                     action = " повысил ";
                 }
                 else {
                     action = " понизил ";
                 }
-                characteristic = " защиту ";
-                result = ability.getDefense();
+                characteristic = " физическую защиту ";
+                result = ability.getPhysDefense();
+                target.getUnitFightEffect().put(ability.getId(), addFightEffect(ability));
+            }
+            if(ability.getMagDamage() != 0) {
+                if(ability.getMagDamage() > 0) {
+                    action = " повысил ";
+                }
+                else {
+                    action = " понизил ";
+                }
+                characteristic = " магический урон ";
+                result = ability.getMagDamage();
+                target.getUnitFightEffect().put(ability.getId(), addFightEffect(ability));
+            }
+            if(ability.getMagDefense() != 0) {
+                if(ability.getMagDefense() > 0) {
+                    action = " повысил ";
+                }
+                else {
+                    action = " понизил ";
+                }
+                characteristic = " магическую защиту ";
+                result = ability.getMagDefense();
                 target.getUnitFightEffect().put(ability.getId(), addFightEffect(ability));
             }
         }
@@ -510,49 +539,79 @@ public class FightHandler {
     }
 
     //добавляет умение в эффекты
-    public UnitFightEffect addFightEffect(Subject ability) {
-        UnitFightEffect unitFightEffect;
+    public UnitEffect addFightEffect(Subject ability) {
+        UnitEffect unitEffect;
         if(ability.getHp() != 0) {
-            unitFightEffect = new UnitFightEffect(
+            unitEffect = new UnitEffect(
                     ability.getHp(), ability.getDuration(),
+                    0, 0,
+                    0, 0,
                     0, 0,
                     0, 0,
                     0, 0
             );
         }
         else if(ability.getMana() != 0) {
-            unitFightEffect = new UnitFightEffect(
+            unitEffect = new UnitEffect(
                     0, 0,
                     ability.getMana(), ability.getDuration(),
                     0, 0,
+                    0, 0,
+                    0, 0,
                     0, 0
             );
         }
-        else if(ability.getDamage() != 0) {
-            unitFightEffect = new UnitFightEffect(
+        else if(ability.getPhysDamage() != 0) {
+            unitEffect = new UnitEffect(
                     0, 0,
                     0, 0,
-                    ability.getDamage(), ability.getDuration(),
+                    ability.getPhysDamage(), ability.getDuration(),
+                    0, 0,
+                    0, 0,
                     0, 0
             );
         }
-        else if(ability.getDefense() != 0) {
-            unitFightEffect = new UnitFightEffect(
+        else if(ability.getMagDamage() != 0) {
+            unitEffect = new UnitEffect(
                     0, 0,
                     0, 0,
                     0, 0,
-                    ability.getDefense(), ability.getDuration()
+                    ability.getMagDamage(), ability.getDuration(),
+                    0, 0,
+                    0, 0
+            );
+        }
+        else if(ability.getPhysDefense() != 0) {
+            unitEffect = new UnitEffect(
+                    0, 0,
+                    0, 0,
+                    0, 0,
+                    0, 0,
+                    ability.getPhysDefense(), ability.getDuration(),
+                    0, 0
+            );
+        }
+        else if(ability.getMagDefense() != 0) {
+            unitEffect = new UnitEffect(
+                    0, 0,
+                    0, 0,
+                    0, 0,
+                    0, 0,
+                    0, 0,
+                    ability.getMagDefense(), ability.getDuration()
             );
         }
         else {
-            unitFightEffect = new UnitFightEffect(
+            unitEffect = new UnitEffect(
+                    0, 0,
+                    0, 0,
                     0, 0,
                     0, 0,
                     0, 0,
                     0, 0
             );
         }
-        return unitFightEffect;
+        return unitEffect;
     }
 
     //установка урона AI
@@ -593,32 +652,43 @@ public class FightHandler {
 
     //обновление UnitEffect для следующего сражения
     private void refreshUnitEffect(Unit unit) {
-        for(UnitFightEffect unitFightEffect : unit.getUnitFightEffect().values()) {
+        for(UnitEffect unitEffect : unit.getUnitFightEffect().values()) {
             //расчет действующих эффектов hp
-            if(unitFightEffect.getDurationEffectHp() > 0) {
-                unitFightEffect.setDurationEffectHp(unitFightEffect.getDurationEffectHp() - 1);
+            if(unitEffect.getDurationEffectHp() > 0) {
+                unitEffect.setDurationEffectHp(unitEffect.getDurationEffectHp() - 1);
             }
 
             //расчет действующих эффектов mana
-            if(unitFightEffect.getDurationEffectMana() > 0) {
-                unitFightEffect.setDurationEffectMana(unitFightEffect.getDurationEffectMana() - 1);
+            if(unitEffect.getDurationEffectMana() > 0) {
+                unitEffect.setDurationEffectMana(unitEffect.getDurationEffectMana() - 1);
             }
 
-            //расчет действующих эффектов damage
-            if(unitFightEffect.getDurationEffectDamage() > 0) {
-                unitFightEffect.setDurationEffectDamage(unitFightEffect.getDurationEffectDamage() - 1);
+            //расчет действующих эффектов физического урона
+            if(unitEffect.getDurationEffectPhysDamage() > 0) {
+                unitEffect.setDurationEffectPhysDamage(unitEffect.getDurationEffectPhysDamage() - 1);
             }
 
-            //расчет действующих эффектов defense
-            if(unitFightEffect.getDurationEffectDefense() > 0) {
-                unitFightEffect.setDurationEffectDefense(unitFightEffect.getDurationEffectDefense() - 1);
+            //расчет действующих эффектов физической защиты
+            if(unitEffect.getDurationEffectPhysDefense() > 0) {
+                unitEffect.setDurationEffectPhysDefense(unitEffect.getDurationEffectPhysDefense() - 1);
+            }
+            //расчет действующих эффектов магического урона
+            if(unitEffect.getDurationEffectMagDamage() > 0) {
+                unitEffect.setDurationEffectMagDamage(unitEffect.getDurationEffectMagDamage() - 1);
+            }
+
+            //расчет действующих эффектов магической защиты
+            if(unitEffect.getDurationEffectMagDefense() > 0) {
+                unitEffect.setDurationEffectMagDefense(unitEffect.getDurationEffectMagDefense() - 1);
             }
         }
-        unit.getUnitFightEffect().values().removeIf(unitFightEffect ->
-                unitFightEffect.getDurationEffectHp() == 0
-                & unitFightEffect.getDurationEffectMana() == 0
-                & unitFightEffect.getDurationEffectDamage() == 0
-                & unitFightEffect.getDurationEffectDefense() == 0
+        unit.getUnitFightEffect().values().removeIf(unitEffect ->
+                unitEffect.getDurationEffectHp() == 0
+                & unitEffect.getDurationEffectMana() == 0
+                & unitEffect.getDurationEffectPhysDamage() == 0
+                & unitEffect.getDurationEffectPhysDefense() == 0
+                & unitEffect.getDurationEffectMagDamage() == 0
+                & unitEffect.getDurationEffectMagDefense() == 0
         );
     }
 }

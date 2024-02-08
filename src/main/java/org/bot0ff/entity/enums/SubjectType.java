@@ -6,12 +6,6 @@ public enum SubjectType {
     USER,
     //существа
     AI,
-    //умения
-    ABILITY,
-    //оружие
     WEAPON,
-    //посохи
-    STICK,
-    //броня
     ARMOR
 }

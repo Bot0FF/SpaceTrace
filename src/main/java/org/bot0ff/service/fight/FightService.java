@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bot0ff.dto.InfoResponse;
 import org.bot0ff.dto.FightResponse;
 import org.bot0ff.dto.NavigateResponse;
-import org.bot0ff.entity.unit.UnitFightEffect;
+import org.bot0ff.entity.unit.UnitEffect;
 import org.bot0ff.entity.*;
 import org.bot0ff.entity.enums.HitType;
 import org.bot0ff.entity.enums.Status;
@@ -191,11 +191,15 @@ public class FightService {
             return response;
         }
 
+        if(player.getPointAction() <= 0) {
+            return jsonProcessor.toJsonInfo(new InfoResponse("Не хватает очков действия"));
+        }
+
         String moveDirection = "";
         switch (direction) {
             case "left" -> {
                 if(player.getUnitFightPosition() - 1 >= 1) {
-                    player.setMovePoint(player.getMovePoint() + 1);
+                    player.setPointAction(player.getPointAction() - 1);
                     player.setUnitFightPosition(player.getUnitFightPosition() - 1);
                     unitRepository.save(player);
                     moveDirection = " влево";
@@ -206,7 +210,7 @@ public class FightService {
             }
             case "right" -> {
                 if(player.getUnitFightPosition() + 1 <= 8) {
-                    player.setMovePoint(player.getMovePoint() + 1);
+                    player.setPointAction(player.getPointAction() - 1);
                     player.setUnitFightPosition(player.getUnitFightPosition() + 1);
                     unitRepository.save(player);
                     moveDirection = " вправо";
@@ -358,7 +362,7 @@ public class FightService {
             }
         }
 
-        if(player.getMovePoint() < ability.getMovePoint()) {
+        if(player.getPointAction() < ability.getActionPoint()) {
             return jsonProcessor
                     .toJsonInfo(new InfoResponse("Не хватает очков действия"));
         }
@@ -394,7 +398,7 @@ public class FightService {
         Unit player = optionalPlayer.get();
 
         //TODO привязать расчет силы умений к unit
-        List<Subject> unitAbility = subjectRepository.findAllById(player.getAbility());
+        List<Subject> unitAbility = subjectRepository.findAllById(player.getCurrentAbility());
 
         return jsonProcessor
                 .toJson(unitAbility);
@@ -418,14 +422,17 @@ public class FightService {
         unit.setTeamNumber(teamNumber);
         unit.setAbilityId(0L);
         unit.setTargetId(0L);
-        unit.setUnitFightPosition((long) randomUtil.getRandomFromTo(1, 10));
+        unit.setPointAction(unit.getMaxPointAction());
+        unit.setUnitFightPosition((long) randomUtil.getRandomFromTo(1, 8));
         unit.setUnitFightEffect(Map.of());
         unitRepository.save(unit);
     }
 
     //создание UnitFightEffect для сражения
-    private UnitFightEffect setUnitFightEffect(Unit unit) {
-        return new UnitFightEffect(
+    private UnitEffect setUnitFightEffect(Unit unit) {
+        return new UnitEffect(
+                0, 0,
+                0, 0,
                 0, 0,
                 0, 0,
                 0, 0,

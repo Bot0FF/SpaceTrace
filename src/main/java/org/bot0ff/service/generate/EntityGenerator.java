@@ -9,6 +9,7 @@ import org.bot0ff.entity.Thing;
 import org.bot0ff.entity.Unit;
 import org.bot0ff.entity.enums.Status;
 import org.bot0ff.entity.enums.SubjectType;
+import org.bot0ff.entity.unit.UnitEffect;
 import org.bot0ff.entity.unit.UnitSkill;
 import org.bot0ff.repository.LocationRepository;
 import org.bot0ff.repository.SubjectRepository;
@@ -17,6 +18,7 @@ import org.bot0ff.repository.UnitRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -39,39 +41,36 @@ public class EntityGenerator {
                 false,
                 //локация
                 location.getId(),
-                //текущие характеристики
+                //основные характеристики
                 10,
                 10,
-                10,
-                10,
-                1,
-                5,
-                1,
                 4,
+                4,
+                //атрибуты
+                1,
+                1,
+                1,
+                1,
+                1,
+                0,
+                //навыки
+                new UnitSkill(),
+                List.of(),
+                List.of(),
                 //экипировка
                 new UnitArmor(),
                 new UnitArmor(),
                 new UnitArmor(),
                 new UnitArmor(),
                 new UnitArmor(),
-                //основные характеристики (не влияют)
-                0,
-                0,
-                0,
-                0,
-                0,
-                //навыки
-                new UnitSkill(),
-                //умения
-                List.of(1L),
                 //сражение
                 null,
                 null,
+                Map.of(0L, new UnitEffect()),
                 null,
                 null,
-                null,
-                null,
-                null);
+                null
+        );
         return unitRepository.save(aiUnit).getId();
     }
 
@@ -85,14 +84,23 @@ public class EntityGenerator {
         Thing newThing = new Thing(
                 null,
                 null,
+                subject.getName(),
                 subject.getSubjectType(),
                 subject.getApplyType(),
-                subject.getName(),
                 subject.getHp(),
-                subject.getDamage(),
-                subject.getDefense(),
                 subject.getMana(),
+                subject.getPhysDamage(),
+                subject.getMagDamage(),
+                subject.getPhysDefense(),
+                subject.getMagDefense(),
+                subject.getVitality(),
+                subject.getSpirituality(),
+                subject.getRegeneration(),
+                subject.getMeditation(),
+                subject.getEvade(),
+                subject.getBlock(),
                 subject.getDistance(),
+                subject.getActionPoint(),
                 subject.getDuration(),
                 subject.getDescription(),
                 false

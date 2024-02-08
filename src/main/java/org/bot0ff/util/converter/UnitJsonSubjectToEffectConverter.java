@@ -4,18 +4,18 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
-import org.bot0ff.entity.unit.UnitFightEffect;
+import org.bot0ff.entity.unit.UnitEffect;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Converter(autoApply = true)
-public class UnitJsonSubjectToEffectConverter implements AttributeConverter<Map<Long, UnitFightEffect>, String> {
+public class UnitJsonSubjectToEffectConverter implements AttributeConverter<Map<Long, UnitEffect>, String> {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
-    public String convertToDatabaseColumn(Map<Long, UnitFightEffect> unitFightEffect) {
+    public String convertToDatabaseColumn(Map<Long, UnitEffect> unitFightEffect) {
         try {
             return objectMapper.writeValueAsString(unitFightEffect);
         } catch (JsonProcessingException e) {
@@ -24,7 +24,7 @@ public class UnitJsonSubjectToEffectConverter implements AttributeConverter<Map<
     }
 
     @Override
-    public Map<Long, UnitFightEffect> convertToEntityAttribute(String unitJson) {
+    public Map<Long, UnitEffect> convertToEntityAttribute(String unitJson) {
         try {
             return objectMapper.readValue(unitJson, HashMap.class);
         } catch (JsonProcessingException e) {

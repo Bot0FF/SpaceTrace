@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bot0ff.entity.unit.UnitArmor;
-import org.bot0ff.entity.unit.UnitFightEffect;
+import org.bot0ff.entity.unit.UnitEffect;
 import org.bot0ff.entity.enums.Status;
 import org.bot0ff.entity.enums.SubjectType;
 import org.bot0ff.entity.unit.UnitSkill;
@@ -15,6 +15,8 @@ import org.bot0ff.util.converter.UnitJsonSubjectToArmorConverter;
 import org.bot0ff.util.converter.UnitJsonSubjectToEffectConverter;
 import org.bot0ff.util.converter.UnitJsonSubjectToSkillConverter;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -47,43 +49,63 @@ public class Unit {
     @JsonIgnore
     private Long locationId;
 
-    /** текущие характеристики */
+    /** основные характеристики */
     //здоровье
     @Column(name = "hp")
     private int hp;
 
-    //максимальное здоровье
-    @Column(name = "maxHp")
-    @JsonIgnore
-    private int maxHp;
-
-    //мана
     @Column(name = "mana")
     private int mana;
 
-    //максимальная мана
-    @Column(name = "maxMana")
-    @JsonIgnore
-    private int maxMana;
+    //очки действия
+    @Column(name = "pointAction")
+    private int pointAction;
 
-    //урон
-    @Column(name = "damage")
-    @JsonIgnore
-    private int damage;
+    //максимальные очки действия
+    @Column(name = "maxPointAction")
+    private int maxPointAction;
 
-    //защита
-    @Column(name = "defense")
-    @JsonIgnore
-    private int defense;
+    /** аттрибуты */
+    //сила
+    @Column(name = "strength")
+    private int strength;
 
-    //уклонение
-    @Column(name = "evade")
-    @JsonIgnore
-    private int evade;
+    //интеллект
+    @Column(name = "intelligence")
+    private int intelligence;
 
-    //максимальные очки перемещения
-    @Column(name = "maxMovePoint")
-    private int maxMovePoint;
+    //ловкость
+    @Column(name = "dexterity")
+    private int dexterity;
+
+    //выносливость
+    @Column(name = "endurance")
+    private int endurance;
+
+    //удача
+    @Column(name = "luck")
+    private int luck;
+
+    //свободные очки для распределения
+    @Column(name = "bonusPoint")
+    private int bonusPoint;
+
+    /** навыки */
+    @Convert(converter = UnitJsonSubjectToSkillConverter.class)
+    @Column(name = "unitSkill")
+    @JsonIgnore
+    private UnitSkill unitSkill;
+
+    /** список умений */
+    //активные умения
+    @Column(name = "currentAbility")
+    @JsonIgnore
+    private List<Long> currentAbility;
+
+    //все умения
+    @Column(name = "allAbility")
+    @JsonIgnore
+    private List<Long> allAbility;
 
     /** экипировка */
     //оружие
@@ -116,52 +138,11 @@ public class Unit {
     @JsonIgnore
     private UnitArmor leg;
 
-    /** основные характеристики */
-    //сила (1 очко прибавляет:
-    // +3 к макс здоровью, +1 к макс мане, +3 к урону, +2 к защите, +1 к уклонению)
-    @Column(name = "power")
-    private int power;
-
-    //ловкость (1 очко прибавляет:
-    // +2 к макс здоровью, +2 к макс мане, +3 к урону, +1 к защите, +4 к уклонению)
-    @Column(name = "agility")
-    private int agility;
-
-    //выносливость (1 очко прибавляет:
-    // +3 к макс здоровью, +1 к макс мане, +1 к урону, +2 к защите, +1 к уклонению)
-    @Column(name = "endurance")
-    private int endurance;
-
-    //магия (1 очко прибавляет:
-    // +2 к макс здоровью, +4 к макс мане, +1 к урону, + 1 к защите, +1 к уклонению)
-    @Column(name = "magic")
-    private int magic;
-
-    //свободные очки для распределения
-    @Column(name = "freePoint")
-    private int freePoint;
-
-    /** навыки */
-    @Convert(converter = UnitJsonSubjectToSkillConverter.class)
-    @Column(name = "unitSkill")
-    @JsonIgnore
-    private UnitSkill unitSkill;
-
-    /** список умений */
-    @Column(name = "ability")
-    @JsonIgnore
-    private List<Long> ability;
-
     /** сражение */
     @ManyToOne(cascade=CascadeType.ALL)
     @JoinColumn(name = "fight")
     @JsonIgnore
     private Fight fight;
-
-    //очки движения
-    @Column(name = "movePoint")
-    @JsonIgnore
-    private Long movePoint;
 
     @Column(name = "unitFightPosition")
     private Long unitFightPosition;
@@ -169,7 +150,7 @@ public class Unit {
     @Convert(converter = UnitJsonSubjectToEffectConverter.class)
     @Column(name = "unitFightEffect")
     @JsonIgnore
-    private Map<Long, UnitFightEffect> unitFightEffect;
+    private Map<Long, UnitEffect> unitFightEffect;
 
     @Column(name = "teamNumber")
     private Long teamNumber;
@@ -182,52 +163,43 @@ public class Unit {
     @JsonIgnore
     private Long targetId;
 
-    //полный урон: базовый (от очков умений) + урон от оружия + модификатор навыка
-    public int getFullDamage() {
-        int fullDamage = damage;
-        if(weapon != null && weapon.getDuration() > 0) {
-            //прибавляем к базовому урону урон от оружия
-            switch (weapon.getSubjectType()) {
-                //если тип - оружие, к общему урону прибавляется урон оружия
-                case WEAPON -> fullDamage += weapon.getDamage();
-                //если тип - посох, общий урон умножается на модификатор урона посоха
-                case STICK -> fullDamage = fullDamage * weapon.getDamage();
+    //полный физический урон
+    public int getPhysDamage() {
+        int fullPhysDamage = 0;
+        switch (weapon.getApplyType()) {
+            case "ONE_HAND" -> {
+                double physDamageModifier = (((strength * 1.0) / 100) + 1) + (((luck * 1.0) / 100) + 0.10);
+                physDamageModifier += (getSkillLevel(unitSkill.getOneHand()) * 1.0 / 100);
+                fullPhysDamage = (int) Math.round(physDamageModifier * (weapon.getPhysDamage() + 1));
             }
-            //прибавляем к базовому урону урон от навыков
-            switch (weapon.getApplyType()) {
-                case ONE_HAND -> fullDamage += unitSkill.getOneHand() / 10;
-                case TWO_HAND -> fullDamage += unitSkill.getTwoHand() / 10;
-                case BOW -> fullDamage += unitSkill.getBow() / 10;
-                case FIRE -> fullDamage += unitSkill.getFire() / 10;
-                case WATER -> fullDamage += unitSkill.getWater() / 10;
-                case LAND -> fullDamage += unitSkill.getLand() / 10;
-                case AIR -> fullDamage += unitSkill.getAir() / 10;
+            case "TWO_HAND" -> {
+                double physDamageModifier = (((strength * 1.0) / 100) + 1) + (((luck * 1.0) / 100) + 0.10);
+                physDamageModifier += (getSkillLevel(unitSkill.getTwoHand()) * 1.0 / 100);
+                fullPhysDamage = (int) Math.round(physDamageModifier * (weapon.getPhysDamage() + 1));
+            }
+            case "BOW" -> {
+                double physDamageModifier = (((endurance * 1.0) / 100) + 1) + (((luck * 1.0) / 100) + 0.10);
+                physDamageModifier += (getSkillLevel(unitSkill.getBow()) * 1.0 / 100);
+                fullPhysDamage = (int) Math.round(physDamageModifier * (weapon.getPhysDamage() + 1));
             }
         }
-        if(head != null && head.getDuration() > 0) {
-            fullDamage += head.getDamage();
+        //прибавляем к базовому урону эффекты боя, если есть
+        for(UnitEffect effect : unitFightEffect.values()) {
+            fullPhysDamage += effect.getEffectPhysDamage();
         }
-        if(hand != null && hand.getDuration() > 0) {
-            fullDamage += hand.getDamage();
-        }
-        if(body != null && body.getDuration() > 0) {
-            fullDamage += body.getDamage();
-        }
-        if(leg != null && leg.getDuration() > 0) {
-            fullDamage += leg.getDamage();
-        }
-        //если эффекты в бою не равны нулю, применяем их
-        if(unitFightEffect != null) {
-            for(UnitFightEffect effect : unitFightEffect.values()) {
-                fullDamage += effect.getEffectDamage();
-            }
-        }
-        return fullDamage;
+        return fullPhysDamage;
     }
 
-    //максимальное здоровье
-    public int getFullHp() {
-        int fullHp = maxHp;
+    //модификатор усиления магического умения
+    public double getMagModifier() {
+        return ((intelligence * 1.0) / 100) + 1 + (((luck * 1.0) / 100) + 0.10);
+    }
+
+    //максимальное здоровье:
+    public int getMaxHp() {
+        double maxHpModifier = (((strength * 10.0) / 100) + 0.30) + (((luck * 3.0) / 100) + 0.10) + (((endurance * 15.0) / 100) + 0.10);
+        //устанавливаем модификаторы прибавки здоровья от каждого вида экипировки, начальное значение зависит о навыка
+        int fullHp = (int) Math.round(maxHpModifier * 10);
         if(weapon != null && weapon.getDuration() > 0) {
             fullHp += weapon.getHp();
         }
@@ -243,18 +215,18 @@ public class Unit {
         if(leg != null && leg.getDuration() > 0) {
             fullHp += leg.getHp();
         }
-        //если эффекты в бою не равны нулю, применяем их
-        if(unitFightEffect != null) {
-            for(UnitFightEffect effect : unitFightEffect.values()) {
-                fullHp += effect.getEffectHp();
-            }
+        //прибавляем к максимальному здоровью эффекты боя, если есть
+        for(UnitEffect effect : unitFightEffect.values()) {
+            fullHp += effect.getEffectHp();
         }
         return fullHp;
     }
 
     //максимальная мана
-    public int getFullMana() {
-        int fullMana = maxMana;
+    public int getMaxMana() {
+        double maxManaModifier = (((intelligence * 17.0) / 100) + 0.30) + (((luck * 3.0) / 100) + 0.10) + (((endurance * 5.0) / 100) + 0.10) + (((dexterity * 3.0) / 100) + 0.10);
+        //устанавливаем модификаторы прибавки здоровья от каждого вида экипировки, начальное значение зависит о навыка
+        int fullMana = (int) Math.round(maxManaModifier * 10);
         if(weapon != null && weapon.getDuration() > 0) {
             fullMana += weapon.getMana();
         }
@@ -270,38 +242,65 @@ public class Unit {
         if(leg != null && leg.getDuration() > 0) {
             fullMana += leg.getMana();
         }
-        //если эффекты в бою не равны нулю, применяем их
-        if(unitFightEffect != null) {
-            for(UnitFightEffect effect : unitFightEffect.values()) {
-                fullMana += effect.getEffectMana();
-            }
+        //прибавляем к максимальному здоровью эффекты боя, если есть
+        for(UnitEffect effect : unitFightEffect.values()) {
+            fullMana += effect.getEffectMana();
         }
         return fullMana;
     }
 
-    //защита
-    public int getFullDefense() {
-        int fullDefense = defense;
+    //физическая защита
+    //TODO добавить навык на физическую защиту
+    public int getPhysDefense() {
+        double defenseModifier = (((strength * 15.0) / 100) + 0.30) + (((luck * 5.0) / 100) + 0.10) + (((endurance * 5.0) / 100) + 0.10) + (((dexterity * 2.0) / 100) + 0.10);
+        //устанавливаем модификаторы прибавки здоровья от каждого вида экипировки, начальное значение зависит о навыка
+        int fullDefense = (int) Math.round(defenseModifier * 10);
         if(weapon != null && weapon.getDuration() > 0) {
-            fullDefense += weapon.getDefense();
+            fullDefense += weapon.getPhysDefense();
         }
         if(head != null && head.getDuration() > 0) {
-            fullDefense += head.getDefense();
+            fullDefense += head.getPhysDefense();
         }
         if(hand != null && hand.getDuration() > 0) {
-            fullDefense += hand.getDefense();
+            fullDefense += hand.getPhysDefense();
         }
         if(body != null && body.getDuration() > 0) {
-            fullDefense += body.getDefense();
+            fullDefense += body.getPhysDefense();
         }
         if(leg != null && leg.getDuration() > 0) {
-            fullDefense += leg.getDefense();
+            fullDefense += leg.getPhysDefense();
         }
-        //если эффекты в бою не равны нулю, применяем их
-        if(unitFightEffect != null) {
-            for(UnitFightEffect effect : unitFightEffect.values()) {
-                fullDefense += effect.getEffectDefense();
-            }
+        //прибавляем к максимальному здоровью эффекты боя, если есть
+        for(UnitEffect effect : unitFightEffect.values()) {
+            fullDefense += effect.getDurationEffectPhysDefense();
+        }
+        return fullDefense;
+    }
+
+    //магическая
+    //TODO добавить навык на магическую защиту
+    public int getMagDefense() {
+        double defenseModifier = (((intelligence * 15.0) / 100) + 0.30) + (((luck * 5.0) / 100) + 0.10) + (((endurance * 5.0) / 100) + 0.10) + (((dexterity * 2.0) / 100) + 0.10);
+        //устанавливаем модификаторы прибавки здоровья от каждого вида экипировки, начальное значение зависит о навыка
+        int fullDefense = (int) Math.round(defenseModifier * 10);
+        if(weapon != null && weapon.getDuration() > 0) {
+            fullDefense += weapon.getMagDefense();
+        }
+        if(head != null && head.getDuration() > 0) {
+            fullDefense += head.getMagDefense();
+        }
+        if(hand != null && hand.getDuration() > 0) {
+            fullDefense += hand.getMagDefense();
+        }
+        if(body != null && body.getDuration() > 0) {
+            fullDefense += body.getMagDefense();
+        }
+        if(leg != null && leg.getDuration() > 0) {
+            fullDefense += leg.getMagDefense();
+        }
+        //прибавляем к максимальному здоровью эффекты боя, если есть
+        for(UnitEffect effect : unitFightEffect.values()) {
+            fullDefense += effect.getEffectMagDefense();
         }
         return fullDefense;
     }
@@ -309,24 +308,39 @@ public class Unit {
     //скорость регенерации
     @JsonIgnore
     public int getRegeneration() {
-        return 1 + unitSkill.getRegeneration() / 10;
+        double regenerationModifier = (((endurance * 10.0) / 100) + 0.30) + (getSkillLevel(unitSkill.getRegeneration()) * 1.0 / 100);
+        return (int) Math.round(regenerationModifier);
     }
 
     //скорость восстановления маны
     @JsonIgnore
     public int getMeditation() {
-        return 1 + unitSkill.getMeditation() / 10;
+        double meditationModifier = (((intelligence * 10.0) / 100) + 0.30) + (getSkillLevel(unitSkill.getMeditation()) * 1.0 / 100);
+        return (int) Math.round(meditationModifier);
     }
 
     //шанс блока
     @JsonIgnore
     public int getChanceBlock() {
-        return unitSkill.getBlock() / 10;
+        return (int) (1 + (getSkillLevel(unitSkill.getBlock()) * 1.0 / 100));
     }
 
     //шанс уклонения
     @JsonIgnore
     public int getChanceEvade() {
-        return evade + unitSkill.getEvade() / 10;
+        return (int) (1 + (getSkillLevel(unitSkill.getEvade()) * 1.0 / 100));
+    }
+
+    @JsonIgnore
+    public int getSkillLevel(int skill) {
+        int level = 1;
+        List<Integer> levelList = new ArrayList<>(List.of(1, 1000, 2, 5000, 3, 10000));
+        Collections.sort(levelList);
+        for(Integer levelExp: levelList) {
+            skill -= levelExp;
+            if(skill < 0) break;
+            level++;
+        }
+        return level;
     }
 }
