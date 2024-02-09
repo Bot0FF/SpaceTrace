@@ -1,12 +1,12 @@
 package org.bot0ff.model;
 
 import lombok.Data;
+import org.bot0ff.dto.UnitDto;
 import org.bot0ff.entity.Location;
-import org.bot0ff.entity.Unit;
 
 @Data
 public class MainResponse {
-    private Unit player;
+    private UnitDto player;
     private Location location;
     private int ais;
     private int units;
@@ -14,7 +14,7 @@ public class MainResponse {
     private String info;
     private int status;
 
-    public MainResponse(Unit player, Location location, String info) {
+    public MainResponse(UnitDto player, Location location, String info) {
         this.player = player;
         this.location = location;
         this.ais = location.getAis().size();

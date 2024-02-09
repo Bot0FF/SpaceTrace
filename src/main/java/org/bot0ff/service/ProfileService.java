@@ -3,7 +3,6 @@ package org.bot0ff.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bot0ff.model.InfoResponse;
-import org.bot0ff.model.MainResponse;
 import org.bot0ff.entity.unit.UnitArmor;
 import org.bot0ff.entity.Location;
 import org.bot0ff.entity.Thing;
@@ -11,10 +10,7 @@ import org.bot0ff.entity.Unit;
 import org.bot0ff.repository.LocationRepository;
 import org.bot0ff.repository.ThingRepository;
 import org.bot0ff.repository.UnitRepository;
-import org.bot0ff.service.fight.FightService;
-import org.bot0ff.service.generate.EntityGenerator;
 import org.bot0ff.util.JsonProcessor;
-import org.bot0ff.util.RandomUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,15 +19,12 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PlayerService {
+public class ProfileService {
     private final UnitRepository unitRepository;
     private final LocationRepository locationRepository;
     private final ThingRepository thingRepository;
 
-    private final EntityGenerator entityGenerator;
-    private final FightService fightService;
     private final JsonProcessor jsonProcessor;
-    private final RandomUtil randomUtil;
 
     //добавляет вещь в инвентарь с локации
     @Transactional
@@ -78,7 +71,7 @@ public class PlayerService {
         locationRepository.save(location);
 
         return jsonProcessor
-                .toJsonMain(new MainResponse(player, location, "Вещь (" + thing.getName() + ") добавлена в инвентарь"));
+                .toJsonInfo(new InfoResponse("Вещь (" + thing.getName() + ") добавлена в инвентарь"));
     }
 
     //удаляет вещь из инвентаря
@@ -144,7 +137,7 @@ public class PlayerService {
         locationRepository.save(location);
 
         return jsonProcessor
-                .toJsonMain(new MainResponse(player, location, "Вещь (" + thing.getName() + ") удалена из инвентаря"));
+                .toJsonInfo(new InfoResponse("Вещь (" + thing.getName() + ") удалена из инвентаря"));
     }
 
     //надеть вещь из инвентаря

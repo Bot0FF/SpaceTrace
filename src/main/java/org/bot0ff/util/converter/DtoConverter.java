@@ -11,14 +11,30 @@ import java.util.List;
 
 public class DtoConverter {
 
-    public UnitDto unitToUnitDto(Unit unit) {
+    //конструктор для MainResponse
+    public UnitDto unitToUnitDtoMain(Unit unit) {
         return new UnitDto(
                 unit.getId(),
                 unit.getName(),
                 unit.getSubjectType(),
                 unit.getStatus(),
                 unit.isActionEnd(),
-                unit.getLocationId(),
+                unit.getHp(),
+                getMaxHp(unit),
+                unit.getMana(),
+                getMaxMana(unit),
+                unit.getBonusPoint()
+        );
+    }
+
+    //конструктор для FightResponse
+    public UnitDto unitToUnitDtoFight(Unit unit) {
+        return new UnitDto(
+                unit.getId(),
+                unit.getName(),
+                unit.getSubjectType(),
+                unit.getStatus(),
+                unit.isActionEnd(),
                 unit.getHp(),
                 getMaxHp(unit),
                 unit.getMana(),
@@ -28,18 +44,10 @@ public class DtoConverter {
                 getPhysDefense(unit),
                 getMagDefense(unit),
                 getInitiative(unit),
-                getRegeneration(unit),
-                getMeditation(unit),
                 getChanceBlock(unit),
                 getChanceEvade(unit),
                 unit.getPointAction(),
                 unit.getMaxPointAction(),
-                unit.getStrength(),
-                unit.getIntelligence(),
-                unit.getDexterity(),
-                unit.getEndurance(),
-                unit.getLuck(),
-                unit.getBonusPoint(),
                 unit.getUnitSkill(),
                 unit.getCurrentAbility(),
                 unit.getAllAbility(),

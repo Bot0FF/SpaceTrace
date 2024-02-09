@@ -1,5 +1,6 @@
 package org.bot0ff.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.bot0ff.entity.Fight;
@@ -12,7 +13,7 @@ import org.bot0ff.entity.unit.UnitSkill;
 import java.util.List;
 
 @Data
-@AllArgsConstructor
+@JsonInclude(value = JsonInclude.Include.NON_DEFAULT)
 public class UnitDto {
 
     private Long id;
@@ -56,4 +57,94 @@ public class UnitDto {
     private Long teamNumber;
     private Long abilityId;
     private Long targetId;
+
+    //конструктор для MainResponse
+    public UnitDto(Long id,
+                   String name,
+                   SubjectType subjectType,
+                   Status status,
+                   boolean actionEnd,
+                   int hp,
+                   int maxHp,
+                   int mana,
+                   int maxMana,
+                   int bonusPoint) {
+        this.id = id;
+        this.name = name;
+        this.subjectType = subjectType;
+        this.status = status;
+        this.actionEnd = actionEnd;
+        this.hp = hp;
+        this.maxHp = maxHp;
+        this.mana = mana;
+        this.maxMana = maxMana;
+        this.bonusPoint = bonusPoint;
+    }
+
+    //конструктор для FightResponse
+    public UnitDto(Long id,
+                   String name,
+                   SubjectType subjectType,
+                   Status status,
+                   boolean actionEnd,
+                   int hp,
+                   int maxHp,
+                   int mana,
+                   int maxMana,
+                   int physDamage,
+                   double magModifier,
+                   int physDefense,
+                   int magDefense,
+                   int initiative,
+                   double chanceBlock,
+                   double chanceEvade,
+                   int pointAction,
+                   int maxPointAction,
+                   UnitSkill unitSkill,
+                   List<Long> currentAbility,
+                   List<Long> allAbility,
+                   UnitArmor weapon,
+                   UnitArmor head,
+                   UnitArmor hand,
+                   UnitArmor body,
+                   UnitArmor leg,
+                   Fight fight,
+                   Long unitFightPosition,
+                   List<UnitEffect> unitFightEffect,
+                   Long teamNumber,
+                   Long abilityId,
+                   Long targetId) {
+        this.id = id;
+        this.name = name;
+        this.subjectType = subjectType;
+        this.status = status;
+        this.actionEnd = actionEnd;
+        this.hp = hp;
+        this.maxHp = maxHp;
+        this.mana = mana;
+        this.maxMana = maxMana;
+        this.physDamage = physDamage;
+        this.magModifier = magModifier;
+        this.physDefense = physDefense;
+        this.magDefense = magDefense;
+        this.initiative = initiative;
+        this.chanceBlock = chanceBlock;
+        this.chanceEvade = chanceEvade;
+        this.pointAction = pointAction;
+        this.maxPointAction = maxPointAction;
+        this.unitSkill = unitSkill;
+        this.currentAbility = currentAbility;
+        this.allAbility = allAbility;
+        this.weapon = weapon;
+        this.head = head;
+        this.hand = hand;
+        this.body = body;
+        this.leg = leg;
+        this.fight = fight;
+        this.unitFightPosition = unitFightPosition;
+        this.unitFightEffect = unitFightEffect;
+        this.teamNumber = teamNumber;
+        this.abilityId = abilityId;
+        this.targetId = targetId;
+    }
 }

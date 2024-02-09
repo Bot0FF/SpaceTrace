@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bot0ff.service.MainService;
-import org.bot0ff.service.PlayerService;
+import org.bot0ff.service.ProfileService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class MainController {
     private final MainService mainService;
-    private final PlayerService playerService;
+    private final ProfileService profileService;
     //@AuthenticationPrincipal(expression = "username") String username
     //главная страница
     @GetMapping("/im")
@@ -57,7 +57,7 @@ public class MainController {
     //забрать вещь с локации
     @GetMapping("/location/take")
     public ResponseEntity<?> takeLocationThing(@RequestParam Long thingId) {
-        var response = playerService.takeLocationThing("user", thingId);
+        var response = profileService.takeLocationThing("user", thingId);
         return ResponseEntity.ok(response);
     }
 
@@ -66,28 +66,28 @@ public class MainController {
     //список вещей в инвентаре
     @GetMapping("/inventory/things")
     public ResponseEntity<?> getInventoryThings() {
-        var response = playerService.getInventoryThings("user");
+        var response = profileService.getInventoryThings("user");
         return ResponseEntity.ok(response);
     }
 
     //удалить вещь из инвентаря
     @GetMapping("/inventory/remove")
     public ResponseEntity<?> removeInventoryThings(@RequestParam Long thingId) {
-        var response = playerService.removeInventoryThing("user", thingId);
+        var response = profileService.removeInventoryThing("user", thingId);
         return ResponseEntity.ok(response);
     }
 
     //надеть вещь из инвентаря
     @GetMapping("/inventory/puton")
     public ResponseEntity<?> putOnInventoryThings(@RequestParam Long thingId) {
-        var response = playerService.putOnInventoryThing("user", thingId);
+        var response = profileService.putOnInventoryThing("user", thingId);
         return ResponseEntity.ok(response);
     }
 
     //надеть снять надетую вещь
     @GetMapping("/inventory/takeoff")
     public ResponseEntity<?> takeOffInventoryThings(@RequestParam Long thingId) {
-        var response = playerService.takeOffInventoryThing("user", thingId);
+        var response = profileService.takeOffInventoryThing("user", thingId);
         return ResponseEntity.ok(response);
     }
 }

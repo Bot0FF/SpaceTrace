@@ -28,18 +28,23 @@ public class Unit {
     //общее
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonIgnore
     private Long id;
 
     @Column(name = "name")
+    @JsonIgnore
     private String name;
 
     @Enumerated(value = EnumType.STRING)
+    @JsonIgnore
     private SubjectType subjectType;
 
     @Enumerated(value = EnumType.STRING)
+    @JsonIgnore
     private Status status;
 
     @Column(name = "actionEnd")
+    @JsonIgnore
     private boolean actionEnd;
 
     /** локация */
@@ -50,42 +55,52 @@ public class Unit {
     /** основные характеристики */
     //здоровье
     @Column(name = "hp")
+    @JsonIgnore
     private int hp;
 
     @Column(name = "mana")
+    @JsonIgnore
     private int mana;
 
     //очки действия
     @Column(name = "pointAction")
+    @JsonIgnore
     private int pointAction;
 
     //максимальные очки действия
     @Column(name = "maxPointAction")
+    @JsonIgnore
     private int maxPointAction;
 
     /** аттрибуты */
     //сила
     @Column(name = "strength")
+    @JsonIgnore
     private int strength;
 
     //интеллект
     @Column(name = "intelligence")
+    @JsonIgnore
     private int intelligence;
 
     //ловкость
     @Column(name = "dexterity")
+    @JsonIgnore
     private int dexterity;
 
     //выносливость
     @Column(name = "endurance")
+    @JsonIgnore
     private int endurance;
 
     //удача
     @Column(name = "luck")
+    @JsonIgnore
     private int luck;
 
     //свободные очки для распределения
     @Column(name = "bonusPoint")
+    @JsonIgnore
     private int bonusPoint;
 
     /** навыки */

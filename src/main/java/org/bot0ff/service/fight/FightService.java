@@ -91,7 +91,7 @@ public class FightService {
                     setUnitFight(initiator, opponent.getFight(), 1L);
                 }
                 return jsonProcessor
-                        .toJsonFight(new FightResponse(initiator, opponent.getFight(), "Загрузка сражения..."));
+                        .toJsonFight(new FightResponse(dtoConverter.unitToUnitDtoFight(initiator), opponent.getFight(), "Загрузка сражения..."));
             }
         }
 
@@ -111,7 +111,7 @@ public class FightService {
         ));
 
         return jsonProcessor
-                .toJsonFight(new FightResponse(initiator, newFight, "Загрузка сражения..."));
+                .toJsonFight(new FightResponse(dtoConverter.unitToUnitDtoFight(initiator), newFight, "Загрузка сражения..."));
     }
 
     //текущее состояние сражения
@@ -152,7 +152,7 @@ public class FightService {
         fight.setEndRoundTimer(FIGHT_MAP.get(fight.getId()).getEndRoundTimer().toEpochMilli());
 
         return jsonProcessor
-                .toJsonFight(new FightResponse(player, fight, null));
+                .toJsonFight(new FightResponse(dtoConverter.unitToUnitDtoFight(player), fight, null));
     }
 
     //перемещение по полю сражения
@@ -223,7 +223,7 @@ public class FightService {
             }
         }
         return jsonProcessor
-                .toJsonFight(new FightResponse(player, fight, player.getName() + " переместился " + moveDirection));
+                .toJsonFight(new FightResponse(dtoConverter.unitToUnitDtoFight(player), fight, player.getName() + " переместился " + moveDirection));
     }
 
     //атака по выбранному противнику оружием
@@ -288,7 +288,7 @@ public class FightService {
         fight.setEndRoundTimer(FIGHT_MAP.get(fight.getId()).getEndRoundTimer().toEpochMilli());
 
         return jsonProcessor
-                .toJsonFight(new FightResponse(player, fight, player.getName() + " нанес удар оружием " + player.getWeapon().getName()));
+                .toJsonFight(new FightResponse(dtoConverter.unitToUnitDtoFight(player), fight, player.getName() + " нанес удар оружием " + player.getWeapon().getName()));
     }
 
     //атака по выбранному противнику умением
@@ -384,7 +384,7 @@ public class FightService {
         fight.setEndRoundTimer(FIGHT_MAP.get(fight.getId()).getEndRoundTimer().toEpochMilli());
 
         return jsonProcessor
-                .toJsonFight(new FightResponse(player, fight, player.getName() + " применил умение " + ability.getName()));
+                .toJsonFight(new FightResponse(dtoConverter.unitToUnitDtoFight(player), fight, player.getName() + " применил умение " + ability.getName()));
     }
 
     //возвращает умения unit

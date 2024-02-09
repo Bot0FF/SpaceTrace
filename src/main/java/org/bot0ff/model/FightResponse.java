@@ -1,6 +1,7 @@
 package org.bot0ff.model;
 
 import lombok.Data;
+import org.bot0ff.dto.UnitDto;
 import org.bot0ff.entity.Fight;
 import org.bot0ff.entity.Unit;
 
@@ -9,7 +10,7 @@ import java.util.List;
 
 @Data
 public class FightResponse {
-    private Unit player;
+    private UnitDto player;
     private Fight fight;
     private List<Unit> teamOne;
     private List<Unit> teamTwo;
@@ -19,7 +20,7 @@ public class FightResponse {
     private String info;
     private int status;
 
-    public FightResponse(Unit player, Fight fight, String info) {
+    public FightResponse(UnitDto player, Fight fight, String info) {
         this.player = player;
         this.fight = fight;
         this.teamOne = new ArrayList<>();
