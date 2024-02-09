@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UnitEffect {
+    private Long id;
+
     private int effectHp;
     private int durationEffectHp;
 
@@ -17,7 +19,7 @@ public class UnitEffect {
     private int effectPhysDamage;
     private int durationEffectPhysDamage;
 
-    private int effectMagDamage;
+    private double effectMagDamageModifier;
     private int durationEffectMagDamage;
 
     private int effectPhysDefense;

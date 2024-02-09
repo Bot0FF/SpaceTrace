@@ -48,8 +48,13 @@ public class Subject {
     @Column(name = "physDamage")
     private int physDamage;
 
+    //для магического умения
     @Column(name = "magDamage")
     private int magDamage;
+
+    //для магического оружия
+    @Column(name = "magDamageModifier")
+    private double magDamageModifier;
 
     @Column(name = "physDefense")
     private int physDefense;

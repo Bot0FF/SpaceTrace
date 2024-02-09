@@ -2,9 +2,9 @@ package org.bot0ff.service.fight;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bot0ff.dto.InfoResponse;
-import org.bot0ff.dto.FightResponse;
-import org.bot0ff.dto.NavigateResponse;
+import org.bot0ff.model.InfoResponse;
+import org.bot0ff.model.FightResponse;
+import org.bot0ff.model.NavigateResponse;
 import org.bot0ff.entity.unit.UnitEffect;
 import org.bot0ff.entity.*;
 import org.bot0ff.entity.enums.HitType;
@@ -17,6 +17,7 @@ import org.bot0ff.service.generate.EntityGenerator;
 import org.bot0ff.util.Constants;
 import org.bot0ff.util.JsonProcessor;
 import org.bot0ff.util.RandomUtil;
+import org.bot0ff.util.converter.DtoConverter;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +34,7 @@ public class FightService {
     private final LocationRepository locationRepository;
     private final SubjectRepository subjectRepository;
 
+    private final DtoConverter dtoConverter;
     private final EntityGenerator entityGenerator;
     private final JsonProcessor jsonProcessor;
     private final RandomUtil randomUtil;
@@ -105,7 +107,7 @@ public class FightService {
 
         //добавление нового сражения в map и запуск обработчика раундов
         FIGHT_MAP.put(newFightId, new FightHandler(
-                newFightId, unitRepository, fightRepository, subjectRepository, entityGenerator, randomUtil
+                newFightId, unitRepository, fightRepository, subjectRepository, dtoConverter,  entityGenerator, randomUtil
         ));
 
         return jsonProcessor
@@ -356,7 +358,7 @@ public class FightService {
         //если на цели уже применено данное умение, возвращаем уведомление
         if(ability.getHitType().equals(HitType.BOOST)
                 | ability.getHitType().equals(HitType.LOWER)) {
-            if(target.getUnitFightEffect().containsKey(abilityId)) {
+            if(target.getUnitFightEffect().stream().anyMatch(unitEffect -> unitEffect.getId().equals(abilityId))) {
                 return jsonProcessor
                         .toJsonInfo(new InfoResponse("Умение уже применено"));
             }
@@ -424,20 +426,8 @@ public class FightService {
         unit.setTargetId(0L);
         unit.setPointAction(unit.getMaxPointAction());
         unit.setUnitFightPosition((long) randomUtil.getRandomFromTo(1, 8));
-        unit.setUnitFightEffect(Map.of());
+        unit.setUnitFightEffect(List.of(new UnitEffect()));
         unitRepository.save(unit);
-    }
-
-    //создание UnitFightEffect для сражения
-    private UnitEffect setUnitFightEffect(Unit unit) {
-        return new UnitEffect(
-                0, 0,
-                0, 0,
-                0, 0,
-                0, 0,
-                0, 0,
-                0, 0
-        );
     }
 
     //сброс настроек сражения unit при ошибке
@@ -470,7 +460,7 @@ public class FightService {
             else {
                 unit.setHp(unit.getHp());
                 unit.setUnitFightPosition(null);
-                unit.setUnitFightEffect(Map.of());
+                unit.setUnitFightEffect(List.of(new UnitEffect()));
                 unit.setActionEnd(false);
                 unit.setAbilityId(null);
                 unit.setStatus(Status.ACTIVE);

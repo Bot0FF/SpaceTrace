@@ -3,7 +3,10 @@ package org.bot0ff.util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.bot0ff.dto.*;
+import org.bot0ff.model.FightResponse;
+import org.bot0ff.model.InfoResponse;
+import org.bot0ff.model.MainResponse;
+import org.bot0ff.model.NavigateResponse;
 
 public class JsonProcessor {
     private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());

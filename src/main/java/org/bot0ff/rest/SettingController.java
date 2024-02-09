@@ -2,8 +2,8 @@ package org.bot0ff.rest;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bot0ff.dto.InfoResponse;
-import org.bot0ff.dto.auth.SettingRequest;
+import org.bot0ff.model.InfoResponse;
+import org.bot0ff.model.auth.SettingRequest;
 import org.bot0ff.entity.Unit;
 import org.bot0ff.repository.LocationRepository;
 import org.bot0ff.repository.UnitRepository;

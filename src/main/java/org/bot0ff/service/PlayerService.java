@@ -2,8 +2,8 @@ package org.bot0ff.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bot0ff.dto.InfoResponse;
-import org.bot0ff.dto.MainResponse;
+import org.bot0ff.model.InfoResponse;
+import org.bot0ff.model.MainResponse;
 import org.bot0ff.entity.unit.UnitArmor;
 import org.bot0ff.entity.Location;
 import org.bot0ff.entity.Thing;
@@ -187,7 +187,7 @@ public class PlayerService {
                         thing.getHp(),
                         thing.getMana(),
                         thing.getPhysDamage(),
-                        thing.getMagDamage(),
+                        thing.getMagDamageModifier(),
                         thing.getPhysDefense(),
                         thing.getMagDefense(),
                         thing.getDistance(),
@@ -206,7 +206,7 @@ public class PlayerService {
                         thing.getHp(),
                         thing.getMana(),
                         thing.getPhysDamage(),
-                        thing.getMagDamage(),
+                        thing.getMagDamageModifier(),
                         thing.getPhysDefense(),
                         thing.getMagDefense(),
                         thing.getDistance(),
@@ -225,7 +225,7 @@ public class PlayerService {
                         thing.getHp(),
                         thing.getMana(),
                         thing.getPhysDamage(),
-                        thing.getMagDamage(),
+                        thing.getMagDamageModifier(),
                         thing.getPhysDefense(),
                         thing.getMagDefense(),
                         thing.getDistance(),
@@ -244,7 +244,7 @@ public class PlayerService {
                         thing.getHp(),
                         thing.getMana(),
                         thing.getPhysDamage(),
-                        thing.getMagDamage(),
+                        thing.getMagDamageModifier(),
                         thing.getPhysDefense(),
                         thing.getMagDefense(),
                         thing.getDistance(),
@@ -263,7 +263,7 @@ public class PlayerService {
                         thing.getHp(),
                         thing.getMana(),
                         thing.getPhysDamage(),
-                        thing.getMagDamage(),
+                        thing.getMagDamageModifier(),
                         thing.getPhysDefense(),
                         thing.getMagDefense(),
                         thing.getDistance(),

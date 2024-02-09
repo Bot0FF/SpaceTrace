@@ -43,10 +43,15 @@ public class Thing {
     private int mana;
 
     @Column(name = "physDamage")
-    private double physDamage;
+    private int physDamage;
 
+    //для магического умения
     @Column(name = "magDamage")
-    private double magDamage;
+    private int magDamage;
+
+    //для магического оружия
+    @Column(name = "magDamageModifier")
+    private double magDamageModifier;
 
     @Column(name = "physDefense")
     private int physDefense;

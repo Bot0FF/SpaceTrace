@@ -66,7 +66,7 @@ public class EntityGenerator {
                 //сражение
                 null,
                 null,
-                Map.of(0L, new UnitEffect()),
+                List.of(new UnitEffect()),
                 null,
                 null,
                 null
@@ -91,6 +91,7 @@ public class EntityGenerator {
                 subject.getMana(),
                 subject.getPhysDamage(),
                 subject.getMagDamage(),
+                subject.getMagDamageModifier(),
                 subject.getPhysDefense(),
                 subject.getMagDefense(),
                 subject.getVitality(),

@@ -114,12 +114,12 @@ with data(id, name, subject_type, status, action_end,
             1, 1, 1, 1, 1, 0,
             '{"oneHand": 0, "twoHand": 0, "bow": 0, "fire": 0, "water": 0, "land": 0, "air": 0, "vitality": 0, "spirituality": 0, "regeneration": 0, "meditation": 0, "block": 0, "evade": 0}',
             ARRAY[]::integer[], ARRAY[]::integer[],
-            '{"id": "", "name": "", "applyType": "", "hp": "", "mana": "", "physDamage": "", "magDamage": "", "physDefense": "", "magDefense": "", "distance": "", "duration": ""}',
-            '{"id": "", "name": "", "applyType": "", "hp": "", "mana": "", "physDamage": "", "magDamage": "", "physDefense": "", "magDefense": "", "distance": "", "duration": ""}',
-            '{"id": "", "name": "", "applyType": "", "hp": "", "mana": "", "physDamage": "", "magDamage": "", "physDefense": "", "magDefense": "", "distance": "", "duration": ""}',
-            '{"id": "", "name": "", "applyType": "", "hp": "", "mana": "", "physDamage": "", "magDamage": "", "physDefense": "", "magDefense": "", "distance": "", "duration": ""}',
-            '{"id": "", "name": "", "applyType": "", "hp": "", "mana": "", "physDamage": "", "magDamage": "", "physDefense": "", "magDefense": "", "distance": "", "duration": ""}',
-            '{"0": {"effectHp": 0, "durationEffectHp": 0, "effectMana": 0, "durationEffectMana" : 0, "effectDamage": 0, "durationEffectDamage": 0, "effectDefense": 0, "durationEffectDefense": 0}}')
+            '{"id": "", "name": "", "applyType": "", "hp": "", "mana": "", "physDamage": "", "magDamageModifier": "", "physDefense": "", "magDefense": "", "distance": "", "duration": ""}',
+            '{"id": "", "name": "", "applyType": "", "hp": "", "mana": "", "physDamage": "", "magDamageModifier": "", "physDefense": "", "magDefense": "", "distance": "", "duration": ""}',
+            '{"id": "", "name": "", "applyType": "", "hp": "", "mana": "", "physDamage": "", "magDamageModifier": "", "physDefense": "", "magDefense": "", "distance": "", "duration": ""}',
+            '{"id": "", "name": "", "applyType": "", "hp": "", "mana": "", "physDamage": "", "magDamageModifier": "", "physDefense": "", "magDefense": "", "distance": "", "duration": ""}',
+            '{"id": "", "name": "", "applyType": "", "hp": "", "mana": "", "physDamage": "", "magDamageModifier": "", "physDefense": "", "magDefense": "", "distance": "", "duration": ""}',
+            '[{"id": 0, "effectHp": 0, "durationEffectHp": 0, "effectMana": 0, "durationEffectMana" : 0, "effectPhysDamage": 0, "durationEffectPhysDamage": 0, "effectMagDamageModifier": 0, "durationEffectMagDamage": 0, "effectPhysDefense": 0, "durationEffectPhysDefense": 0, "effectMagDefense": 0, "durationEffectMagDefense": 0}]')
 )
 insert into unit (id, name, subject_type, status, action_end,
             location_id,
@@ -145,25 +145,25 @@ where not exists (select 1
 --subject
 with data(id, name,
             subject_type, apply_type, hit_type, range_type,
-            hp, mana, phys_damage, mag_damage, phys_defense, mag_defense,
+            hp, mana, phys_damage, mag_damage, mag_damage_modifier, phys_defense, mag_defense,
             vitality, spirituality, regeneration, meditation, evade, block,
             distance, action_point, duration, description)
    as (values
         (1, 'Одноручный меч',
         'WEAPON', 'ONE_HAND', 'NONE', 'ONE',
-        0, 0, 0, 0, 0, 0,
+        0, 10, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0,
         1, 2, 100, 'Простой одноручный меч')
 
 )
 insert into subject (id, name,
                         subject_type, apply_type, hit_type, range_type,
-                        hp, mana, phys_damage, mag_damage, phys_defense, mag_defense,
+                        hp, mana, phys_damage, mag_damage, mag_damage_modifier, phys_defense, mag_defense,
                         vitality, spirituality, regeneration, meditation, evade, block,
                         distance, action_point, duration, description)
 select d.id, d.name,
             d.subject_type, d.apply_type, d.hit_type, d.range_type,
-            d.hp, d.mana, d.phys_damage, d.mag_damage, d.phys_defense, d.mag_defense,
+            d.hp, d.mana, d.phys_damage, d.mag_damage, d.mag_damage_modifier, d.phys_defense, d.mag_defense,
             d.vitality, d.spirituality, d.regeneration, d.meditation, d.evade, d.block,
             d.distance, d.action_point, d.duration, d.description
 from data d

@@ -1,4 +1,4 @@
-package org.bot0ff.dto;
+package org.bot0ff.model;
 
 import lombok.Data;
 import org.bot0ff.entity.Fight;

@@ -1,4 +1,4 @@
-package org.bot0ff.dto.auth;
+package org.bot0ff.model.auth;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
