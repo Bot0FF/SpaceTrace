@@ -4,6 +4,8 @@ import lombok.Data;
 import org.bot0ff.dto.UnitDto;
 import org.bot0ff.entity.Location;
 
+/** Класс ответа, с информацией об игроке, локации */
+
 @Data
 public class MainResponse {
     private UnitDto player;

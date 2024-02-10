@@ -1,5 +1,6 @@
 package org.bot0ff.util.converter;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,6 +16,7 @@ public class UnitJsonSubjectToSkillConverter implements AttributeConverter<UnitS
 
     @Override
     public String convertToDatabaseColumn(UnitSkill unitSkill) {
+        if(unitSkill == null) return null;
         try {
             return objectMapper.writeValueAsString(unitSkill);
         } catch (JsonProcessingException e) {
@@ -24,6 +26,7 @@ public class UnitJsonSubjectToSkillConverter implements AttributeConverter<UnitS
 
     @Override
     public UnitSkill convertToEntityAttribute(String unitSkill) {
+        if(unitSkill == null) return null;
         try {
             return objectMapper.readValue(unitSkill, UnitSkill.class);
         } catch (JsonProcessingException e) {

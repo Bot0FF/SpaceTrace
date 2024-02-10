@@ -24,6 +24,13 @@ public class MainController {
         return ResponseEntity.ok(response);
     }
 
+    //страница профиля
+    @GetMapping("/profile")
+    public ResponseEntity<?> profilePage() {
+        var response = profileService.getUnitProfileState("user");
+        return ResponseEntity.ok(response);
+    }
+
     //смена локации
     @GetMapping("/move")
     public ResponseEntity<?> movePlayer(@RequestParam String direction) {

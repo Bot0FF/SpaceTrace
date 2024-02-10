@@ -106,7 +106,7 @@ public class FightHandler {
         List<Unit> unitList = optionalFight.get().getUnits();
 
         //конвертируем участников в UnitDto
-        List<UnitDto> units = new ArrayList<>(unitList.stream().map((unit -> dtoConverter.unitToUnitDtoFight(unit))).toList());
+        List<UnitDto> units = new ArrayList<>(unitList.stream().map((unit -> dtoConverter.unitToUnitDto(unit))).toList());
 
         //сортируем unit в порядке убывания инициативы
         units.sort(Comparator.comparingLong(UnitDto::getInitiative));

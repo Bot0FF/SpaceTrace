@@ -9,32 +9,18 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/** Конвертирует Unit в UnitDto и наоборот, для сохранения в БД */
+
 public class DtoConverter {
 
-    //конструктор для MainResponse
-    public UnitDto unitToUnitDtoMain(Unit unit) {
+    public UnitDto unitToUnitDto(Unit unit) {
         return new UnitDto(
                 unit.getId(),
                 unit.getName(),
                 unit.getSubjectType(),
                 unit.getStatus(),
                 unit.isActionEnd(),
-                unit.getHp(),
-                getMaxHp(unit),
-                unit.getMana(),
-                getMaxMana(unit),
-                unit.getBonusPoint()
-        );
-    }
-
-    //конструктор для FightResponse
-    public UnitDto unitToUnitDtoFight(Unit unit) {
-        return new UnitDto(
-                unit.getId(),
-                unit.getName(),
-                unit.getSubjectType(),
-                unit.getStatus(),
-                unit.isActionEnd(),
+                unit.getLocationId(),
                 unit.getHp(),
                 getMaxHp(unit),
                 unit.getMana(),
@@ -44,10 +30,18 @@ public class DtoConverter {
                 getPhysDefense(unit),
                 getMagDefense(unit),
                 getInitiative(unit),
+                getRegeneration(unit),
+                getMeditation(unit),
                 getChanceBlock(unit),
                 getChanceEvade(unit),
                 unit.getPointAction(),
                 unit.getMaxPointAction(),
+                unit.getStrength(),
+                unit.getIntelligence(),
+                unit.getDexterity(),
+                unit.getEndurance(),
+                unit.getLuck(),
+                unit.getBonusPoint(),
                 unit.getUnitSkill(),
                 unit.getCurrentAbility(),
                 unit.getAllAbility(),
@@ -65,6 +59,7 @@ public class DtoConverter {
         );
     }
 
+    //конвертирует UnitDto в Unit для сохранения в БД
     public Unit unitDtoToUnit(UnitDto unit) {
         return new Unit(
                 unit.getId(),
@@ -104,7 +99,7 @@ public class DtoConverter {
     //полный физический урон
     private int getPhysDamage(Unit unit) {
         int fullPhysDamage = 0;
-        if(unit.getWeapon().getApplyType() == null) return 1;
+        if(unit.getWeapon() == null) return 1;
         switch (unit.getWeapon().getApplyType()) {
             case "ONE_HAND" -> {
                 double physDamageModifier = (((unit.getStrength() * 1.0) / 100) + 1) + (((unit.getLuck() * 1.0) / 100) + 0.10);
@@ -143,8 +138,10 @@ public class DtoConverter {
             }
         }
         //прибавляем к базовому урону эффекты боя, если есть
-        for(UnitEffect effect : unit.getUnitFightEffect()) {
-            fullPhysDamage += effect.getEffectPhysDamage();
+        if(unit.getUnitFightEffect() != null) {
+            for (UnitEffect effect : unit.getUnitFightEffect()) {
+                fullPhysDamage += effect.getEffectPhysDamage();
+            }
         }
         return fullPhysDamage;
     }
@@ -175,8 +172,10 @@ public class DtoConverter {
             fullHp += unit.getLeg().getHp();
         }
         //прибавляем к максимальному здоровью эффекты боя, если есть
-        for(UnitEffect effect : unit.getUnitFightEffect()) {
-            fullHp += effect.getEffectHp();
+        if(unit.getUnitFightEffect() != null) {
+            for (UnitEffect effect : unit.getUnitFightEffect()) {
+                fullHp += effect.getEffectHp();
+            }
         }
         return fullHp;
     }
@@ -202,8 +201,10 @@ public class DtoConverter {
             fullMana += unit.getLeg().getMana();
         }
         //прибавляем к максимальному здоровью эффекты боя, если есть
-        for(UnitEffect effect : unit.getUnitFightEffect()) {
-            fullMana += effect.getEffectMana();
+        if(unit.getUnitFightEffect() != null) {
+            for (UnitEffect effect : unit.getUnitFightEffect()) {
+                fullMana += effect.getEffectMana();
+            }
         }
         return fullMana;
     }
@@ -229,8 +230,10 @@ public class DtoConverter {
             fullDefense += unit.getLeg().getPhysDefense();
         }
         //прибавляем к максимальному здоровью эффекты боя, если есть
-        for(UnitEffect effect : unit.getUnitFightEffect()) {
-            fullDefense += effect.getDurationEffectPhysDefense();
+        if(unit.getUnitFightEffect() != null) {
+            for (UnitEffect effect : unit.getUnitFightEffect()) {
+                fullDefense += effect.getDurationEffectPhysDefense();
+            }
         }
         return fullDefense;
     }
@@ -256,8 +259,10 @@ public class DtoConverter {
             fullDefense += unit.getLeg().getMagDefense();
         }
         //прибавляем к максимальному здоровью эффекты боя, если есть
-        for(UnitEffect effect : unit.getUnitFightEffect()) {
-            fullDefense += effect.getEffectMagDefense();
+        if(unit.getUnitFightEffect() != null) {
+            for (UnitEffect effect : unit.getUnitFightEffect()) {
+                fullDefense += effect.getEffectMagDefense();
+            }
         }
         return fullDefense;
     }

@@ -104,39 +104,28 @@ with data(id, name, subject_type, status, action_end,
             hp, mana, point_action, max_point_action,
             strength, intelligence, dexterity, endurance, luck, bonus_point,
             unit_skill,
-            current_ability, all_ability,
-            weapon, head, hand, body, leg,
-            unit_fight_effect)
+            current_ability, all_ability)
    as (values
         (1, 'user', 'USER', 'ACTIVE', false,
             22,
             10, 10, 4, 4,
             1, 1, 1, 1, 1, 0,
             '{"oneHand": 0, "twoHand": 0, "bow": 0, "fire": 0, "water": 0, "land": 0, "air": 0, "vitality": 0, "spirituality": 0, "regeneration": 0, "meditation": 0, "block": 0, "evade": 0}',
-            ARRAY[]::integer[], ARRAY[]::integer[],
-            '{"id": "", "name": "", "applyType": "", "hp": "", "mana": "", "physDamage": "", "magDamageModifier": "", "physDefense": "", "magDefense": "", "distance": "", "duration": ""}',
-            '{"id": "", "name": "", "applyType": "", "hp": "", "mana": "", "physDamage": "", "magDamageModifier": "", "physDefense": "", "magDefense": "", "distance": "", "duration": ""}',
-            '{"id": "", "name": "", "applyType": "", "hp": "", "mana": "", "physDamage": "", "magDamageModifier": "", "physDefense": "", "magDefense": "", "distance": "", "duration": ""}',
-            '{"id": "", "name": "", "applyType": "", "hp": "", "mana": "", "physDamage": "", "magDamageModifier": "", "physDefense": "", "magDefense": "", "distance": "", "duration": ""}',
-            '{"id": "", "name": "", "applyType": "", "hp": "", "mana": "", "physDamage": "", "magDamageModifier": "", "physDefense": "", "magDefense": "", "distance": "", "duration": ""}',
-            '[{"id": 0, "effectHp": 0, "durationEffectHp": 0, "effectMana": 0, "durationEffectMana" : 0, "effectPhysDamage": 0, "durationEffectPhysDamage": 0, "effectMagDamageModifier": 0, "durationEffectMagDamage": 0, "effectPhysDefense": 0, "durationEffectPhysDefense": 0, "effectMagDefense": 0, "durationEffectMagDefense": 0}]')
+            ARRAY[]::integer[], ARRAY[]::integer[]
+)
 )
 insert into unit (id, name, subject_type, status, action_end,
             location_id,
             hp, mana, point_action, max_point_action,
             strength, intelligence, dexterity, endurance, luck, bonus_point,
             unit_skill,
-            current_ability, all_ability,
-            weapon, head, hand, body, leg,
-            unit_fight_effect)
+            current_ability, all_ability)
 select d.id, d.name, d.subject_type, d.status, d.action_end,
             d.location_id,
             d.hp, d.mana, d.point_action, d.max_point_action,
             d.strength, d.intelligence, d.dexterity, d.endurance, d.luck, d.bonus_point,
             d.unit_skill,
-            d.current_ability, d.all_ability,
-            d.weapon, d.head, d.hand, d.body, d.leg,
-            d.unit_fight_effect
+            d.current_ability, d.all_ability
 from data d
 where not exists (select 1
                   from unit u2

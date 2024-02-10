@@ -2,19 +2,29 @@ package org.bot0ff.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bot0ff.entity.enums.Status;
 import org.bot0ff.model.InfoResponse;
 import org.bot0ff.entity.unit.UnitArmor;
 import org.bot0ff.entity.Location;
 import org.bot0ff.entity.Thing;
 import org.bot0ff.entity.Unit;
+import org.bot0ff.model.MainResponse;
 import org.bot0ff.repository.LocationRepository;
 import org.bot0ff.repository.ThingRepository;
 import org.bot0ff.repository.UnitRepository;
 import org.bot0ff.util.JsonProcessor;
+import org.bot0ff.util.converter.DtoConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
+/** Обрабатывает запросы для страниц:
+ * - Информация об игроке (profile)
+ * - Список вещей в инвентаре и взаимодействие с ними (profile/inventory)
+ * - Распределение аттрибутов (profile/attribute)
+ * - Уровень навыков (profile/skill)
+ * - Список и выбор умений (profile/ability) */
 
 @Slf4j
 @Service
@@ -24,7 +34,33 @@ public class ProfileService {
     private final LocationRepository locationRepository;
     private final ThingRepository thingRepository;
 
+    private final DtoConverter dtoConverter;
     private final JsonProcessor jsonProcessor;
+
+    //страница профиля
+    @Transactional
+    public String getUnitProfileState(String name) {
+        var optionalPlayer = unitRepository.findByName(name);
+        if(optionalPlayer.isEmpty()) {
+            var response = jsonProcessor
+                    .toJsonInfo(new InfoResponse("Игрок не найден"));
+            log.info("Не найден player в БД по запросу username: {}", name);
+            return response;
+        }
+        Unit player = optionalPlayer.get();
+
+        var optionalLocation = locationRepository.findById(player.getLocationId());
+        if(optionalLocation.isEmpty()) {
+            var response = jsonProcessor
+                    .toJsonInfo(new InfoResponse("Локация не найдена"));
+            log.info("Не найдена location в БД по запросу locationId: {}", optionalPlayer.get().getLocationId());
+            return response;
+        }
+        Location location = optionalLocation.get();
+
+        return jsonProcessor
+                .toJsonMain(new MainResponse(dtoConverter.unitToUnitDto(player), location, null));
+    }
 
     //добавляет вещь в инвентарь с локации
     @Transactional

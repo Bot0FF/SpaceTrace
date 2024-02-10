@@ -8,6 +8,8 @@ import org.bot0ff.entity.Unit;
 import java.util.ArrayList;
 import java.util.List;
 
+/** Класс ответа, с информацией об игроке, сражении */
+
 @Data
 public class FightResponse {
     private UnitDto player;

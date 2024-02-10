@@ -60,20 +60,19 @@ public class MainService {
         //если у unit статус WIN или LOSS, показываем результат сражения и меняем статус на ACTIVE
         if(player.getStatus().equals(Status.WIN)) {
             var response = jsonProcessor
-                    .toJsonMain(new MainResponse(dtoConverter.unitToUnitDtoMain(player), location, "Победа!"));
+                    .toJsonMain(new MainResponse(dtoConverter.unitToUnitDto(player), location, "Победа!"));
             unitRepository.setStatus(Status.ACTIVE.name(), player.getId());
             return response;
         }
         if(player.getStatus().equals(Status.LOSS)) {
             var response = jsonProcessor
-                    .toJsonMain(new MainResponse(dtoConverter.unitToUnitDtoMain(player), location, "Поражение..."));
+                    .toJsonMain(new MainResponse(dtoConverter.unitToUnitDto(player), location, "Поражение..."));
             unitRepository.setStatus(Status.ACTIVE.name(), player.getId());
             return response;
         }
 
-
         return jsonProcessor
-                .toJsonMain(new MainResponse(dtoConverter.unitToUnitDtoMain(player), location, null));
+                .toJsonMain(new MainResponse(dtoConverter.unitToUnitDto(player), location, null));
     }
 
     //смена локации unit
@@ -148,7 +147,7 @@ public class MainService {
         unitRepository.save(player);
 
         return jsonProcessor
-                .toJsonMain(new MainResponse(dtoConverter.unitToUnitDtoMain(player), newLocation, "Ты перешел на локацию: " + optionalNewLocation.get().getName()));
+                .toJsonMain(new MainResponse(dtoConverter.unitToUnitDto(player), newLocation, "Ты перешел на локацию: " + optionalNewLocation.get().getName()));
     }
 
     //список ais на локации

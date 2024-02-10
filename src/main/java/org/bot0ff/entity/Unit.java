@@ -1,6 +1,8 @@
 package org.bot0ff.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,35 +18,28 @@ import org.bot0ff.util.converter.UnitJsonSubjectToEffectConverter;
 import org.bot0ff.util.converter.UnitJsonSubjectToSkillConverter;
 
 import java.util.List;
-import java.util.Map;
 
 @Entity
 @Table(name = "unit")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class Unit {
     //общее
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonIgnore
     private Long id;
 
     @Column(name = "name")
-    @JsonIgnore
     private String name;
 
     @Enumerated(value = EnumType.STRING)
-    @JsonIgnore
     private SubjectType subjectType;
 
     @Enumerated(value = EnumType.STRING)
-    @JsonIgnore
     private Status status;
 
     @Column(name = "actionEnd")
-    @JsonIgnore
     private boolean actionEnd;
 
     /** локация */
@@ -55,11 +50,9 @@ public class Unit {
     /** основные характеристики */
     //здоровье
     @Column(name = "hp")
-    @JsonIgnore
     private int hp;
 
     @Column(name = "mana")
-    @JsonIgnore
     private int mana;
 
     //очки действия
