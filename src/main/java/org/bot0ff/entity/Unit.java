@@ -162,69 +162,39 @@ public class Unit {
 
     //максимальное здоровье:
     public int getMaxHp() {
-        double maxHpModifier = (((strength * 10.0) / 100) + 0.30) + (((luck * 3.0) / 100) + 0.10) + (((endurance * 15.0) / 100) + 0.10);
-        //устанавливаем модификаторы прибавки здоровья от каждого вида экипировки, начальное значение зависит о навыка
-        int fullHp = (int) Math.round(maxHpModifier * 10);
-        if(weapon != null && weapon.getDuration() > 0) {
-            fullHp += weapon.getHp();
-        }
-        if(head != null && head.getDuration() > 0) {
-            fullHp += head.getHp();
-        }
-        if(hand != null && hand.getDuration() > 0) {
-            fullHp += hand.getHp();
-        }
-        if(body != null && body.getDuration() > 0) {
-            fullHp += body.getHp();
-        }
-        if(leg != null && leg.getDuration() > 0) {
-            fullHp += leg.getHp();
-        }
+        int maxHp = (strength * 2) + (luck) + (endurance * 3) + (intelligence);
+        if(weapon == null | head == null | hand == null | body == null | leg == null) return maxHp;
+        maxHp = maxHp + weapon.getHp() + head.getHp() + hand.getHp() + body.getHp() + leg.getHp();
         //прибавляем к максимальному здоровью эффекты боя, если есть
         if(unitFightEffect != null) {
             for (UnitEffect effect : unitFightEffect) {
-                fullHp += effect.getEffectHp();
+                maxHp += effect.getEffectHp();
             }
         }
-        return Math.max(fullHp, 0);
+        return Math.max(maxHp, 0);
     }
 
     //максимальная мана
     public int getMaxMana() {
-        double maxManaModifier = (((intelligence * 17.0) / 100) + 0.30) + (((luck * 3.0) / 100) + 0.10) + (((endurance * 5.0) / 100) + 0.10) + (((dexterity * 3.0) / 100) + 0.10);
-        //устанавливаем модификаторы прибавки здоровья от каждого вида экипировки, начальное значение зависит о навыка
-        int fullMana = (int) Math.round(maxManaModifier * 10);
-        if(weapon != null && weapon.getDuration() > 0) {
-            fullMana += weapon.getMana();
-        }
-        if(head != null && head.getDuration() > 0) {
-            fullMana += head.getMana();
-        }
-        if(hand != null && hand.getDuration() > 0) {
-            fullMana += hand.getMana();
-        }
-        if(body != null && body.getDuration() > 0) {
-            fullMana += body.getMana();
-        }
-        if(leg != null && leg.getDuration() > 0) {
-            fullMana += leg.getMana();
-        }
+        int maxMana = (intelligence * 3) + (luck) + (dexterity * 2) + (strength);
+        if(weapon == null | head == null | hand == null | body == null | leg == null) return maxMana;
+        maxMana = maxMana + weapon.getMana() + head.getMana() + hand.getMana() + body.getMana() + leg.getMana();
         //прибавляем к максимальному здоровью эффекты боя, если есть
         if(unitFightEffect != null) {
             for (UnitEffect effect : unitFightEffect) {
-                fullMana += effect.getEffectMana();
+                maxMana += effect.getEffectMana();
             }
         }
-        return Math.max(fullMana, 0);
+        return Math.max(maxMana, 0);
     }
 
-    //полный физический урон
+    //модификатор физического урона
     public int getPhysDamage() {
         int fullPhysDamage = 0;
-        if(weapon == null || weapon.getApplyType() == null) return 1;
+        if(weapon == null) return (int) (strength * (getSkillLevel(unitSkill.getOneHand()) * 1.0 / 100));
         switch (weapon.getApplyType()) {
             case "ONE_HAND" -> {
-                double physDamageModifier = (((strength * 1.0) / 100) + 1) + (((luck * 1.0) / 100) + 0.10);
+                double physDamageModifier = (((strength * 5.0) / 100) + 1) + (((luck * 0.9) / 100) + 0.10);
                 physDamageModifier += (getSkillLevel(unitSkill.getOneHand()) * 1.0 / 100);
                 fullPhysDamage = (int) Math.round(physDamageModifier * (weapon.getPhysDamage() + 1));
             }
@@ -277,78 +247,49 @@ public class Unit {
 
     //физическая защита
     public int getPhysDefense() {
-        double defenseModifier = (((strength * 15.0) / 100) + 0.30) + (((luck * 5.0) / 100) + 0.10) + (((endurance * 5.0) / 100) + 0.10) + (((dexterity * 2.0) / 100) + 0.10);
-        //устанавливаем модификаторы прибавки здоровья от каждого вида экипировки, начальное значение зависит о навыка
-        int fullDefense = (int) Math.round(defenseModifier * 10);
-        if(weapon != null && weapon.getDuration() > 0) {
-            fullDefense += weapon.getPhysDefense();
-        }
-        if(head != null && head.getDuration() > 0) {
-            fullDefense += head.getPhysDefense();
-        }
-        if(hand != null && hand.getDuration() > 0) {
-            fullDefense += hand.getPhysDefense();
-        }
-        if(body != null && body.getDuration() > 0) {
-            fullDefense += body.getPhysDefense();
-        }
-        if(leg != null && leg.getDuration() > 0) {
-            fullDefense += leg.getPhysDefense();
-        }
+        int physDefense = (strength * 4) + (luck) + (endurance * 2) + (dexterity);
+        if(weapon == null | head == null | hand == null | body == null | leg == null) return physDefense;
+        physDefense = physDefense + weapon.getPhysDefense() + head.getPhysDefense() + hand.getPhysDefense() + body.getPhysDefense() + leg.getPhysDefense();
         //прибавляем к максимальному здоровью эффекты боя, если есть
         if(unitFightEffect != null) {
             for (UnitEffect effect : unitFightEffect) {
-                fullDefense += effect.getDurationEffectPhysDefense();
+                physDefense += effect.getDurationEffectPhysDefense();
             }
         }
-        return Math.max(fullDefense, 0);
+        return Math.max(physDefense, 0);
     }
 
     //магическая защита
     public int getMagDefense() {
+        int magDefense = (intelligence * 5) + (luck) + (endurance) + (dexterity * 2);
+        if(weapon == null | head == null | hand == null | body == null | leg == null) return magDefense;
+        magDefense = magDefense + weapon.getMagDefense() + head.getMagDefense() + hand.getMagDefense() + body.getMagDefense() + leg.getMagDefense();
         double defenseModifier = (((intelligence * 15.0) / 100) + 0.30) + (((luck * 5.0) / 100) + 0.10) + (((endurance * 5.0) / 100) + 0.10) + (((dexterity * 2.0) / 100) + 0.10);
-        //устанавливаем модификаторы прибавки здоровья от каждого вида экипировки, начальное значение зависит о навыка
-        int fullDefense = (int) Math.round(defenseModifier * 10);
-        if(weapon != null && weapon.getDuration() > 0) {
-            fullDefense += weapon.getMagDefense();
-        }
-        if(head != null && head.getDuration() > 0) {
-            fullDefense += head.getMagDefense();
-        }
-        if(hand != null && hand.getDuration() > 0) {
-            fullDefense += hand.getMagDefense();
-        }
-        if(body != null && body.getDuration() > 0) {
-            fullDefense += body.getMagDefense();
-        }
-        if(leg != null && leg.getDuration() > 0) {
-            fullDefense += leg.getMagDefense();
-        }
         //прибавляем к максимальному здоровью эффекты боя, если есть
         if(unitFightEffect != null) {
             for (UnitEffect effect : unitFightEffect) {
-                fullDefense += effect.getEffectMagDefense();
+                magDefense += effect.getEffectMagDefense();
             }
         }
-        return Math.max(fullDefense, 0);
+        return Math.max(magDefense, 0);
     }
 
     //инициатива
     public int getInitiative() {
-        int initiativeModifier = (int) (((luck * 10.0) / 100) + 1.30);
+        int initiativeModifier = (luck * 2) + (dexterity * 3);
         int resultInitiative = getRNum30(initiativeModifier);
         return Math.max(resultInitiative, 0);
     }
 
     //скорость регенерации
     public int getRegeneration() {
-        double regenerationModifier = (((endurance * 10.0) / 100) + 0.30) + (getSkillLevel(unitSkill.getRegeneration()) * 1.0 / 100);
+        double regenerationModifier = (((endurance * 10.0) / 100) + 1) + (getSkillLevel(unitSkill.getRegeneration()) * 10.0 / 100);
         return (int) Math.round(regenerationModifier);
     }
 
     //скорость восстановления маны
     public int getMeditation() {
-        double meditationModifier = (((intelligence * 10.0) / 100) + 0.30) + (getSkillLevel(unitSkill.getMeditation()) * 1.0 / 100);
+        double meditationModifier = (((intelligence * 20.0) / 100) + 1) + (getSkillLevel(unitSkill.getSpirituality()) * 12.0 / 100);
         return (int) Math.round(meditationModifier);
     }
 

@@ -113,11 +113,11 @@ with data(id, name, subject_type, status, action_end,
             1, 1, 1, 1, 1, 0,
             '{"oneHand": 0, "twoHand": 0, "bow": 0, "fire": 0, "water": 0, "land": 0, "air": 0, "vitality": 0, "spirituality": 0, "regeneration": 0, "meditation": 0, "block": 0, "evade": 0}',
             ARRAY[]::integer[], ARRAY[]::integer[],
-            '{"id": "0", "name": "Пусто", "applyType": "NONE", "hp": "0", "mana": "0", "physDamage": "0", "magDamage": "0", "physDefense": "0", "magDefense": "0", "distance": "0", "duration": "0"}',
-            '{"id": "0", "name": "Пусто", "applyType": "NONE", "hp": "0", "mana": "0", "physDamage": "0", "magDamage": "0", "physDefense": "0", "magDefense": "0", "distance": "0", "duration": "0"}',
-            '{"id": "0", "name": "Пусто", "applyType": "NONE", "hp": "0", "mana": "0", "physDamage": "0", "magDamage": "0", "physDefense": "0", "magDefense": "0", "distance": "0", "duration": "0"}',
-            '{"id": "0", "name": "Пусто", "applyType": "NONE", "hp": "0", "mana": "0", "physDamage": "0", "magDamage": "0", "physDefense": "0", "magDefense": "0", "distance": "0", "duration": "0"}',
-            '{"id": "0", "name": "Пусто", "applyType": "NONE", "hp": "0", "mana": "0", "physDamage": "0", "magDamage": "0", "physDefense": "0", "magDefense": "0", "distance": "0", "duration": "0"}'
+            '{"id": "0", "name": "", "applyType": "", "hp": "0", "mana": "0", "physDamage": "0", "magDamage": "0", "physDefense": "0", "magDefense": "0", "distance": "0", "duration": "0"}',
+            '{"id": "0", "name": "", "applyType": "", "hp": "0", "mana": "0", "physDamage": "0", "magDamage": "0", "physDefense": "0", "magDefense": "0", "distance": "0", "duration": "0"}',
+            '{"id": "0", "name": "", "applyType": "", "hp": "0", "mana": "0", "physDamage": "0", "magDamage": "0", "physDefense": "0", "magDefense": "0", "distance": "0", "duration": "0"}',
+            '{"id": "0", "name": "", "applyType": "", "hp": "0", "mana": "0", "physDamage": "0", "magDamage": "0", "physDefense": "0", "magDefense": "0", "distance": "0", "duration": "0"}',
+            '{"id": "0", "name": "", "applyType": "", "hp": "0", "mana": "0", "physDamage": "0", "magDamage": "0", "physDefense": "0", "magDefense": "0", "distance": "0", "duration": "0"}'
 )
 )
 insert into unit (id, name, subject_type, status, action_end,

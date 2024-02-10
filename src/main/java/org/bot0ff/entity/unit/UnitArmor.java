@@ -21,8 +21,8 @@ public class UnitArmor {
 
     public UnitArmor() {
         this.id = 0L;
-        this.name = "Пусто";
-        this.applyType = "NONE";
+        this.name = "";
+        this.applyType = "";
         this.hp = 0;
         this.mana = 0;
         this.physDamage = 0;
