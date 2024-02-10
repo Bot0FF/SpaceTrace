@@ -100,7 +100,7 @@ public class EntityGenerator {
                 subject.getEvade(),
                 subject.getBlock(),
                 subject.getDistance(),
-                subject.getActionPoint(),
+                subject.getPointAction(),
                 subject.getDuration(),
                 subject.getDescription(),
                 false

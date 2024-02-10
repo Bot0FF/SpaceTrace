@@ -198,9 +198,9 @@ public class FightService {
         String moveDirection = "";
         switch (direction) {
             case "left" -> {
-                if(player.getUnitFightPosition() - 1 >= 1) {
+                if(player.getFightPosition() - 1 >= 1) {
                     player.setPointAction(player.getPointAction() - 1);
-                    player.setUnitFightPosition(player.getUnitFightPosition() - 1);
+                    player.setFightPosition(player.getFightPosition() - 1);
                     unitRepository.save(player);
                     moveDirection = " влево";
                 }
@@ -209,9 +209,9 @@ public class FightService {
                 }
             }
             case "right" -> {
-                if(player.getUnitFightPosition() + 1 <= 8) {
+                if(player.getFightPosition() + 1 <= 8) {
                     player.setPointAction(player.getPointAction() - 1);
-                    player.setUnitFightPosition(player.getUnitFightPosition() + 1);
+                    player.setFightPosition(player.getFightPosition() + 1);
                     unitRepository.save(player);
                     moveDirection = " вправо";
                 }
@@ -257,7 +257,7 @@ public class FightService {
                     .toJsonInfo(new InfoResponse("Ход уже сделан"));
         }
 
-        //уведомление при попытке использовать понижающие или атакующие умения на союзниках
+        //проверка наличия противника
         Optional<Unit> optionalTarget = fight.getUnits().stream().filter(unit -> unit.getId().equals(targetId)).findFirst();
         if(optionalTarget.isEmpty()) {
             log.info("Не найден противник в БД при атаке оружием - targetId: {}", targetId);
@@ -266,9 +266,16 @@ public class FightService {
         }
         Unit target = optionalTarget.get();
 
+        //уведомление при попытке атаковать союзника
         if(player.getTeamNumber().equals(target.getTeamNumber())) {
             return jsonProcessor
                     .toJsonInfo(new InfoResponse("Нельзя атаковать союзников"));
+        }
+
+        //проверка достаточности очков действия для нанесения удара
+        if(player.getPointAction() < player.getWeapon().getPointAction()) {
+            return jsonProcessor
+                    .toJsonInfo(new InfoResponse("Не хватает очков действия"));
         }
 
         //сохранение умения и цели, по которой произведено действие
@@ -356,13 +363,13 @@ public class FightService {
         //если на цели уже применено данное умение, возвращаем уведомление
         if(ability.getHitType().equals(HitType.BOOST)
                 | ability.getHitType().equals(HitType.LOWER)) {
-            if(target.getUnitFightEffect().stream().anyMatch(unitEffect -> unitEffect.getId().equals(abilityId))) {
+            if(target.getFightEffect().stream().anyMatch(unitEffect -> unitEffect.getId().equals(abilityId))) {
                 return jsonProcessor
                         .toJsonInfo(new InfoResponse("Умение уже применено"));
             }
         }
 
-        if(player.getPointAction() < ability.getActionPoint()) {
+        if(player.getPointAction() < ability.getPointAction()) {
             return jsonProcessor
                     .toJsonInfo(new InfoResponse("Не хватает очков действия"));
         }
@@ -423,8 +430,8 @@ public class FightService {
         unit.setAbilityId(0L);
         unit.setTargetId(0L);
         unit.setPointAction(unit.getMaxPointAction());
-        unit.setUnitFightPosition((long) randomUtil.getRandomFromTo(1, 8));
-        unit.setUnitFightEffect(List.of(new UnitEffect()));
+        unit.setFightPosition((long) randomUtil.getRandomFromTo(1, 8));
+        unit.setFightEffect(List.of(new UnitEffect()));
         unitRepository.save(unit);
     }
 
@@ -435,8 +442,8 @@ public class FightService {
         }
         unit.setActionEnd(false);
         unit.setFight(null);
-        unit.setUnitFightPosition(null);
-        unit.setUnitFightEffect(null);
+        unit.setFightPosition(null);
+        unit.setFightEffect(null);
         unit.setTeamNumber(null);
         unit.setAbilityId(null);
         unit.setTargetId(null);
@@ -457,8 +464,8 @@ public class FightService {
             }
             else {
                 unit.setHp(unit.getHp());
-                unit.setUnitFightPosition(null);
-                unit.setUnitFightEffect(null);
+                unit.setFightPosition(null);
+                unit.setFightEffect(null);
                 unit.setActionEnd(false);
                 unit.setAbilityId(null);
                 unit.setStatus(Status.ACTIVE);

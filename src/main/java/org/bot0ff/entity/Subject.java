@@ -87,8 +87,8 @@ public class Subject {
     private int distance;
 
     //требуемое количество очков действия
-    @Column(name = "actionPoint")
-    private Long actionPoint;
+    @Column(name = "pointAction")
+    private int pointAction;
 
     @Column(name = "duration")
     private int duration;

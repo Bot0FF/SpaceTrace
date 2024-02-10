@@ -51,8 +51,8 @@ public class DtoConverter {
                 unit.getBody(),
                 unit.getLeg(),
                 unit.getFight(),
-                unit.getUnitFightPosition(),
-                unit.getUnitFightEffect(),
+                unit.getFightPosition(),
+                unit.getFightEffect(),
                 unit.getTeamNumber(),
                 unit.getAbilityId(),
                 unit.getTargetId()
@@ -137,8 +137,8 @@ public class DtoConverter {
             }
         }
         //прибавляем к базовому урону эффекты боя, если есть
-        if(unit.getUnitFightEffect() != null) {
-            for (UnitEffect effect : unit.getUnitFightEffect()) {
+        if(unit.getFightEffect() != null) {
+            for (UnitEffect effect : unit.getFightEffect()) {
                 fullPhysDamage += effect.getEffectPhysDamage();
             }
         }
@@ -171,8 +171,8 @@ public class DtoConverter {
             fullHp += unit.getLeg().getHp();
         }
         //прибавляем к максимальному здоровью эффекты боя, если есть
-        if(unit.getUnitFightEffect() != null) {
-            for (UnitEffect effect : unit.getUnitFightEffect()) {
+        if(unit.getFightEffect() != null) {
+            for (UnitEffect effect : unit.getFightEffect()) {
                 fullHp += effect.getEffectHp();
             }
         }
@@ -200,8 +200,8 @@ public class DtoConverter {
             fullMana += unit.getLeg().getMana();
         }
         //прибавляем к максимальному здоровью эффекты боя, если есть
-        if(unit.getUnitFightEffect() != null) {
-            for (UnitEffect effect : unit.getUnitFightEffect()) {
+        if(unit.getFightEffect() != null) {
+            for (UnitEffect effect : unit.getFightEffect()) {
                 fullMana += effect.getEffectMana();
             }
         }
@@ -229,8 +229,8 @@ public class DtoConverter {
             fullDefense += unit.getLeg().getPhysDefense();
         }
         //прибавляем к максимальному здоровью эффекты боя, если есть
-        if(unit.getUnitFightEffect() != null) {
-            for (UnitEffect effect : unit.getUnitFightEffect()) {
+        if(unit.getFightEffect() != null) {
+            for (UnitEffect effect : unit.getFightEffect()) {
                 fullDefense += effect.getDurationEffectPhysDefense();
             }
         }
@@ -258,8 +258,8 @@ public class DtoConverter {
             fullDefense += unit.getLeg().getMagDefense();
         }
         //прибавляем к максимальному здоровью эффекты боя, если есть
-        if(unit.getUnitFightEffect() != null) {
-            for (UnitEffect effect : unit.getUnitFightEffect()) {
+        if(unit.getFightEffect() != null) {
+            for (UnitEffect effect : unit.getFightEffect()) {
                 fullDefense += effect.getEffectMagDefense();
             }
         }

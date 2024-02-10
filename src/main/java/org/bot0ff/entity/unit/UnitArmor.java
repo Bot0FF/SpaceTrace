@@ -16,6 +16,7 @@ public class UnitArmor {
     private double magDamageModifier;
     private int physDefense;
     private int magDefense;
+    private int pointAction;
     private int distance;
     private int duration;
 
@@ -30,6 +31,7 @@ public class UnitArmor {
         this.magDamageModifier = 0;
         this.physDefense = 0;
         this.magDefense = 0;
+        this.pointAction = 0;
         this.distance = 0;
         this.duration = 0;
     }

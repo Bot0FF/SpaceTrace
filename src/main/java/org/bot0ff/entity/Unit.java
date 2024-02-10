@@ -141,13 +141,13 @@ public class Unit {
     @JsonIgnore
     private Fight fight;
 
-    @Column(name = "unitFightPosition")
-    private Long unitFightPosition;
+    @Column(name = "fightPosition")
+    private Long fightPosition;
 
     @Convert(converter = UnitJsonSubjectToEffectConverter.class)
-    @Column(name = "unitFightEffect", length = 1024)
+    @Column(name = "fightEffect", length = 1024)
     @JsonIgnore
-    private List<UnitEffect> unitFightEffect;
+    private List<UnitEffect> fightEffect;
 
     @Column(name = "teamNumber")
     private Long teamNumber;
@@ -166,8 +166,8 @@ public class Unit {
         if(weapon == null | head == null | hand == null | body == null | leg == null) return maxHp;
         maxHp = maxHp + weapon.getHp() + head.getHp() + hand.getHp() + body.getHp() + leg.getHp();
         //прибавляем к максимальному здоровью эффекты боя, если есть
-        if(unitFightEffect != null) {
-            for (UnitEffect effect : unitFightEffect) {
+        if(fightEffect != null) {
+            for (UnitEffect effect : fightEffect) {
                 maxHp += effect.getEffectHp();
             }
         }
@@ -180,8 +180,8 @@ public class Unit {
         if(weapon == null | head == null | hand == null | body == null | leg == null) return maxMana;
         maxMana = maxMana + weapon.getMana() + head.getMana() + hand.getMana() + body.getMana() + leg.getMana();
         //прибавляем к максимальному здоровью эффекты боя, если есть
-        if(unitFightEffect != null) {
-            for (UnitEffect effect : unitFightEffect) {
+        if(fightEffect != null) {
+            for (UnitEffect effect : fightEffect) {
                 maxMana += effect.getEffectMana();
             }
         }
@@ -228,10 +228,11 @@ public class Unit {
                 physDamageModifier += (getSkillLevel(unitSkill.getAir()) * 1.0 / 100);
                 fullPhysDamage = (int) Math.round(physDamageModifier * (weapon.getPhysDamage() + 1));
             }
+            default -> fullPhysDamage = strength + dexterity + intelligence;
         }
         //прибавляем к базовому урону эффекты боя, если есть
-        if(unitFightEffect != null) {
-            for (UnitEffect effect : unitFightEffect) {
+        if(fightEffect != null) {
+            for (UnitEffect effect : fightEffect) {
                 fullPhysDamage += effect.getEffectPhysDamage();
             }
         }
@@ -251,8 +252,8 @@ public class Unit {
         if(weapon == null | head == null | hand == null | body == null | leg == null) return physDefense;
         physDefense = physDefense + weapon.getPhysDefense() + head.getPhysDefense() + hand.getPhysDefense() + body.getPhysDefense() + leg.getPhysDefense();
         //прибавляем к максимальному здоровью эффекты боя, если есть
-        if(unitFightEffect != null) {
-            for (UnitEffect effect : unitFightEffect) {
+        if(fightEffect != null) {
+            for (UnitEffect effect : fightEffect) {
                 physDefense += effect.getDurationEffectPhysDefense();
             }
         }
@@ -266,8 +267,8 @@ public class Unit {
         magDefense = magDefense + weapon.getMagDefense() + head.getMagDefense() + hand.getMagDefense() + body.getMagDefense() + leg.getMagDefense();
         double defenseModifier = (((intelligence * 15.0) / 100) + 0.30) + (((luck * 5.0) / 100) + 0.10) + (((endurance * 5.0) / 100) + 0.10) + (((dexterity * 2.0) / 100) + 0.10);
         //прибавляем к максимальному здоровью эффекты боя, если есть
-        if(unitFightEffect != null) {
-            for (UnitEffect effect : unitFightEffect) {
+        if(fightEffect != null) {
+            for (UnitEffect effect : fightEffect) {
                 magDefense += effect.getEffectMagDefense();
             }
         }

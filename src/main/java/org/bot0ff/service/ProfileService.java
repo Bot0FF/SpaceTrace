@@ -204,7 +204,7 @@ public class ProfileService {
         switch (thing.getApplyType()) {
             case ONE_HAND, TWO_HAND, BOW -> {
                 if(player.getWeapon().getId() != null) {
-                    takeOffExistThing(player.getWeapon().getId());
+                    takeOffExistThing(player.getWeapon());
                 }
                 player.setWeapon(new UnitArmor(
                         thing.getId(),
@@ -217,6 +217,7 @@ public class ProfileService {
                         thing.getMagDamageModifier(),
                         thing.getPhysDefense(),
                         thing.getMagDefense(),
+                        thing.getPointAction(),
                         thing.getDistance(),
                         thing.getDuration()
                 ));
@@ -224,7 +225,7 @@ public class ProfileService {
             }
             case HEAD -> {
                 if(player.getHead().getId() != null) {
-                    takeOffExistThing(player.getHead().getId());
+                    takeOffExistThing(player.getHead());
                 }
                 player.setHead(new UnitArmor(
                         thing.getId(),
@@ -237,6 +238,7 @@ public class ProfileService {
                         thing.getMagDamageModifier(),
                         thing.getPhysDefense(),
                         thing.getMagDefense(),
+                        thing.getPointAction(),
                         thing.getDistance(),
                         thing.getDuration()
                 ));
@@ -244,7 +246,7 @@ public class ProfileService {
             }
             case HAND -> {
                 if(player.getHand().getId() != null) {
-                    takeOffExistThing(player.getHand().getId());
+                    takeOffExistThing(player.getHand());
                 }
                 player.setHand(new UnitArmor(
                         thing.getId(),
@@ -257,6 +259,7 @@ public class ProfileService {
                         thing.getMagDamageModifier(),
                         thing.getPhysDefense(),
                         thing.getMagDefense(),
+                        thing.getPointAction(),
                         thing.getDistance(),
                         thing.getDuration()
                 ));
@@ -264,7 +267,7 @@ public class ProfileService {
             }
             case BODY -> {
                 if(player.getBody().getId() != null) {
-                    takeOffExistThing(player.getBody().getId());
+                    takeOffExistThing(player.getBody());
                 }
                 player.setBody(new UnitArmor(
                         thing.getId(),
@@ -277,6 +280,7 @@ public class ProfileService {
                         thing.getMagDamageModifier(),
                         thing.getPhysDefense(),
                         thing.getMagDefense(),
+                        thing.getPointAction(),
                         thing.getDistance(),
                         thing.getDuration()
                 ));
@@ -284,7 +288,7 @@ public class ProfileService {
             }
             case LEG -> {
                 if(player.getLeg().getId() != null) {
-                    takeOffExistThing(player.getLeg().getId());
+                    takeOffExistThing(player.getLeg());
                 }
                 player.setLeg(new UnitArmor(
                         thing.getId(),
@@ -297,6 +301,7 @@ public class ProfileService {
                         thing.getMagDamageModifier(),
                         thing.getPhysDefense(),
                         thing.getMagDefense(),
+                        thing.getPointAction(),
                         thing.getDistance(),
                         thing.getDuration()
                 ));
@@ -340,14 +345,33 @@ public class ProfileService {
         }
 
         switch (thing.getApplyType()) {
-            case ONE_HAND, TWO_HAND, BOW -> player.setWeapon(new UnitArmor());
-            case HEAD -> player.setHead(new UnitArmor());
-            case HAND -> player.setHand(new UnitArmor());
-            case BODY -> player.setBody(new UnitArmor());
-            case LEG -> player.setLeg(new UnitArmor());
+            case ONE_HAND, TWO_HAND, BOW -> {
+                player.setWeapon(new UnitArmor());
+                thing.setDuration(player.getWeapon().getDuration());
+                thing.setUse(false);
+            }
+            case HEAD -> {
+                player.setHead(new UnitArmor());
+                thing.setDuration(player.getHead().getDuration());
+                thing.setUse(false);
+            }
+            case HAND -> {
+                player.setHand(new UnitArmor());
+                thing.setDuration(player.getHand().getDuration());
+                thing.setUse(false);
+            }
+            case BODY -> {
+                player.setBody(new UnitArmor());
+                thing.setDuration(player.getBody().getDuration());
+                thing.setUse(false);
+            }
+            case LEG -> {
+                player.setLeg(new UnitArmor());
+                thing.setDuration(player.getLeg().getDuration());
+                thing.setUse(false);
+            }
         }
 
-        thing.setUse(false);
         unitRepository.save(player);
         thingRepository.save(thing);
 
@@ -375,14 +399,16 @@ public class ProfileService {
     }
 
     //снимает существующую вещь, перед надеванием другой
-    public void takeOffExistThing(Long existThingId) {
-        var optionalExistThing = thingRepository.findById(existThingId);
+    public void takeOffExistThing(UnitArmor existThing) {
+        var optionalExistThing = thingRepository.findById(existThing.getId());
         if(optionalExistThing.isEmpty()) {
-            log.info("Ошибка при поиске надетой вещи, existThingId: {}", existThingId);
+            log.info("Ошибка при поиске надетой вещи, existThingId: {}", existThing.getId());
             return;
         }
-        Thing existThing = optionalExistThing.get();
-        existThing.setUse(false);
-        thingRepository.save(existThing);
+        Thing thing = optionalExistThing.get();
+
+        thing.setDuration(existThing.getDuration());
+        thing.setUse(false);
+        thingRepository.save(thing);
     }
 }
