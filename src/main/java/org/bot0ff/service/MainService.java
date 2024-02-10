@@ -2,6 +2,7 @@ package org.bot0ff.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bot0ff.dto.UnitDto;
 import org.bot0ff.model.InfoResponse;
 import org.bot0ff.model.MainResponse;
 import org.bot0ff.entity.Location;
@@ -15,7 +16,6 @@ import org.bot0ff.service.fight.FightService;
 import org.bot0ff.service.generate.EntityGenerator;
 import org.bot0ff.util.JsonProcessor;
 import org.bot0ff.util.RandomUtil;
-import org.bot0ff.util.converter.DtoConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +30,6 @@ public class MainService {
     private final LocationRepository locationRepository;
     private final ThingRepository thingRepository;
 
-    private final DtoConverter dtoConverter;
     private final EntityGenerator entityGenerator;
     private final FightService fightService;
     private final JsonProcessor jsonProcessor;
@@ -60,19 +59,19 @@ public class MainService {
         //если у unit статус WIN или LOSS, показываем результат сражения и меняем статус на ACTIVE
         if(player.getStatus().equals(Status.WIN)) {
             var response = jsonProcessor
-                    .toJsonMain(new MainResponse(dtoConverter.unitToUnitDto(player), location, "Победа!"));
+                    .toJsonMain(new MainResponse(player, location, "Победа!"));
             unitRepository.setStatus(Status.ACTIVE.name(), player.getId());
             return response;
         }
         if(player.getStatus().equals(Status.LOSS)) {
             var response = jsonProcessor
-                    .toJsonMain(new MainResponse(dtoConverter.unitToUnitDto(player), location, "Поражение..."));
+                    .toJsonMain(new MainResponse(player, location, "Поражение..."));
             unitRepository.setStatus(Status.ACTIVE.name(), player.getId());
             return response;
         }
 
         return jsonProcessor
-                .toJsonMain(new MainResponse(dtoConverter.unitToUnitDto(player), location, null));
+                .toJsonMain(new MainResponse(player, location, null));
     }
 
     //смена локации unit
@@ -147,7 +146,7 @@ public class MainService {
         unitRepository.save(player);
 
         return jsonProcessor
-                .toJsonMain(new MainResponse(dtoConverter.unitToUnitDto(player), newLocation, "Ты перешел на локацию: " + optionalNewLocation.get().getName()));
+                .toJsonMain(new MainResponse(player, newLocation, "Ты перешел на локацию: " + optionalNewLocation.get().getName()));
     }
 
     //список ais на локации

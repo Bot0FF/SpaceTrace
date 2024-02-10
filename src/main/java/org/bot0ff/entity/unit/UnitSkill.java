@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
 public class UnitSkill {
     private int oneHand;
@@ -29,4 +28,20 @@ public class UnitSkill {
     private int block;
     //уклонение
     private int evade;
+
+    public UnitSkill() {
+        this.oneHand = 0;
+        this.twoHand = 0;
+        this.bow = 0;
+        this.fire = 0;
+        this.water = 0;
+        this.land = 0;
+        this.air = 0;
+        this.vitality = 0;
+        this.spirituality = 0;
+        this.regeneration = 0;
+        this.meditation = 0;
+        this.block = 0;
+        this.evade = 0;
+    }
 }

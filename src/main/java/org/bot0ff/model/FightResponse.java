@@ -12,7 +12,7 @@ import java.util.List;
 
 @Data
 public class FightResponse {
-    private UnitDto player;
+    private Unit player;
     private Fight fight;
     private List<Unit> teamOne;
     private List<Unit> teamTwo;
@@ -22,7 +22,7 @@ public class FightResponse {
     private String info;
     private int status;
 
-    public FightResponse(UnitDto player, Fight fight, String info) {
+    public FightResponse(Unit player, Fight fight, String info) {
         this.player = player;
         this.fight = fight;
         this.teamOne = new ArrayList<>();

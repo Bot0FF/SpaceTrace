@@ -95,11 +95,10 @@ public class DtoConverter {
         );
     }
 
-
     //полный физический урон
     private int getPhysDamage(Unit unit) {
         int fullPhysDamage = 0;
-        if(unit.getWeapon() == null) return 1;
+        if(unit.getWeapon() == null || unit.getWeapon().getApplyType() == null) return 1;
         switch (unit.getWeapon().getApplyType()) {
             case "ONE_HAND" -> {
                 double physDamageModifier = (((unit.getStrength() * 1.0) / 100) + 1) + (((unit.getLuck() * 1.0) / 100) + 0.10);

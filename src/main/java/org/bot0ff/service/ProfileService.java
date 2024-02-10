@@ -2,7 +2,6 @@ package org.bot0ff.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bot0ff.entity.enums.Status;
 import org.bot0ff.model.InfoResponse;
 import org.bot0ff.entity.unit.UnitArmor;
 import org.bot0ff.entity.Location;
@@ -13,7 +12,6 @@ import org.bot0ff.repository.LocationRepository;
 import org.bot0ff.repository.ThingRepository;
 import org.bot0ff.repository.UnitRepository;
 import org.bot0ff.util.JsonProcessor;
-import org.bot0ff.util.converter.DtoConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,7 +32,6 @@ public class ProfileService {
     private final LocationRepository locationRepository;
     private final ThingRepository thingRepository;
 
-    private final DtoConverter dtoConverter;
     private final JsonProcessor jsonProcessor;
 
     //страница профиля
@@ -59,7 +56,7 @@ public class ProfileService {
         Location location = optionalLocation.get();
 
         return jsonProcessor
-                .toJsonMain(new MainResponse(dtoConverter.unitToUnitDto(player), location, null));
+                .toJsonMain(new MainResponse(player, location, null));
     }
 
     //добавляет вещь в инвентарь с локации
@@ -216,6 +213,7 @@ public class ProfileService {
                         thing.getHp(),
                         thing.getMana(),
                         thing.getPhysDamage(),
+                        thing.getMagDamage(),
                         thing.getMagDamageModifier(),
                         thing.getPhysDefense(),
                         thing.getMagDefense(),
@@ -235,6 +233,7 @@ public class ProfileService {
                         thing.getHp(),
                         thing.getMana(),
                         thing.getPhysDamage(),
+                        thing.getMagDamage(),
                         thing.getMagDamageModifier(),
                         thing.getPhysDefense(),
                         thing.getMagDefense(),
@@ -254,6 +253,7 @@ public class ProfileService {
                         thing.getHp(),
                         thing.getMana(),
                         thing.getPhysDamage(),
+                        thing.getMagDamage(),
                         thing.getMagDamageModifier(),
                         thing.getPhysDefense(),
                         thing.getMagDefense(),
@@ -273,6 +273,7 @@ public class ProfileService {
                         thing.getHp(),
                         thing.getMana(),
                         thing.getPhysDamage(),
+                        thing.getMagDamage(),
                         thing.getMagDamageModifier(),
                         thing.getPhysDefense(),
                         thing.getMagDefense(),
@@ -292,6 +293,7 @@ public class ProfileService {
                         thing.getHp(),
                         thing.getMana(),
                         thing.getPhysDamage(),
+                        thing.getMagDamage(),
                         thing.getMagDamageModifier(),
                         thing.getPhysDefense(),
                         thing.getMagDefense(),

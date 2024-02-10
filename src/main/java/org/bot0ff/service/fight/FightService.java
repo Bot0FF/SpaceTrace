@@ -17,7 +17,6 @@ import org.bot0ff.service.generate.EntityGenerator;
 import org.bot0ff.util.Constants;
 import org.bot0ff.util.JsonProcessor;
 import org.bot0ff.util.RandomUtil;
-import org.bot0ff.util.converter.DtoConverter;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +33,6 @@ public class FightService {
     private final LocationRepository locationRepository;
     private final SubjectRepository subjectRepository;
 
-    private final DtoConverter dtoConverter;
     private final EntityGenerator entityGenerator;
     private final JsonProcessor jsonProcessor;
     private final RandomUtil randomUtil;
@@ -91,7 +89,7 @@ public class FightService {
                     setUnitFight(initiator, opponent.getFight(), 1L);
                 }
                 return jsonProcessor
-                        .toJsonFight(new FightResponse(dtoConverter.unitToUnitDto(initiator), opponent.getFight(), "Загрузка сражения..."));
+                        .toJsonFight(new FightResponse(initiator, opponent.getFight(), "Загрузка сражения..."));
             }
         }
 
@@ -107,11 +105,11 @@ public class FightService {
 
         //добавление нового сражения в map и запуск обработчика раундов
         FIGHT_MAP.put(newFightId, new FightHandler(
-                newFightId, unitRepository, fightRepository, subjectRepository, dtoConverter,  entityGenerator, randomUtil
+                newFightId, unitRepository, fightRepository, subjectRepository, entityGenerator, randomUtil
         ));
 
         return jsonProcessor
-                .toJsonFight(new FightResponse(dtoConverter.unitToUnitDto(initiator), newFight, "Загрузка сражения..."));
+                .toJsonFight(new FightResponse(initiator, newFight, "Загрузка сражения..."));
     }
 
     //текущее состояние сражения
@@ -152,7 +150,7 @@ public class FightService {
         fight.setEndRoundTimer(FIGHT_MAP.get(fight.getId()).getEndRoundTimer().toEpochMilli());
 
         return jsonProcessor
-                .toJsonFight(new FightResponse(dtoConverter.unitToUnitDto(player), fight, null));
+                .toJsonFight(new FightResponse(player, fight, null));
     }
 
     //перемещение по полю сражения
@@ -223,7 +221,7 @@ public class FightService {
             }
         }
         return jsonProcessor
-                .toJsonFight(new FightResponse(dtoConverter.unitToUnitDto(player), fight, player.getName() + " переместился " + moveDirection));
+                .toJsonFight(new FightResponse(player, fight, player.getName() + " переместился " + moveDirection));
     }
 
     //атака по выбранному противнику оружием
@@ -288,7 +286,7 @@ public class FightService {
         fight.setEndRoundTimer(FIGHT_MAP.get(fight.getId()).getEndRoundTimer().toEpochMilli());
 
         return jsonProcessor
-                .toJsonFight(new FightResponse(dtoConverter.unitToUnitDto(player), fight, player.getName() + " нанес удар оружием " + player.getWeapon().getName()));
+                .toJsonFight(new FightResponse(player, fight, player.getName() + " нанес удар оружием " + player.getWeapon().getName()));
     }
 
     //атака по выбранному противнику умением
@@ -384,7 +382,7 @@ public class FightService {
         fight.setEndRoundTimer(FIGHT_MAP.get(fight.getId()).getEndRoundTimer().toEpochMilli());
 
         return jsonProcessor
-                .toJsonFight(new FightResponse(dtoConverter.unitToUnitDto(player), fight, player.getName() + " применил умение " + ability.getName()));
+                .toJsonFight(new FightResponse(player, fight, player.getName() + " применил умение " + ability.getName()));
     }
 
     //возвращает умения unit

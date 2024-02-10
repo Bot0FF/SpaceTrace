@@ -104,14 +104,20 @@ with data(id, name, subject_type, status, action_end,
             hp, mana, point_action, max_point_action,
             strength, intelligence, dexterity, endurance, luck, bonus_point,
             unit_skill,
-            current_ability, all_ability)
+            current_ability, all_ability,
+            weapon, head, hand, body, leg)
    as (values
         (1, 'user', 'USER', 'ACTIVE', false,
             22,
             10, 10, 4, 4,
             1, 1, 1, 1, 1, 0,
             '{"oneHand": 0, "twoHand": 0, "bow": 0, "fire": 0, "water": 0, "land": 0, "air": 0, "vitality": 0, "spirituality": 0, "regeneration": 0, "meditation": 0, "block": 0, "evade": 0}',
-            ARRAY[]::integer[], ARRAY[]::integer[]
+            ARRAY[]::integer[], ARRAY[]::integer[],
+            '{"id": "0", "name": "Пусто", "applyType": "NONE", "hp": "0", "mana": "0", "physDamage": "0", "magDamage": "0", "physDefense": "0", "magDefense": "0", "distance": "0", "duration": "0"}',
+            '{"id": "0", "name": "Пусто", "applyType": "NONE", "hp": "0", "mana": "0", "physDamage": "0", "magDamage": "0", "physDefense": "0", "magDefense": "0", "distance": "0", "duration": "0"}',
+            '{"id": "0", "name": "Пусто", "applyType": "NONE", "hp": "0", "mana": "0", "physDamage": "0", "magDamage": "0", "physDefense": "0", "magDefense": "0", "distance": "0", "duration": "0"}',
+            '{"id": "0", "name": "Пусто", "applyType": "NONE", "hp": "0", "mana": "0", "physDamage": "0", "magDamage": "0", "physDefense": "0", "magDefense": "0", "distance": "0", "duration": "0"}',
+            '{"id": "0", "name": "Пусто", "applyType": "NONE", "hp": "0", "mana": "0", "physDamage": "0", "magDamage": "0", "physDefense": "0", "magDefense": "0", "distance": "0", "duration": "0"}'
 )
 )
 insert into unit (id, name, subject_type, status, action_end,
@@ -119,13 +125,15 @@ insert into unit (id, name, subject_type, status, action_end,
             hp, mana, point_action, max_point_action,
             strength, intelligence, dexterity, endurance, luck, bonus_point,
             unit_skill,
-            current_ability, all_ability)
+            current_ability, all_ability,
+            weapon, head, hand, body, leg)
 select d.id, d.name, d.subject_type, d.status, d.action_end,
             d.location_id,
             d.hp, d.mana, d.point_action, d.max_point_action,
             d.strength, d.intelligence, d.dexterity, d.endurance, d.luck, d.bonus_point,
             d.unit_skill,
-            d.current_ability, d.all_ability
+            d.current_ability, d.all_ability,
+            d.weapon, d.head, d.hand, d.body, d.leg
 from data d
 where not exists (select 1
                   from unit u2

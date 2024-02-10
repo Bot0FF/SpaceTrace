@@ -1,6 +1,5 @@
 package org.bot0ff.util.converter;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.AttributeConverter;
@@ -27,7 +26,7 @@ public class UnitJsonSubjectToArmorConverter implements AttributeConverter<UnitA
         try {
             return objectMapper.readValue(unitArmor, UnitArmor.class);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException();
+            throw new RuntimeException(e);
         }
     }
 }
