@@ -7,6 +7,5 @@ public enum Status {
     OFFLINE,
     FIGHT,
     WIN,
-    LOSS,
-    DIE
+    LOSS
 }

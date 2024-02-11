@@ -56,7 +56,7 @@ public class PhysActionHandler {
         //устанавливаем target параметры по результатам расчета
         if (target.getHp() <= 0) {
             target.setActionEnd(true);
-            target.setStatus(Status.DIE);
+            target.setStatus(Status.LOSS);
             System.out.println(target.getName() + " ход отменен. HP <= 0");
         }
         unit.setActionEnd(true);

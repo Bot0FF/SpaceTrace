@@ -99,6 +99,7 @@ public class FightHandler {
             endFight = true;
             return;
         }
+        Fight fight = optionalFight.get();
 
         //получаем участников сражения
         List<Unit> units = optionalFight.get().getUnits();
@@ -228,10 +229,10 @@ public class FightHandler {
         //характеристика стала ниже 0
         units.forEach(unit -> {
             if(unit.getHp() <= 0) {
-                unit.setStatus(Status.DIE);
+                unit.setStatus(Status.LOSS);
             }
             if(unit.getMaxHp() <= 0) {
-                unit.setStatus(Status.DIE);
+                unit.setStatus(Status.LOSS);
             }
             if(unit.getMana() <= 0) {
                 unit.setMana(0);
@@ -241,14 +242,13 @@ public class FightHandler {
         //сохраняем состояние всех unit,
         //если unit USER и DIE, удаляем его из сражения со сбросом статуса сражения, если AI удаляем из бд
         for (Unit unit : units) {
-            if (unit.getStatus().equals(Status.DIE)) {
+            if (unit.getStatus().equals(Status.LOSS)) {
                 //сохранение вещи на локации в случае поражения aiUnit
                 if(unit.getSubjectType().equals(SubjectType.AI)) {
+                    setFightId(null);
                     entityGenerator.setNewThing(unit.getLocationId());
                 }
                 unit.setHp(1);
-                unit.setStatus(Status.LOSS);
-                unit.setFight(null);
                 unit.setFightEffect(null);
                 unit.setFightPosition(null);
                 unit.setTeamNumber(null);
@@ -256,6 +256,7 @@ public class FightHandler {
                 unit.setTargetId(null);
                 unit.setActionEnd(false);
                 unitRepository.save(unit);
+                fight.getUnitsLoss().add(unit.getId());
             }
             //сбрасываем настройки unit
             else {
@@ -271,24 +272,19 @@ public class FightHandler {
         //удаляем из списка unit со статусом LOSS
         units.removeIf(unit -> unit.getStatus().equals(Status.LOSS));
 
-        //если список units пуст, завершаем сражение
-        if (units.isEmpty()) {
-            endFight = true;
-            optionalFight.get().setFightEnd(true);
-            fightRepository.save(optionalFight.get());
-            System.out.println(fightId + " сражение завершено и удалено из map. Ничья");
-            return;
-        }
-
         //делим на команды всех unit
         List<Unit> teamOne = new ArrayList<>(units.stream().filter(unit -> unit.getTeamNumber() == 1).toList());
         List<Unit> teamTwo = new ArrayList<>(units.stream().filter(unit -> unit.getTeamNumber() == 2).toList());
 
-        //если в обеих командах кто-то есть, сражение продолжается
-        Fight fight = optionalFight.get();
-
+        //если в обеих командах нет units, сражение завершается
+        if (teamOne.isEmpty() & teamTwo.isEmpty()) {
+            endFight = true;
+            optionalFight.get().setFightEnd(true);
+            fightRepository.save(optionalFight.get());
+            System.out.println(fightId + " сражение завершено и удалено из map. Ничья");
+        }
         //если в обеих командах есть unit, сражение продолжается
-        if (!teamOne.isEmpty() & !teamTwo.isEmpty()) {
+        else if (!teamOne.isEmpty() & !teamTwo.isEmpty()) {
             fight.setCountRound(fight.getCountRound() + 1);
             fight.getResultRound().add(String.valueOf(resultRound));
             fight.setUnits(units);
@@ -299,17 +295,20 @@ public class FightHandler {
         //сохраняем результаты победы у unit из первой команды
         else if (!teamOne.isEmpty() & teamTwo.isEmpty()) {
             for (Unit unit : teamOne) {
-                System.out.println(unit.getName() + " победил в сражении");
+                if(unit.getSubjectType().equals(SubjectType.AI)) {
+                    setFightId(null);
+                }
                 unit.setHp(unit.getHp());
                 unit.setActionEnd(false);
                 unit.setStatus(Status.WIN);
-                unit.setFight(null);
                 unit.setTeamNumber(null);
                 unit.setAbilityId(null);
                 unit.setTargetId(null);
                 unit.setFightEffect(null);
                 unit.setFightPosition(null);
                 unitRepository.save(unit);
+                fight.getUnitsWin().add(unit.getId());
+                System.out.println(unit.getName() + " победил в сражении");
             }
             endFight = true;
             fight.setFightEnd(true);
@@ -322,17 +321,20 @@ public class FightHandler {
         //сохраняем результаты победы у unit из второй команды
         else {
             for (Unit unit : teamTwo) {
-                System.out.println(unit.getName() + " победил в сражении");
+                if(unit.getSubjectType().equals(SubjectType.AI)) {
+                    setFightId(null);
+                }
                 unit.setHp(unit.getHp());
                 unit.setActionEnd(false);
                 unit.setStatus(Status.WIN);
-                unit.setFight(null);
                 unit.setTeamNumber(null);
                 unit.setAbilityId(null);
                 unit.setTargetId(null);
                 unit.setFightEffect(null);
                 unit.setFightPosition(null);
                 unitRepository.save(unit);
+                fight.getUnitsWin().add(unit.getId());
+                System.out.println(unit.getName() + " победил в сражении");
             }
             endFight = true;
             fight.setFightEnd(true);

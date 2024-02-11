@@ -37,6 +37,12 @@ public class Fight {
     @JsonIgnore
     private boolean fightEnd;
 
+    @Column(name = "unitsWin")
+    private List<Long> unitsWin;
+
+    @Column(name = "unitsLoss")
+    private List<Long> unitsLoss;
+
     @Transient
     private Long endRoundTimer;
 }

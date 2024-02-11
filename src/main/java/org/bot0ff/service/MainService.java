@@ -62,7 +62,7 @@ public class MainService {
             unitRepository.setStatus(Status.ACTIVE.name(), player.getId());
             return response;
         }
-        if(player.getStatus().equals(Status.LOSS)) {
+        else if(player.getStatus().equals(Status.LOSS)) {
             var response = jsonProcessor
                     .toJsonMain(new MainResponse(player, location, "Поражение..."));
             unitRepository.setStatus(Status.ACTIVE.name(), player.getId());

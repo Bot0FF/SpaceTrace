@@ -3,6 +3,7 @@ package org.bot0ff.model;
 import lombok.Data;
 import org.bot0ff.dto.UnitDto;
 import org.bot0ff.entity.Fight;
+import org.bot0ff.entity.Subject;
 import org.bot0ff.entity.Unit;
 
 import java.util.ArrayList;
@@ -16,13 +17,14 @@ public class FightResponse {
     private Fight fight;
     private List<Unit> teamOne;
     private List<Unit> teamTwo;
+    private List<Subject> ability;
     private String resultRound;
     private int countRound;
     private Long endRoundTimer;
     private String info;
     private int status;
 
-    public FightResponse(Unit player, Fight fight, String info) {
+    public FightResponse(Unit player, Fight fight, List<Subject> ability, String info) {
         this.player = player;
         this.fight = fight;
         this.teamOne = new ArrayList<>();
@@ -31,6 +33,7 @@ public class FightResponse {
             this.teamOne = new ArrayList<>(fight.getUnits().stream().filter(unit -> unit.getTeamNumber() == 1).toList());
             this.teamTwo = new ArrayList<>(fight.getUnits().stream().filter(unit -> unit.getTeamNumber() == 2).toList());
         }
+        this.ability = ability;
         if(this.fight.getResultRound().isEmpty()) {
             this.resultRound = "";
         }
