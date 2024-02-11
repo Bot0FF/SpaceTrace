@@ -75,7 +75,7 @@ public class EntityGenerator {
 
     //генерация новой вещи
     public void setNewThing(Long locationId) {
-        Optional<Subject> optionalSubject = subjectRepository.findById(4L);
+        Optional<Subject> optionalSubject = subjectRepository.findById(1L);
         if(optionalSubject.isEmpty()) return;
         Optional<Location> location = locationRepository.findById(locationId);
         if(location.isEmpty()) return;
@@ -85,7 +85,7 @@ public class EntityGenerator {
                 null,
                 subject.getName(),
                 subject.getSubjectType(),
-                subject.getApplyType(),
+                subject.getSkillType(),
                 subject.getHp(),
                 subject.getMana(),
                 subject.getPhysDamage(),

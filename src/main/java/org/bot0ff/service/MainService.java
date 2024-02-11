@@ -2,7 +2,6 @@ package org.bot0ff.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bot0ff.dto.UnitDto;
 import org.bot0ff.model.InfoResponse;
 import org.bot0ff.model.MainResponse;
 import org.bot0ff.entity.Location;
@@ -147,6 +146,54 @@ public class MainService {
 
         return jsonProcessor
                 .toJsonMain(new MainResponse(player, newLocation, "Ты перешел на локацию: " + optionalNewLocation.get().getName()));
+    }
+
+    //добавляет вещь в инвентарь с локации
+    @Transactional
+    public String takeLocationThing(String name, Long thingId) {
+        var optionalPlayer = unitRepository.findByName(name);
+        if(optionalPlayer.isEmpty()) {
+            var response = jsonProcessor
+                    .toJsonInfo(new InfoResponse("Игрок не найден"));
+            log.info("Не найден player в БД по запросу username: {}", name);
+            return response;
+        }
+        Unit player = optionalPlayer.get();
+
+        var optionalLocation = locationRepository.findById(player.getLocationId());
+        if(optionalLocation.isEmpty()) {
+            var response = jsonProcessor
+                    .toJsonInfo(new InfoResponse("Локация не найдена"));
+            log.info("Не найдена location в БД по запросу locationId: {}", player.getLocationId());
+            return response;
+        }
+        Location location = optionalLocation.get();
+
+        var optionalThing = thingRepository.findById(thingId);
+        if(optionalThing.isEmpty()) {
+            var response = jsonProcessor
+                    .toJsonInfo(new InfoResponse("Вещь не найдена"));
+            log.info("Не найдена вещь в БД по запросу thingId: {}", thingId);
+            return response;
+        }
+        Thing thing = optionalThing.get();
+
+        //если у вещи есть владелец, отправляем уведомление
+        if(thing.getOwnerId() != null) {
+            var response = jsonProcessor
+                    .toJsonInfo(new InfoResponse("У вещи есть владелец"));
+            log.info("Попытка забрать вещь, у которой есть владелец, thingId: {}", thingId);
+            return response;
+        }
+
+        //сохраняем нового владельца и удаляем id вещи с локации, если привязана
+        thing.setOwnerId(player.getId());
+        thingRepository.save(thing);
+        location.getThings().removeIf(th -> th.equals(thingId));
+        locationRepository.save(location);
+
+        return jsonProcessor
+                .toJsonMain(new MainResponse(player, location, "Вещь (" + thing.getName() + ") добавлена в инвентарь"));
     }
 
     //список ais на локации

@@ -7,7 +7,7 @@ import org.bot0ff.model.FightResponse;
 import org.bot0ff.model.NavigateResponse;
 import org.bot0ff.entity.unit.UnitEffect;
 import org.bot0ff.entity.*;
-import org.bot0ff.entity.enums.HitType;
+import org.bot0ff.entity.enums.ApplyType;
 import org.bot0ff.entity.enums.Status;
 import org.bot0ff.repository.FightRepository;
 import org.bot0ff.repository.LocationRepository;
@@ -33,6 +33,8 @@ public class FightService {
     private final LocationRepository locationRepository;
     private final SubjectRepository subjectRepository;
 
+    private final PhysActionHandler physActionHandler;
+    private final MagActionHandler magActionHandler;
     private final EntityGenerator entityGenerator;
     private final JsonProcessor jsonProcessor;
     private final RandomUtil randomUtil;
@@ -105,7 +107,13 @@ public class FightService {
 
         //добавление нового сражения в map и запуск обработчика раундов
         FIGHT_MAP.put(newFightId, new FightHandler(
-                newFightId, unitRepository, fightRepository, subjectRepository, entityGenerator, randomUtil
+                newFightId,
+                unitRepository,
+                fightRepository,
+                subjectRepository,
+                entityGenerator,
+                physActionHandler,
+                magActionHandler
         ));
 
         return jsonProcessor
@@ -292,8 +300,13 @@ public class FightService {
         //устанавливает в ответе текущее время раунда
         fight.setEndRoundTimer(FIGHT_MAP.get(fight.getId()).getEndRoundTimer().toEpochMilli());
 
+        if(player.getWeapon().getId().equals(0L)) {
+            return jsonProcessor
+                    .toJsonFight(new FightResponse(player, fight, "Атака голыми кулаками"));
+        }
+
         return jsonProcessor
-                .toJsonFight(new FightResponse(player, fight, player.getName() + " нанес удар оружием " + player.getWeapon().getName()));
+                .toJsonFight(new FightResponse(player, fight, "Атака оружием " + player.getWeapon().getName()));
     }
 
     //атака по выбранному противнику умением
@@ -345,24 +358,24 @@ public class FightService {
         Unit target = optionalTarget.get();
 
         //уведомление при попытке использовать восстанавливающие умения на противниках
-        if((ability.getHitType().equals(HitType.RECOVERY)
-                | ability.getHitType().equals(HitType.BOOST))
+        if((ability.getApplyType().equals(ApplyType.RECOVERY)
+                | ability.getApplyType().equals(ApplyType.BOOST))
                 & !player.getTeamNumber().equals(target.getTeamNumber())) {
             return jsonProcessor
                     .toJsonInfo(new InfoResponse("Это умение для союзников"));
         }
 
         //уведомление при попытке использовать понижающие или атакующие умения на союзниках
-        if((ability.getHitType().equals(HitType.DAMAGE)
-                | ability.getHitType().equals(HitType.LOWER))
+        if((ability.getApplyType().equals(ApplyType.DAMAGE)
+                | ability.getApplyType().equals(ApplyType.LOWER))
                 & player.getTeamNumber().equals(target.getTeamNumber())) {
             return jsonProcessor
                     .toJsonInfo(new InfoResponse("Это умение для противников"));
         }
 
         //если на цели уже применено данное умение, возвращаем уведомление
-        if(ability.getHitType().equals(HitType.BOOST)
-                | ability.getHitType().equals(HitType.LOWER)) {
+        if(ability.getApplyType().equals(ApplyType.BOOST)
+                | ability.getApplyType().equals(ApplyType.LOWER)) {
             if(target.getFightEffect().stream().anyMatch(unitEffect -> unitEffect.getId().equals(abilityId))) {
                 return jsonProcessor
                         .toJsonInfo(new InfoResponse("Умение уже применено"));
@@ -468,6 +481,8 @@ public class FightService {
                 unit.setFightEffect(null);
                 unit.setActionEnd(false);
                 unit.setAbilityId(null);
+                unit.setTargetId(null);
+                unit.setTeamNumber(null);
                 unit.setStatus(Status.ACTIVE);
                 unit.setFight(null);
                 unitRepository.save(unit);

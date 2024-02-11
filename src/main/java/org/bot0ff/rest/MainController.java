@@ -17,17 +17,12 @@ public class MainController {
     private final MainService mainService;
     private final ProfileService profileService;
     //@AuthenticationPrincipal(expression = "username") String username
+
+    /** Взаимодействие с локацией **/
     //главная страница
     @GetMapping("/im")
     public ResponseEntity<?> mainPage() {
         var response = mainService.getUnitState("user");
-        return ResponseEntity.ok(response);
-    }
-
-    //страница профиля
-    @GetMapping("/profile")
-    public ResponseEntity<?> profilePage() {
-        var response = profileService.getUnitProfileState("user");
         return ResponseEntity.ok(response);
     }
 
@@ -52,8 +47,6 @@ public class MainController {
         return ResponseEntity.ok(response);
     }
 
-    /** Взаимодействие с вещами на локации **/
-
     //список вещей на локации
     @GetMapping("/location/things")
     public ResponseEntity<?> getLocationThings() {
@@ -64,16 +57,16 @@ public class MainController {
     //забрать вещь с локации
     @GetMapping("/location/take")
     public ResponseEntity<?> takeLocationThing(@RequestParam Long thingId) {
-        var response = profileService.takeLocationThing("user", thingId);
+        var response = mainService.takeLocationThing("user", thingId);
         return ResponseEntity.ok(response);
     }
 
-    /** Взаимодействие с вещами в инвентаре **/
+    /** Взаимодействие с профилем игрока **/
 
-    //список вещей в инвентаре
-    @GetMapping("/inventory/things")
-    public ResponseEntity<?> getInventoryThings() {
-        var response = profileService.getInventoryThings("user");
+    //страница профиля
+    @GetMapping("/profile")
+    public ResponseEntity<?> profilePage() {
+        var response = profileService.getUnitProfileState("user");
         return ResponseEntity.ok(response);
     }
 

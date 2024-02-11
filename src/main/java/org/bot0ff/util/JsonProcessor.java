@@ -6,10 +6,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.bot0ff.entity.Unit;
-import org.bot0ff.model.FightResponse;
-import org.bot0ff.model.InfoResponse;
-import org.bot0ff.model.MainResponse;
-import org.bot0ff.model.NavigateResponse;
+import org.bot0ff.model.*;
 
 import java.util.List;
 
@@ -37,6 +34,16 @@ public class JsonProcessor {
     }
 
     public String toJsonMain(MainResponse response) {
+        try {
+            return objectMapper
+                    .writerWithDefaultPrettyPrinter()
+                    .writeValueAsString(response);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public String toJsonProfile(ProfileResponse response) {
         try {
             return objectMapper
                     .writerWithDefaultPrettyPrinter()

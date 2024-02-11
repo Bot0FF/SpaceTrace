@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.bot0ff.entity.enums.ApplyType;
+import org.bot0ff.entity.enums.SkillType;
 import org.bot0ff.entity.enums.SubjectType;
 
 @Data
@@ -31,9 +31,9 @@ public class Thing {
     private SubjectType subjectType;
 
     @Enumerated(value = EnumType.STRING)
-    @Column(name = "applyType")
+    @Column(name = "skillType")
     @JsonIgnore
-    private ApplyType applyType;
+    private SkillType skillType;
 
     /** для экипировки, боевых умений */
     @Column(name = "hp")

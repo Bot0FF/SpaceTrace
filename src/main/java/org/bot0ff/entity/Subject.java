@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bot0ff.entity.enums.SkillType;
 import org.bot0ff.entity.enums.ApplyType;
-import org.bot0ff.entity.enums.HitType;
 import org.bot0ff.entity.enums.RangeType;
 import org.bot0ff.entity.enums.SubjectType;
 
@@ -27,12 +27,12 @@ public class Subject {
     private SubjectType subjectType;
 
     @Enumerated(value = EnumType.STRING)
-    @Column(name = "applyType")
-    private ApplyType applyType;
+    @Column(name = "skillType")
+    private SkillType skillType;
 
     @Enumerated(value = EnumType.STRING)
-    @Column(name = "hitType")
-    private HitType hitType;
+    @Column(name = "applyType")
+    private ApplyType applyType;
 
     @Enumerated(value = EnumType.STRING)
     @Column(name = "rangeType")

@@ -4,7 +4,7 @@ import lombok.Data;
 import org.bot0ff.entity.Location;
 import org.bot0ff.entity.Unit;
 
-/** Класс ответа, с информацией об игроке, локации */
+/** Класс ответа, с информацией о локации */
 
 @Data
 public class MainResponse {

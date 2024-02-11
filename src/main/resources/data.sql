@@ -109,11 +109,11 @@ with data(id, name, subject_type, status, action_end,
    as (values
         (1, 'user', 'USER', 'ACTIVE', false,
             22,
-            10, 10, 4, 4,
+            7, 7, 4, 4,
             1, 1, 1, 1, 1, 0,
             '{"oneHand": 0, "twoHand": 0, "bow": 0, "fire": 0, "water": 0, "land": 0, "air": 0, "vitality": 0, "spirituality": 0, "regeneration": 0, "meditation": 0, "block": 0, "evade": 0}',
             ARRAY[]::integer[], ARRAY[]::integer[],
-            '{"id": "0", "name": "", "applyType": "", "hp": "0", "mana": "0", "physDamage": "0", "magDamage": "0", "magDamageModifier": 0, "physDefense": "0", "magDefense": "0", "pointAction": 0, "distance": "0", "duration": "0"}',
+            '{"id": "0", "name": "", "applyType": "", "hp": "0", "mana": "0", "physDamage": "0", "magDamage": "0", "magDamageModifier": 0, "physDefense": "0", "magDefense": "0", "pointAction": 2, "distance": "0", "duration": "0"}',
             '{"id": "0", "name": "", "applyType": "", "hp": "0", "mana": "0", "physDamage": "0", "magDamage": "0", "magDamageModifier": 0, "physDefense": "0", "magDefense": "0", "pointAction": 0, "distance": "0", "duration": "0"}',
             '{"id": "0", "name": "", "applyType": "", "hp": "0", "mana": "0", "physDamage": "0", "magDamage": "0", "magDamageModifier": 0, "physDefense": "0", "magDefense": "0", "pointAction": 0, "distance": "0", "duration": "0"}',
             '{"id": "0", "name": "", "applyType": "", "hp": "0", "mana": "0", "physDamage": "0", "magDamage": "0", "magDamageModifier": 0, "physDefense": "0", "magDefense": "0", "pointAction": 0, "distance": "0", "duration": "0"}',
@@ -141,25 +141,25 @@ where not exists (select 1
 
 --subject
 with data(id, name,
-            subject_type, apply_type, hit_type, range_type,
+            subject_type, skill_type, apply_type, range_type,
             hp, mana, phys_damage, mag_damage, mag_damage_modifier, phys_defense, mag_defense,
             vitality, spirituality, regeneration, meditation, evade, block,
             distance, point_action, duration, description)
    as (values
         (1, 'Одноручный меч',
-        'WEAPON', 'ONE_HAND', 'NONE', 'ONE',
-        0, 10, 0, 0, 0, 0, 0,
+        'WEAPON', 'ONE_HAND', 'DAMAGE', 'ONE',
+        0, 0, 10, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0,
         1, 2, 100, 'Простой одноручный меч')
 
 )
 insert into subject (id, name,
-                        subject_type, apply_type, hit_type, range_type,
+                        subject_type, skill_type, apply_type, range_type,
                         hp, mana, phys_damage, mag_damage, mag_damage_modifier, phys_defense, mag_defense,
                         vitality, spirituality, regeneration, meditation, evade, block,
                         distance, point_action, duration, description)
 select d.id, d.name,
-            d.subject_type, d.apply_type, d.hit_type, d.range_type,
+            d.subject_type, d.skill_type, d.apply_type, d.range_type,
             d.hp, d.mana, d.phys_damage, d.mag_damage, d.mag_damage_modifier, d.phys_defense, d.mag_defense,
             d.vitality, d.spirituality, d.regeneration, d.meditation, d.evade, d.block,
             d.distance, d.point_action, d.duration, d.description

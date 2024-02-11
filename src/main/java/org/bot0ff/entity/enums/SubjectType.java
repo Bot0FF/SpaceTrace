@@ -1,11 +1,15 @@
 package org.bot0ff.entity.enums;
 
-//тип субъекта
+//тип объекта
 public enum SubjectType {
     //пользователь
     USER,
     //существа
     AI,
+    //тип экипировки
     WEAPON,
-    ARMOR
+    HEAD,
+    HAND,
+    BODY,
+    LEG
 }

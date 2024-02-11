@@ -1,6 +1,6 @@
 package org.bot0ff.entity.enums;
 
-//область применения
+//область применения объекта
 public enum RangeType {
     NONE,
     ONE,
