@@ -245,7 +245,8 @@ public class FightHandler {
             if (unit.getStatus().equals(Status.LOSS)) {
                 //сохранение вещи на локации в случае поражения aiUnit
                 if(unit.getSubjectType().equals(SubjectType.AI)) {
-                    setFightId(null);
+                    unit.setStatus(Status.ACTIVE);
+                    unit.setFight(null);
                     entityGenerator.setNewThing(unit.getLocationId());
                 }
                 unit.setHp(1);
@@ -295,12 +296,15 @@ public class FightHandler {
         //сохраняем результаты победы у unit из первой команды
         else if (!teamOne.isEmpty() & teamTwo.isEmpty()) {
             for (Unit unit : teamOne) {
-                if(unit.getSubjectType().equals(SubjectType.AI)) {
-                    setFightId(null);
+                switch (unit.getSubjectType()) {
+                    case AI -> {
+                        unit.setStatus(Status.ACTIVE);
+                        unit.setFight(null);
+                    }
+                    case USER -> unit.setStatus(Status.WIN);
                 }
                 unit.setHp(unit.getHp());
                 unit.setActionEnd(false);
-                unit.setStatus(Status.WIN);
                 unit.setTeamNumber(null);
                 unit.setAbilityId(null);
                 unit.setTargetId(null);
@@ -321,12 +325,15 @@ public class FightHandler {
         //сохраняем результаты победы у unit из второй команды
         else {
             for (Unit unit : teamTwo) {
-                if(unit.getSubjectType().equals(SubjectType.AI)) {
-                    setFightId(null);
+                switch (unit.getSubjectType()) {
+                    case AI -> {
+                        unit.setStatus(Status.ACTIVE);
+                        unit.setFight(null);
+                    }
+                    case USER -> unit.setStatus(Status.WIN);
                 }
                 unit.setHp(unit.getHp());
                 unit.setActionEnd(false);
-                unit.setStatus(Status.WIN);
                 unit.setTeamNumber(null);
                 unit.setAbilityId(null);
                 unit.setTargetId(null);
