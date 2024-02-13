@@ -1,7 +1,6 @@
 package org.bot0ff.model;
 
 import lombok.Data;
-import org.bot0ff.dto.UnitDto;
 import org.bot0ff.entity.Fight;
 import org.bot0ff.entity.Subject;
 import org.bot0ff.entity.Unit;

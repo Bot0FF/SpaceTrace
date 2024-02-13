@@ -207,9 +207,9 @@ public class FightService {
         String moveDirection = "";
         switch (direction) {
             case "left" -> {
-                if(player.getFightPosition() - 1 >= 1) {
+                if(player.getLinePosition() - 1 >= 1) {
                     player.setPointAction(player.getPointAction() - 1);
-                    player.setFightPosition(player.getFightPosition() - 1);
+                    player.setLinePosition(player.getLinePosition() - 1);
                     unitRepository.save(player);
                     moveDirection = " влево";
                 }
@@ -219,9 +219,9 @@ public class FightService {
                 }
             }
             case "right" -> {
-                if(player.getFightPosition() + 1 <= 8) {
+                if(player.getLinePosition() + 1 <= 8) {
                     player.setPointAction(player.getPointAction() - 1);
-                    player.setFightPosition(player.getFightPosition() + 1);
+                    player.setLinePosition(player.getLinePosition() + 1);
                     unitRepository.save(player);
                     moveDirection = " вправо";
                 }
@@ -296,7 +296,8 @@ public class FightService {
         }
 
         //сохранение умения и цели, по которой произведено действие
-        player.setHitPosition(player.getFightPosition());
+        player.setHitPosition(player.getLinePosition());
+        player.setTargetPosition(target.getLinePosition());
         player.setAbilityId(0L);
         player.setTargetId(targetId);
         player.setPointAction(player.getPointAction() - player.getWeapon().getPointAction());
@@ -411,7 +412,8 @@ public class FightService {
         }
 
         //сохранение умения и цели, по которой произведено действие
-        player.setHitPosition(player.getFightPosition());
+        player.setHitPosition(player.getLinePosition());
+        player.setTargetPosition(target.getLinePosition());
         player.setAbilityId(abilityId);
         player.setTargetId(targetId);
         player.setPointAction(player.getPointAction() - ability.getPointAction());
@@ -480,10 +482,11 @@ public class FightService {
         unit.setFight(newFight);
         unit.setTeamNumber(teamNumber);
         unit.setHitPosition(0L);
+        unit.setTargetPosition(0L);
         unit.setAbilityId(0L);
         unit.setTargetId(0L);
         unit.setPointAction(unit.getMaxPointAction());
-        unit.setFightPosition((long) randomUtil.getRandomFromTo(1, 8));
+        unit.setLinePosition((long) randomUtil.getRandomFromTo(1, 8));
         unit.setFightEffect(List.of(new UnitEffect()));
         unitRepository.save(unit);
     }
@@ -494,7 +497,8 @@ public class FightService {
         unit.setActionEnd(false);
         unit.setFight(null);
         unit.setHitPosition(null);
-        unit.setFightPosition(null);
+        unit.setTargetPosition(null);
+        unit.setLinePosition(null);
         unit.setFightEffect(null);
         unit.setTeamNumber(null);
         unit.setAbilityId(null);
@@ -509,7 +513,7 @@ public class FightService {
         List<Unit> units = unitRepository.findAll();
         for(Unit unit: units) {
             unit.setHp(unit.getHp());
-            unit.setFightPosition(null);
+            unit.setLinePosition(null);
             unit.setFightEffect(null);
             unit.setActionEnd(false);
             unit.setAbilityId(null);

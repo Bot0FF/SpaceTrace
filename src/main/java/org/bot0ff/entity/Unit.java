@@ -138,13 +138,17 @@ public class Unit {
     @JsonIgnore
     private Fight fight;
 
-    //позиция во время атаки
+    //позиция unit во время атаки
     @Column(name = "hitPosition")
     private Long hitPosition;
 
+    //позиция target во время атаки unit
+    @Column(name = "targetPosition")
+    private Long targetPosition;
+
     //позиция на линии сражения
-    @Column(name = "fightPosition")
-    private Long fightPosition;
+    @Column(name = "linePosition")
+    private Long linePosition;
 
     @Convert(converter = UnitJsonSubjectToEffectConverter.class)
     @Column(name = "fightEffect", length = 1024)

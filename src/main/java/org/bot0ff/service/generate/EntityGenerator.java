@@ -69,6 +69,7 @@ public class EntityGenerator {
                 null,
                 null,
                 null,
+                null,
                 null
         );
         return unitRepository.save(aiUnit).getId();

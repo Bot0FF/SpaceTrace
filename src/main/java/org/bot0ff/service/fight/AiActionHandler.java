@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 @Data
 @Slf4j
@@ -103,28 +102,28 @@ public class AiActionHandler {
         int direction = randomUtil.getRandom1or2();
         switch (direction) {
             case 1 -> {
-                if(aiUnit.getFightPosition() != 1) {
-                    aiUnit.setFightPosition(aiUnit.getFightPosition() - 1);
+                if(aiUnit.getLinePosition() != 1) {
+                    aiUnit.setLinePosition(aiUnit.getLinePosition() - 1);
                     aiUnit.setPointAction(aiUnit.getPointAction() - 1);
                     unitRepository.save(aiUnit);
                     System.out.println(aiUnit.getName() + " переместился на 1 влево");
                 }
                 else {
-                    aiUnit.setFightPosition(aiUnit.getFightPosition() + 1);
+                    aiUnit.setLinePosition(aiUnit.getLinePosition() + 1);
                     aiUnit.setPointAction(aiUnit.getPointAction() - 1);
                     unitRepository.save(aiUnit);
                     System.out.println(aiUnit.getName() + " переместился на 1 вправо");
                 }
             }
             case 2 -> {
-                if(aiUnit.getFightPosition() != 8) {
-                    aiUnit.setFightPosition(aiUnit.getFightPosition() + 1);
+                if(aiUnit.getLinePosition() != 8) {
+                    aiUnit.setLinePosition(aiUnit.getLinePosition() + 1);
                     aiUnit.setPointAction(aiUnit.getPointAction() - 1);
                     unitRepository.save(aiUnit);
                     System.out.println(aiUnit.getName() + " переместился на 1 вправо");
                 }
                 else {
-                    aiUnit.setFightPosition(aiUnit.getFightPosition() - 1);
+                    aiUnit.setLinePosition(aiUnit.getLinePosition() - 1);
                     aiUnit.setPointAction(aiUnit.getPointAction() - 1);
                     unitRepository.save(aiUnit);
                     System.out.println(aiUnit.getName() + " переместился на 1 влево");
@@ -148,11 +147,12 @@ public class AiActionHandler {
             return;
         }
 
-        if((aiUnit.getFightPosition() - target.getFightPosition()) >= -1
-                | (aiUnit.getFightPosition() - target.getFightPosition()) <= 1) {
+        if((aiUnit.getLinePosition() - target.getLinePosition()) >= -1
+                | (aiUnit.getLinePosition() - target.getLinePosition()) <= 1) {
             aiUnit.setTargetId(target.getId());
             aiUnit.setPointAction(aiUnit.getPointAction() - aiUnit.getWeapon().getPointAction());
-            aiUnit.setHitPosition(aiUnit.getFightPosition());
+            aiUnit.setHitPosition(aiUnit.getLinePosition());
+            aiUnit.setTargetPosition(target.getLinePosition());
             unitRepository.save(aiUnit);
             System.out.println("Выбран противник для нанесения удара оружием");
         }
@@ -177,11 +177,12 @@ public class AiActionHandler {
             return;
         }
 
-        if((aiUnit.getFightPosition() - target.getFightPosition()) >= -5
-                | (aiUnit.getFightPosition() - target.getFightPosition()) <= 5) {
+        if((aiUnit.getLinePosition() - target.getLinePosition()) >= -5
+                | (aiUnit.getLinePosition() - target.getLinePosition()) <= 5) {
             aiUnit.setTargetId(target.getId());
             aiUnit.setPointAction(aiUnit.getPointAction() - aiUnit.getWeapon().getPointAction());
-            aiUnit.setHitPosition(aiUnit.getFightPosition());
+            aiUnit.setHitPosition(aiUnit.getLinePosition());
+            aiUnit.setTargetPosition(target.getLinePosition());
             unitRepository.save(aiUnit);
             System.out.println("Выбран противник для выстрела из лука");
         }
@@ -212,12 +213,13 @@ public class AiActionHandler {
         }
 
         if(ability.getApplyType().equals(ApplyType.DAMAGE)) {
-            if((aiUnit.getFightPosition() - target.getFightPosition()) >= -6
-                    | (aiUnit.getFightPosition() - target.getFightPosition()) <= 6) {
+            if((aiUnit.getLinePosition() - target.getLinePosition()) >= -6
+                    | (aiUnit.getLinePosition() - target.getLinePosition()) <= 6) {
                 aiUnit.setMana(aiUnit.getMana() - ability.getCost());
                 aiUnit.setAbilityId(numberAbility);
                 aiUnit.setTargetId(target.getId());
-                aiUnit.setHitPosition(aiUnit.getFightPosition());
+                aiUnit.setHitPosition(aiUnit.getLinePosition());
+                aiUnit.setTargetPosition(target.getLinePosition());
                 aiUnit.setPointAction(aiUnit.getPointAction() - ability.getPointAction());
                 unitRepository.save(aiUnit);
                 System.out.println("Выбрано атакующее умение. Возврат к выбору действия");
@@ -230,7 +232,8 @@ public class AiActionHandler {
         else {
             aiUnit.setMana(aiUnit.getMana() - ability.getCost());
             aiUnit.setAbilityId(numberAbility);
-            aiUnit.setHitPosition(aiUnit.getFightPosition());
+            aiUnit.setHitPosition(aiUnit.getLinePosition());
+            aiUnit.setTargetPosition(target.getLinePosition());
             aiUnit.setPointAction(aiUnit.getPointAction() - ability.getPointAction());
             System.out.println("Выбрано не атакующее умение.");
         }

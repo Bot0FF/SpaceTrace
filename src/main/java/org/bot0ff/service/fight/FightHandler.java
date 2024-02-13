@@ -135,16 +135,16 @@ public class FightHandler {
 
                     Unit target = optionalTarget.get();
                     //если дальность применения оружия достает до расположения выбранного противника на шкале сражения, считаем нанесенный урон
-                    if(unit.getHitPosition() - target.getFightPosition() == 0) {
+                    if(unit.getHitPosition() - unit.getTargetPosition() == 0) {
                         StringBuilder result = physActionHandler.calculateDamageWeapon(unit, target);
                         resultRound.append(result);
-                        System.out.println("Атака оружием. Позиция unit " + unit.getFightPosition() + "/Позиция target " + target.getFightPosition());
+                        System.out.println("Атака оружием. Позиция unit " + unit.getLinePosition() + "/Позиция target " + target.getLinePosition());
                     }
-                    else if(unit.getHitPosition() - target.getFightPosition() < 0) {
-                        if((unit.getHitPosition() + unit.getWeapon().getDistance()) >= target.getFightPosition()) {
+                    else if(unit.getHitPosition() - unit.getTargetPosition() < 0) {
+                        if((unit.getHitPosition() + unit.getWeapon().getDistance()) >= unit.getTargetPosition()) {
                             StringBuilder result = physActionHandler.calculateDamageWeapon(unit, target);
                             resultRound.append(result);
-                            System.out.println("Атака оружием. Позиция unit " + unit.getFightPosition() + "/Позиция target " + target.getFightPosition());
+                            System.out.println("Атака оружием. Позиция unit " + unit.getLinePosition() + "/Позиция target " + unit.getTargetPosition());
                         }
                         else {
                             resultRound.append("[");
@@ -152,14 +152,14 @@ public class FightHandler {
                             resultRound.append(" не достал до противника ");
                             resultRound.append(target.getName());
                             resultRound.append(" при атаке]");
-                            System.out.println("Не хватает дальности оружия для атаки. Позиция unit " + unit.getFightPosition() + "/Позиция target " + target.getFightPosition());
+                            System.out.println("Не хватает дальности оружия для атаки. Позиция unit " + unit.getLinePosition() + "/Позиция target " + target.getLinePosition());
                         }
                     }
-                    else if(unit.getHitPosition() - target.getFightPosition() > 0) {
-                        if((unit.getHitPosition() - unit.getWeapon().getDistance()) <= target.getFightPosition()) {
+                    else if(unit.getHitPosition() - unit.getTargetPosition() > 0) {
+                        if((unit.getHitPosition() - unit.getWeapon().getDistance()) <= unit.getTargetPosition()) {
                             StringBuilder result = physActionHandler.calculateDamageWeapon(unit, target);
                             resultRound.append(result);
-                            System.out.println("Атака оружием. Позиция unit " + unit.getFightPosition() + "/Позиция target " + target.getFightPosition());
+                            System.out.println("Атака оружием. Позиция unit " + unit.getLinePosition() + "/Позиция target " + unit.getTargetPosition());
                         }
                         else {
                             resultRound.append("[");
@@ -167,7 +167,7 @@ public class FightHandler {
                             resultRound.append(" не достал до противника ");
                             resultRound.append(target.getName());
                             resultRound.append(" при атаке]");
-                            System.out.println("Не хватает дальности оружия для атаки. Позиция unit " + unit.getFightPosition() + "/Позиция target " + target.getFightPosition());
+                            System.out.println("Не хватает дальности оружия для атаки. Позиция unit " + unit.getLinePosition() + "/Позиция target " + target.getLinePosition());
                         }
                     }
                 }
@@ -261,7 +261,8 @@ public class FightHandler {
                     case USER -> unit.setHp(1);
                 }
                 unit.setFightEffect(null);
-                unit.setFightPosition(null);
+                unit.setLinePosition(null);
+                unit.setTargetPosition(null);
                 unit.setTeamNumber(null);
                 unit.setAbilityId(null);
                 unit.setHitPosition(null);
@@ -276,6 +277,7 @@ public class FightHandler {
                 unit.setActionEnd(false);
                 unit.setPointAction(unit.getMaxPointAction());
                 unit.setHitPosition(0L);
+                unit.setTargetPosition(0L);
                 unit.setAbilityId(0L);
                 unit.setTargetId(0L);
                 unitRepository.save(unit);
@@ -323,7 +325,8 @@ public class FightHandler {
                 unit.setTargetId(null);
                 unit.setFightEffect(null);
                 unit.setHitPosition(null);
-                unit.setFightPosition(null);
+                unit.setTargetPosition(null);
+                unit.setLinePosition(null);
                 unit.setPointAction(unit.getMaxPointAction());
                 unitRepository.save(unit);
                 fight.getUnitsWin().add(unit.getId());
@@ -354,7 +357,8 @@ public class FightHandler {
                 unit.setTargetId(null);
                 unit.setFightEffect(null);
                 unit.setHitPosition(null);
-                unit.setFightPosition(null);
+                unit.setTargetPosition(null);
+                unit.setLinePosition(null);
                 unit.setPointAction(unit.getMaxPointAction());
                 unitRepository.save(unit);
                 fight.getUnitsWin().add(unit.getId());
