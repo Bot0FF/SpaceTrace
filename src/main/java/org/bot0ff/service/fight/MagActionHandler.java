@@ -6,6 +6,7 @@ import org.bot0ff.entity.Subject;
 import org.bot0ff.entity.Unit;
 import org.bot0ff.entity.enums.Status;
 import org.bot0ff.entity.unit.UnitEffect;
+import org.bot0ff.util.Constants;
 import org.bot0ff.util.RandomUtil;
 import org.springframework.stereotype.Service;
 
@@ -14,8 +15,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class MagActionHandler {
     private final RandomUtil randomUtil;
+
     //рассчитываем урона при атаке умением
-    //TODO настроить блок и уворот, расход маны
     public StringBuilder calculateDamageAbility(Unit unit, Unit target, Subject ability) {
         //расчет уворота
         if(randomUtil.getDoubleChance() <= target.getChanceEvade())  {
@@ -23,19 +24,27 @@ public class MagActionHandler {
             return new StringBuilder()
                     .append("[")
                     .append(target.getName())
-                    .append(" уклонился от удара ")
-                    .append(unit.getName())
+                    .append(" уклонился от умения ")
+                    .append(ability.getName())
                     .append("]");
         }
 
-        //получаем модификатор магической атаки unit
-        double unitMagDamageModifier = unit.getMagModifier();
+        //получаем общий модификатор магических умений unit
+        double unitMagModifier = unit.getMagModifier();
         //если тип магии примененного умения совпадает с типом магии надетого оружия, модификаторы складываются
-        if(ability.getSkillType().name().equals(unit.getWeapon().getApplyType())) {
-            unitMagDamageModifier += unit.getWeapon().getMagDamageModifier();
+        if(ability.getSkillType().name().equals(unit.getWeapon().getSkillType())) {
+            unitMagModifier += unit.getWeapon().getMagDamageModifier();
         }
-        //получаем магический урон умножением модификатора на урон умения
-        double unitHit = unitMagDamageModifier * ability.getMagDamage();
+        //прибавляем к общему модификатору модификатор навыка, соответствующего навыку умения
+        switch (ability.getSkillType()){
+            case FIRE -> unitMagModifier += (getSkillLevel(unit.getUnitSkill().getFire()) * 1.0 / 100);
+            case WATER -> unitMagModifier += (getSkillLevel(unit.getUnitSkill().getWater()) * 1.0 / 100);
+            case LAND -> unitMagModifier += (getSkillLevel(unit.getUnitSkill().getLand()) * 1.0 / 100);
+            case AIR -> unitMagModifier += (getSkillLevel(unit.getUnitSkill().getAir()) * 1.0 / 100);
+        }
+
+        //получаем магическое воздействие умножением модификатора на действие умения
+        double unitHit = unitMagModifier * ability.getMagImpact();
         double targetDefense = (target.getMagDefense()) * 1.0;
 
         if (unitHit <= 1) unitHit = 1;
@@ -44,7 +53,7 @@ public class MagActionHandler {
         int totalDamage = (int) Math.round(unitHit * damageMultiplier);
         int result = randomUtil.getRNum30(totalDamage);
         if (result <= 0) result = 0;
-        System.out.println("unit " + unit.getName() + " нанес урон умением" + ability.getName() + " равный " + result);
+        System.out.println(unit.getName() + " нанес урон умением " + ability.getName() + " равный " + result);
         target.setHp(target.getHp() - result);
 
         //устанавливаем target параметры по результатам расчета
@@ -53,6 +62,7 @@ public class MagActionHandler {
             target.setStatus(Status.LOSS);
             System.out.println(target.getName() + " ход отменен. HP <= 0");
         }
+        unit.setMana(unit.getMana() - ability.getCost());
         unit.setActionEnd(true);
 
         return new StringBuilder()
@@ -63,38 +73,56 @@ public class MagActionHandler {
                 .append(" урона противнику ")
                 .append(target.getName())
                 .append(" умением ")
-                .append(target.getWeapon().getName())
+                .append(ability.getName())
                 .append("]");
     }
 
     //расчет восстановления при использовании умения
-    //TODO добавить модификатор увеличивающий результат применения умения
     public StringBuilder calculateRecoveryAbility(Unit unit, Unit target, Subject ability) {
         int result = 0;
         String action = "";
         String characteristic = "";
         String duration = "";
+
+        //получаем общий модификатор магических умений unit
+        double unitMagModifier = unit.getMagModifier();
+        //если тип магии примененного умения совпадает с типом магии надетого оружия, модификаторы складываются
+        if(ability.getSkillType().name().equals(unit.getWeapon().getSkillType())) {
+            unitMagModifier += unit.getWeapon().getMagDamageModifier();
+        }
+        //прибавляем к общему модификатору модификатор навыка, соответствующего навыку умения
+        switch (ability.getSkillType()){
+            case FIRE -> unitMagModifier += (getSkillLevel(unit.getUnitSkill().getFire()) * 1.0 / 100);
+            case WATER -> unitMagModifier += (getSkillLevel(unit.getUnitSkill().getWater()) * 1.0 / 100);
+            case LAND -> unitMagModifier += (getSkillLevel(unit.getUnitSkill().getLand()) * 1.0 / 100);
+            case AIR -> unitMagModifier += (getSkillLevel(unit.getUnitSkill().getAir()) * 1.0 / 100);
+        }
+
         if (ability.getDuration() == 0) {
             action = " восстановил ";
             if (ability.getHp() != 0) {
+                int unitImpact = (int) (unitMagModifier * ability.getHp());
                 characteristic = " здоровья ";
                 result = ability.getHp();
-                target.setHp(target.getHp() + ability.getHp());
+                target.setHp(target.getHp() + unitImpact);
                 if (target.getHp() > target.getMaxHp()) {
                     result = Math.abs(target.getMaxHp() - target.getHp());
                     target.setHp(target.getMaxHp());
                 }
             }
             if (ability.getMana() != 0) {
+                int unitImpact = (int) (unitMagModifier * ability.getMana());
                 characteristic = " маны ";
                 result = ability.getMana();
-                target.setMana(target.getMana() + ability.getMana());
+                target.setMana(target.getMana() + unitImpact);
                 if (target.getMana() > target.getMaxMana()) {
                     result = Math.abs(target.getMaxMana() - target.getMana());
                     target.setMana(target.getMaxMana());
                 }
             }
         }
+        unit.setMana(unit.getMana() - ability.getCost());
+        unit.setActionEnd(true);
 
         return new StringBuilder()
                 .append("[")
@@ -285,5 +313,16 @@ public class MagActionHandler {
             );
         }
         return unitEffect;
+    }
+
+    //рассчитывает уровень навыка, исходя из опыта навыка unit
+    private int getSkillLevel(int skill) {
+        int level = 1;
+        for(Integer levelExp: Constants.SKILL_EXP) {
+            skill -= levelExp;
+            if(skill < 0) break;
+            level++;
+        }
+        return level;
     }
 }

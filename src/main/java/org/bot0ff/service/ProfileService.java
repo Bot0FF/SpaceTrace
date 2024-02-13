@@ -7,7 +7,6 @@ import org.bot0ff.entity.unit.UnitArmor;
 import org.bot0ff.entity.Location;
 import org.bot0ff.entity.Thing;
 import org.bot0ff.entity.Unit;
-import org.bot0ff.model.MainResponse;
 import org.bot0ff.model.ProfileResponse;
 import org.bot0ff.repository.LocationRepository;
 import org.bot0ff.repository.ThingRepository;
@@ -159,11 +158,12 @@ public class ProfileService {
                 player.setWeapon(new UnitArmor(
                         thing.getId(),
                         thing.getName(),
+                        thing.getApplyType().name(),
                         thing.getSkillType().name(),
                         thing.getHp(),
                         thing.getMana(),
                         thing.getPhysDamage(),
-                        thing.getMagDamage(),
+                        thing.getMagImpact(),
                         thing.getMagDamageModifier(),
                         thing.getPhysDefense(),
                         thing.getMagDefense(),
@@ -180,11 +180,12 @@ public class ProfileService {
                 player.setHead(new UnitArmor(
                         thing.getId(),
                         thing.getName(),
+                        thing.getApplyType().name(),
                         thing.getSkillType().name(),
                         thing.getHp(),
                         thing.getMana(),
                         thing.getPhysDamage(),
-                        thing.getMagDamage(),
+                        thing.getMagImpact(),
                         thing.getMagDamageModifier(),
                         thing.getPhysDefense(),
                         thing.getMagDefense(),
@@ -201,11 +202,12 @@ public class ProfileService {
                 player.setHand(new UnitArmor(
                         thing.getId(),
                         thing.getName(),
+                        thing.getApplyType().name(),
                         thing.getSkillType().name(),
                         thing.getHp(),
                         thing.getMana(),
                         thing.getPhysDamage(),
-                        thing.getMagDamage(),
+                        thing.getMagImpact(),
                         thing.getMagDamageModifier(),
                         thing.getPhysDefense(),
                         thing.getMagDefense(),
@@ -222,11 +224,12 @@ public class ProfileService {
                 player.setBody(new UnitArmor(
                         thing.getId(),
                         thing.getName(),
+                        thing.getApplyType().name(),
                         thing.getSkillType().name(),
                         thing.getHp(),
                         thing.getMana(),
                         thing.getPhysDamage(),
-                        thing.getMagDamage(),
+                        thing.getMagImpact(),
                         thing.getMagDamageModifier(),
                         thing.getPhysDefense(),
                         thing.getMagDefense(),
@@ -243,11 +246,12 @@ public class ProfileService {
                 player.setLeg(new UnitArmor(
                         thing.getId(),
                         thing.getName(),
+                        thing.getApplyType().name(),
                         thing.getSkillType().name(),
                         thing.getHp(),
                         thing.getMana(),
                         thing.getPhysDamage(),
-                        thing.getMagDamage(),
+                        thing.getMagImpact(),
                         thing.getMagDamageModifier(),
                         thing.getPhysDefense(),
                         thing.getMagDefense(),

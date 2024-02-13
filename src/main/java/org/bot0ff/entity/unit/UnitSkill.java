@@ -30,18 +30,18 @@ public class UnitSkill {
     private int evade;
 
     public UnitSkill() {
-        this.oneHand = 0;
-        this.twoHand = 0;
-        this.bow = 0;
-        this.fire = 0;
-        this.water = 0;
-        this.land = 0;
-        this.air = 0;
-        this.vitality = 0;
-        this.spirituality = 0;
-        this.regeneration = 0;
-        this.meditation = 0;
-        this.block = 0;
-        this.evade = 0;
+        this.oneHand = 1;
+        this.twoHand = 1;
+        this.bow = 1;
+        this.fire = 1;
+        this.water = 1;
+        this.land = 1;
+        this.air = 1;
+        this.vitality = 1;
+        this.spirituality = 1;
+        this.regeneration = 1;
+        this.meditation = 1;
+        this.block = 1;
+        this.evade = 1;
     }
 }

@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bot0ff.entity.enums.ApplyType;
+import org.bot0ff.entity.enums.RangeType;
 import org.bot0ff.entity.enums.SkillType;
 import org.bot0ff.entity.enums.SubjectType;
 
@@ -35,6 +37,11 @@ public class Thing {
     @JsonIgnore
     private SkillType skillType;
 
+    @Enumerated(value = EnumType.STRING)
+    @Column(name = "applyType")
+    @JsonIgnore
+    private ApplyType applyType;
+
     /** для экипировки, боевых умений */
     @Column(name = "hp")
     private int hp;
@@ -46,8 +53,8 @@ public class Thing {
     private int physDamage;
 
     //для магического умения
-    @Column(name = "magDamage")
-    private int magDamage;
+    @Column(name = "magImpact")
+    private int magImpact;
 
     //для магического оружия
     @Column(name = "magDamageModifier")
@@ -59,7 +66,7 @@ public class Thing {
     @Column(name = "magDefense")
     private int magDefense;
 
-    /** для книг */
+    /** для книг, украшений */
     @Column(name = "vitality")
     private int vitality;
 
@@ -87,10 +94,19 @@ public class Thing {
     @Column(name = "pointAction")
     private int pointAction;
 
+    //состояние
     @Column(name = "duration")
     private int duration;
 
-    /** описание */
+    //количество маны для использования
+    @Column(name = "cost")
+    private int cost;
+
+    //стоимость
+    @Column(name = "price")
+    private int price;
+
+    //описание
     @Column(name = "description")
     private String description;
 

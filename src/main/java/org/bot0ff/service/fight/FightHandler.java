@@ -105,7 +105,7 @@ public class FightHandler {
         List<Unit> units = optionalFight.get().getUnits();
 
         //сортируем unit в порядке убывания инициативы
-        units.sort(Comparator.comparingLong(Unit::getInitiative));
+        units.sort(Comparator.comparingLong(u -> getRNum30(u.getInitiative())));
         List<String> unitName = units.stream().map(Unit::getName).toList();
         System.out.println("Сортировка по убыванию инициативы " + unitName);
 
@@ -173,7 +173,6 @@ public class FightHandler {
                                 case DAMAGE -> {
                                     StringBuilder result = magActionHandler.calculateDamageAbility(unit, target, ability.get());
                                     resultRound.append(result);
-                                    System.out.println("Применено одиночное умение атаки");
                                 }
                                 case RECOVERY -> {
                                     StringBuilder result = magActionHandler.calculateRecoveryAbility(unit, target, ability.get());
@@ -244,18 +243,20 @@ public class FightHandler {
         for (Unit unit : units) {
             if (unit.getStatus().equals(Status.LOSS)) {
                 //сохранение вещи на локации в случае поражения aiUnit
-                if(unit.getSubjectType().equals(SubjectType.AI)) {
-                    unit.setStatus(Status.ACTIVE);
-                    unit.setFight(null);
-                    entityGenerator.setNewThing(unit.getLocationId());
+                switch (unit.getSubjectType()) {
+                    case AI -> {
+                        unit.setFight(null);
+                        entityGenerator.setNewThing(unit.getLocationId());
+                    }
+                    case USER -> unit.setHp(1);
                 }
-                unit.setHp(1);
                 unit.setFightEffect(null);
                 unit.setFightPosition(null);
                 unit.setTeamNumber(null);
                 unit.setAbilityId(null);
                 unit.setTargetId(null);
                 unit.setActionEnd(false);
+                unit.setPointAction(unit.getMaxPointAction());
                 unitRepository.save(unit);
                 fight.getUnitsLoss().add(unit.getId());
             }
@@ -310,6 +311,7 @@ public class FightHandler {
                 unit.setTargetId(null);
                 unit.setFightEffect(null);
                 unit.setFightPosition(null);
+                unit.setPointAction(unit.getMaxPointAction());
                 unitRepository.save(unit);
                 fight.getUnitsWin().add(unit.getId());
                 System.out.println(unit.getName() + " победил в сражении");
@@ -339,6 +341,7 @@ public class FightHandler {
                 unit.setTargetId(null);
                 unit.setFightEffect(null);
                 unit.setFightPosition(null);
+                unit.setPointAction(unit.getMaxPointAction());
                 unitRepository.save(unit);
                 fight.getUnitsWin().add(unit.getId());
                 System.out.println(unit.getName() + " победил в сражении");
@@ -444,5 +447,12 @@ public class FightHandler {
 
     public int getTargetForAi(int targetTeamSize) {
         return new RandomDataGenerator().nextInt(0, targetTeamSize);
+    }
+
+    //рандом +-30% от числа
+    public int getRNum30(int num) {
+        int min = (int) Math.round(num * 0.70);
+        int max = (int) Math.round(num * 1.30);
+        return new RandomDataGenerator().nextInt(min, max);
     }
 }

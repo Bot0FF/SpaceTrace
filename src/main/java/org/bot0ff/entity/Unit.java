@@ -5,19 +5,17 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.commons.math3.random.RandomDataGenerator;
 import org.bot0ff.entity.unit.UnitArmor;
 import org.bot0ff.entity.unit.UnitEffect;
 import org.bot0ff.entity.enums.Status;
 import org.bot0ff.entity.enums.SubjectType;
 import org.bot0ff.entity.unit.UnitSkill;
+import org.bot0ff.util.Constants;
 import org.bot0ff.util.converter.UnitJsonSubjectToArmorConverter;
 import org.bot0ff.util.converter.UnitJsonSubjectToEffectConverter;
 import org.bot0ff.util.converter.UnitJsonSubjectToSkillConverter;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @Entity
 @Table(name = "unit")
@@ -90,7 +88,6 @@ public class Unit {
     /** навыки */
     @Convert(converter = UnitJsonSubjectToSkillConverter.class)
     @Column(name = "unitSkill")
-    @JsonIgnore
     private UnitSkill unitSkill;
 
     /** список умений */
@@ -190,9 +187,9 @@ public class Unit {
 
     //модификатор физического урона
     public int getPhysDamage() {
-        int fullPhysDamage = 0;
+        int fullPhysDamage;
         if(weapon == null) return (int) (strength * (getSkillLevel(unitSkill.getOneHand()) * 1.0 / 100));
-        switch (weapon.getApplyType()) {
+        switch (weapon.getSkillType()) {
             case "ONE_HAND" -> {
                 double physDamageModifier = (((strength * 5.0) / 100) + 1) + (((luck * 0.9) / 100) + 0.10);
                 physDamageModifier += (getSkillLevel(unitSkill.getOneHand()) * 1.0 / 100);
@@ -208,26 +205,6 @@ public class Unit {
                 physDamageModifier += (getSkillLevel(unitSkill.getBow()) * 1.0 / 100);
                 fullPhysDamage = (int) Math.round(physDamageModifier * (weapon.getPhysDamage() + 1));
             }
-            case "FIRE" -> {
-                double physDamageModifier = (((intelligence * 1.0) / 100) + 1) + (((luck * 1.0) / 100) + 0.10);
-                physDamageModifier += (getSkillLevel(unitSkill.getFire()) * 1.0 / 100);
-                fullPhysDamage = (int) Math.round(physDamageModifier * (weapon.getPhysDamage() + 1));
-            }
-            case "WATER" -> {
-                double physDamageModifier = (((intelligence * 1.0) / 100) + 1) + (((luck * 1.0) / 100) + 0.10);
-                physDamageModifier += (getSkillLevel(unitSkill.getWater()) * 1.0 / 100);
-                fullPhysDamage = (int) Math.round(physDamageModifier * (weapon.getPhysDamage() + 1));
-            }
-            case "LAND" -> {
-                double physDamageModifier = (((intelligence * 1.0) / 100) + 1) + (((luck * 1.0) / 100) + 0.10);
-                physDamageModifier += (getSkillLevel(unitSkill.getLand()) * 1.0 / 100);
-                fullPhysDamage = (int) Math.round(physDamageModifier * (weapon.getPhysDamage() + 1));
-            }
-            case "AIR" -> {
-                double physDamageModifier = (((intelligence * 1.0) / 100) + 1) + (((luck * 1.0) / 100) + 0.10);
-                physDamageModifier += (getSkillLevel(unitSkill.getAir()) * 1.0 / 100);
-                fullPhysDamage = (int) Math.round(physDamageModifier * (weapon.getPhysDamage() + 1));
-            }
             default -> fullPhysDamage = strength + dexterity + intelligence;
         }
         //прибавляем к базовому урону эффекты боя, если есть
@@ -241,9 +218,9 @@ public class Unit {
 
     //модификатор усиления магического умения
     public double getMagModifier() {
-        double magDamageModifier = ((intelligence * 1.0) / 100) + 1 + (((luck * 1.0) / 100) + 0.10);
-        if(magDamageModifier < 0) return 0.01;
-        return magDamageModifier;
+        double magModifier = ((intelligence * 1.0) / 100) + 1 + (((luck * 1.0) / 100) + 0.10);
+        if(magModifier < 0) return 0.01;
+        return magModifier;
     }
 
     //физическая защита
@@ -277,9 +254,8 @@ public class Unit {
 
     //инициатива
     public int getInitiative() {
-        int initiativeModifier = (luck * 2) + (dexterity * 3);
-        int resultInitiative = getRNum30(initiativeModifier);
-        return Math.max(resultInitiative, 0);
+        int initiative= (luck * 2) + (dexterity * 3);
+        return Math.max(initiative, 0);
     }
 
     //скорость регенерации
@@ -296,30 +272,22 @@ public class Unit {
 
     //шанс блока
     public double getChanceBlock() {
-        return (int) (1 + (getSkillLevel(unitSkill.getBlock()) * 1.0 / 100));
+        return (1 + (getSkillLevel(unitSkill.getBlock()) * 1.0 / 100));
     }
 
     //шанс уклонения
     public double getChanceEvade() {
-        return (int) (1 + (getSkillLevel(unitSkill.getEvade()) * 1.0 / 100));
+        return (1 + (getSkillLevel(unitSkill.getEvade()) * 1.0 / 100));
     }
 
+    //рассчитывает уровень навыка, исходя из опыта навыка unit
     private int getSkillLevel(int skill) {
         int level = 1;
-        List<Integer> levelList = new ArrayList<>(List.of(1, 1000, 2, 5000, 3, 10000));
-        Collections.sort(levelList);
-        for(Integer levelExp: levelList) {
+        for(Integer levelExp: Constants.SKILL_EXP) {
             skill -= levelExp;
             if(skill < 0) break;
             level++;
         }
         return level;
-    }
-
-    //рандом +-30% от числа
-    private int getRNum30(int num) {
-        int min = (int) Math.round(num * 0.70);
-        int max = (int) Math.round(num * 1.30);
-        return new RandomDataGenerator().nextInt(min, max);
     }
 }

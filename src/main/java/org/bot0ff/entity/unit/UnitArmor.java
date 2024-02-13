@@ -8,11 +8,12 @@ import lombok.Data;
 public class UnitArmor {
     private Long id;
     private String name;
+    private String skillType;
     private String applyType;
     private int hp;
     private int mana;
     private int physDamage;
-    private int magDamage;
+    private int magImpact;
     private double magDamageModifier;
     private int physDefense;
     private int magDefense;
@@ -23,11 +24,12 @@ public class UnitArmor {
     public UnitArmor() {
         this.id = 0L;
         this.name = "";
+        this.skillType = "";
         this.applyType = "";
         this.hp = 0;
         this.mana = 0;
         this.physDamage = 0;
-        this.magDamage = 0;
+        this.magImpact = 0;
         this.magDamageModifier = 0;
         this.physDefense = 0;
         this.magDefense = 0;

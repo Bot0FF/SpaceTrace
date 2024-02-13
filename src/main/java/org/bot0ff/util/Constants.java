@@ -1,5 +1,12 @@
 package org.bot0ff.util;
 
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 public class Constants {
 
     //дальность действия оружия/умений
@@ -25,9 +32,10 @@ public class Constants {
     public static int START_POS_X = 2;
     public static int START_POS_Y = 2;
 
-
-    //Размеры карты
-    public static int MAX_MAP_LENGTH = 9;
+    //количество опыта для уровней навыков
+    public static List<Integer> SKILL_EXP = Stream.of(
+            1000, 5000, 10000, 15000, 20000
+    ).sorted().collect(Collectors.toList());
 
     //максимальное количество существ на локации
     public static int MAX_COUNT_ENEMY_ON_LOCATION = 3;
@@ -37,7 +45,4 @@ public class Constants {
 
     //длительность раундов
     public static  int ROUND_LENGTH_TIME = 60;
-
-    //значения в бд
-
 }

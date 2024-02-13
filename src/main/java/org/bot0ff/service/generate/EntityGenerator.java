@@ -86,10 +86,11 @@ public class EntityGenerator {
                 subject.getName(),
                 subject.getSubjectType(),
                 subject.getSkillType(),
+                subject.getApplyType(),
                 subject.getHp(),
                 subject.getMana(),
                 subject.getPhysDamage(),
-                subject.getMagDamage(),
+                subject.getMagImpact(),
                 subject.getMagDamageModifier(),
                 subject.getPhysDefense(),
                 subject.getMagDefense(),
@@ -102,6 +103,8 @@ public class EntityGenerator {
                 subject.getDistance(),
                 subject.getPointAction(),
                 subject.getDuration(),
+                subject.getCost(),
+                subject.getPrice(),
                 subject.getDescription(),
                 false
         );

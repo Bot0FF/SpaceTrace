@@ -11,5 +11,7 @@ public enum SubjectType {
     HEAD,
     HAND,
     BODY,
-    LEG
+    LEG,
+    //умения
+    ABILITY
 }

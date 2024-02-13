@@ -49,8 +49,8 @@ public class Subject {
     private int physDamage;
 
     //для магического умения
-    @Column(name = "magDamage")
-    private int magDamage;
+    @Column(name = "magImpact")
+    private int magImpact;
 
     //для магического оружия
     @Column(name = "magDamageModifier")
@@ -90,8 +90,17 @@ public class Subject {
     @Column(name = "pointAction")
     private int pointAction;
 
+    //длительность действия для умений
     @Column(name = "duration")
     private int duration;
+
+    //количество расходуемой маны на умение
+    @Column(name = "cost")
+    private int cost;
+
+    //цена объекта
+    @Column(name = "price")
+    private int price;
 
     /** описание */
     @Column(name = "description")

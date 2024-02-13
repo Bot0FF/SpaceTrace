@@ -347,6 +347,12 @@ public class FightService {
         }
         Subject ability = optionalSubject.get();
 
+        //если недостаточно маны для применения умения, возвращаем уведомление
+        if(player.getMana() < ability.getCost()) {
+            return jsonProcessor
+                    .toJsonInfo(new InfoResponse("Не хватает маны для этого умения"));
+        }
+
         //находим выбранного unit
         Optional<Unit> optionalTarget = unitRepository.findById(targetId);
         if(optionalTarget.isEmpty()) {
