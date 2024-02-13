@@ -158,7 +158,6 @@ public class ProfileService {
                 player.setWeapon(new UnitArmor(
                         thing.getId(),
                         thing.getName(),
-                        thing.getApplyType().name(),
                         thing.getSkillType().name(),
                         thing.getHp(),
                         thing.getMana(),
@@ -180,7 +179,6 @@ public class ProfileService {
                 player.setHead(new UnitArmor(
                         thing.getId(),
                         thing.getName(),
-                        thing.getApplyType().name(),
                         thing.getSkillType().name(),
                         thing.getHp(),
                         thing.getMana(),
@@ -202,7 +200,6 @@ public class ProfileService {
                 player.setHand(new UnitArmor(
                         thing.getId(),
                         thing.getName(),
-                        thing.getApplyType().name(),
                         thing.getSkillType().name(),
                         thing.getHp(),
                         thing.getMana(),
@@ -224,7 +221,6 @@ public class ProfileService {
                 player.setBody(new UnitArmor(
                         thing.getId(),
                         thing.getName(),
-                        thing.getApplyType().name(),
                         thing.getSkillType().name(),
                         thing.getHp(),
                         thing.getMana(),
@@ -246,7 +242,6 @@ public class ProfileService {
                 player.setLeg(new UnitArmor(
                         thing.getId(),
                         thing.getName(),
-                        thing.getApplyType().name(),
                         thing.getSkillType().name(),
                         thing.getHp(),
                         thing.getMana(),

@@ -81,7 +81,7 @@ public class PhysActionHandler {
                 .append(" урона противнику ")
                 .append(target.getName())
                 .append(" оружием ")
-                .append(target.getWeapon().getName())
+                .append(unit.getWeapon().getName())
                 .append("]");
     }
 }

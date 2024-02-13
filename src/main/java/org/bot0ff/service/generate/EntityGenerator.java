@@ -57,7 +57,7 @@ public class EntityGenerator {
                 List.of(),
                 List.of(),
                 //экипировка
-                new UnitArmor(),
+                new UnitArmor(1L, "Палка-копалка", "ONE_HAND", 0, 0, 10, 0, 0, 0, 0, 2, 1, 100),
                 new UnitArmor(),
                 new UnitArmor(),
                 new UnitArmor(),
@@ -65,7 +65,8 @@ public class EntityGenerator {
                 //сражение
                 null,
                 null,
-                List.of(new UnitEffect()),
+                null,
+                null,
                 null,
                 null,
                 null

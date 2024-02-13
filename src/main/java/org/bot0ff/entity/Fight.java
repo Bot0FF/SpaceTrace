@@ -42,7 +42,4 @@ public class Fight {
 
     @Column(name = "unitsLoss")
     private List<Long> unitsLoss;
-
-    @Transient
-    private Long endRoundTimer;
 }

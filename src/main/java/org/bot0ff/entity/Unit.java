@@ -138,6 +138,11 @@ public class Unit {
     @JsonIgnore
     private Fight fight;
 
+    //позиция во время атаки
+    @Column(name = "hitPosition")
+    private Long hitPosition;
+
+    //позиция на линии сражения
     @Column(name = "fightPosition")
     private Long fightPosition;
 

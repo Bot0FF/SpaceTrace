@@ -113,11 +113,11 @@ with data(id, name, subject_type, status, action_end,
             1, 1, 1, 1, 1, 0,
             '{"oneHand": 1, "twoHand": 1, "bow": 1, "fire": 1, "water": 1, "land": 1, "air": 1, "vitality": 1, "spirituality": 1, "regeneration": 1, "meditation": 1, "block": 1, "evade": 1}',
             ARRAY[]::integer[], ARRAY[]::integer[],
-            '{"id": "0", "name": "", "skillType": "", "applyType": "", "hp": "0", "mana": "0", "physDamage": "0", "magImpact": "0", "magDamageModifier": 0, "physDefense": "0", "magDefense": "0", "pointAction": 2, "distance": "0", "duration": "0"}',
-            '{"id": "0", "name": "", "skillType": "", "applyType": "", "hp": "0", "mana": "0", "physDamage": "0", "magImpact": "0", "magDamageModifier": 0, "physDefense": "0", "magDefense": "0", "pointAction": 0, "distance": "0", "duration": "0"}',
-            '{"id": "0", "name": "", "skillType": "", "applyType": "", "hp": "0", "mana": "0", "physDamage": "0", "magImpact": "0", "magDamageModifier": 0, "physDefense": "0", "magDefense": "0", "pointAction": 0, "distance": "0", "duration": "0"}',
-            '{"id": "0", "name": "", "skillType": "", "applyType": "", "hp": "0", "mana": "0", "physDamage": "0", "magImpact": "0", "magDamageModifier": 0, "physDefense": "0", "magDefense": "0", "pointAction": 0, "distance": "0", "duration": "0"}',
-            '{"id": "0", "name": "", "skillType": "", "applyType": "", "hp": "0", "mana": "0", "physDamage": "0", "magImpact": "0", "magDamageModifier": 0, "physDefense": "0", "magDefense": "0", "pointAction": 0, "distance": "0", "duration": "0"}'
+            '{"id": "0", "name": "", "skillType": "", "hp": "0", "mana": "0", "physDamage": "0", "magImpact": "0", "magDamageModifier": 0, "physDefense": "0", "magDefense": "0", "pointAction": 2, "distance": "0", "duration": "0"}',
+            '{"id": "0", "name": "", "skillType": "", "hp": "0", "mana": "0", "physDamage": "0", "magImpact": "0", "magDamageModifier": 0, "physDefense": "0", "magDefense": "0", "pointAction": 0, "distance": "0", "duration": "0"}',
+            '{"id": "0", "name": "", "skillType": "", "hp": "0", "mana": "0", "physDamage": "0", "magImpact": "0", "magDamageModifier": 0, "physDefense": "0", "magDefense": "0", "pointAction": 0, "distance": "0", "duration": "0"}',
+            '{"id": "0", "name": "", "skillType": "", "hp": "0", "mana": "0", "physDamage": "0", "magImpact": "0", "magDamageModifier": 0, "physDefense": "0", "magDefense": "0", "pointAction": 0, "distance": "0", "duration": "0"}',
+            '{"id": "0", "name": "", "skillType": "", "hp": "0", "mana": "0", "physDamage": "0", "magImpact": "0", "magDamageModifier": 0, "physDefense": "0", "magDefense": "0", "pointAction": 0, "distance": "0", "duration": "0"}'
 )
 )
 insert into unit (id, name, subject_type, status, action_end,

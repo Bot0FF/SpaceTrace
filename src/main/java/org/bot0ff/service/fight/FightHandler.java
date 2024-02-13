@@ -8,7 +8,6 @@ import org.bot0ff.entity.Subject;
 import org.bot0ff.entity.Unit;
 import org.bot0ff.entity.unit.UnitEffect;
 import org.bot0ff.entity.enums.Status;
-import org.bot0ff.entity.enums.SubjectType;
 import org.bot0ff.repository.FightRepository;
 import org.bot0ff.repository.SubjectRepository;
 import org.bot0ff.repository.UnitRepository;
@@ -20,6 +19,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Data
 @Slf4j
@@ -27,60 +27,67 @@ public class FightHandler {
     private UnitRepository unitRepository;
     private FightRepository fightRepository;
     private SubjectRepository subjectRepository;
+    private AiActionHandler aiActionHandler;
     private EntityGenerator entityGenerator;
     private PhysActionHandler physActionHandler;
     private MagActionHandler magActionHandler;
 
     private Long fightId;
     private Instant endRoundTimer;
-    private boolean endAiAttack;
     private boolean endFight;
 
     public FightHandler(Long fightId,
                         UnitRepository unitRepository,
                         FightRepository fightRepository,
                         SubjectRepository subjectRepository,
+                        AiActionHandler aiActionHandler,
                         EntityGenerator entityGenerator,
                         PhysActionHandler physActionHandler,
                         MagActionHandler magActionHandler) {
         this.unitRepository = unitRepository;
         this.fightRepository = fightRepository;
         this.subjectRepository = subjectRepository;
+        this.aiActionHandler = aiActionHandler;
         this.entityGenerator = entityGenerator;
         this.physActionHandler = physActionHandler;
         this.magActionHandler = magActionHandler;
 
         this.fightId = fightId;
-        this.endAiAttack = false;
         endRoundTimer = Instant.now().plusSeconds(Constants.ROUND_LENGTH_TIME);
         endFight = false;
 
-        try {
-            System.out.println("Запуск нового сражения");
-            fightInitializer();
-        } catch (InterruptedException e) {
-            log.info("Ошибка выполнения обработчика раундов: " + e.getMessage());
-            FightService.FIGHT_MAP.remove(fightId);
-        }
+        System.out.println("Запуск нового сражения");
+        fightInitializer();
     }
 
-    private void fightInitializer() throws InterruptedException {
+    private void fightInitializer()  {
         Executors.newSingleThreadExecutor().execute(() -> {
+            AtomicBoolean aiAction = new AtomicBoolean(false);
             do {
                 if (Instant.now().isAfter(endRoundTimer)) {
+                    //обработка результата раунда
                     resultRoundHandler(fightId);
+                    //установка длительности нового раунда
                     this.endRoundTimer = Instant.now().plusSeconds(Constants.ROUND_LENGTH_TIME);
-                    endAiAttack = false;
+                    aiAction.set(false);
                 } else {
+                    if(!aiAction.get()) {
+                        //ход AI в отдельном потоке
+                        Executors.newSingleThreadExecutor().execute(() -> {
+                            try {
+                                if(fightRepository.existsById(fightId)) {
+                                    aiActionHandler.setAiAction(fightId);
+                                    aiAction.set(true);
+                                }
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
+                            }
+                        });
+                    }
                     try {
                         TimeUnit.SECONDS.sleep(1);
-                        if (!endAiAttack) {
-                            setAiAttack();
-                            endAiAttack = true;
-                        }
                     } catch (InterruptedException e) {
-                        endFight = true;
-                        e.printStackTrace();
+                        throw new RuntimeException(e);
                     }
                 }
             } while (!endFight);
@@ -118,20 +125,26 @@ public class FightHandler {
                 if(ability.isEmpty()) {
                     //если цель-unit не найден, переходим к следующей итерации цикла
                     Optional<Unit> optionalTarget = units.stream().filter(t -> t.getId().equals(unit.getTargetId())).findFirst();
-                    if (optionalTarget.isEmpty()) continue;
+                    if (optionalTarget.isEmpty()) {
+                        resultRound
+                                .append("[")
+                                .append(unit.getName())
+                                .append(" бездействовал в предыдущем раунде]");
+                        continue;
+                    }
 
                     Unit target = optionalTarget.get();
                     //если дальность применения оружия достает до расположения выбранного противника на шкале сражения, считаем нанесенный урон
-                    if(unit.getFightPosition() - target.getFightPosition() == 0) {
+                    if(unit.getHitPosition() - target.getFightPosition() == 0) {
                         StringBuilder result = physActionHandler.calculateDamageWeapon(unit, target);
                         resultRound.append(result);
-                        System.out.println("Применено одиночное умение атаки");
+                        System.out.println("Атака оружием. Позиция unit " + unit.getFightPosition() + "/Позиция target " + target.getFightPosition());
                     }
-                    else if(unit.getFightPosition() - target.getFightPosition() < 0) {
-                        if((unit.getFightPosition() + unit.getWeapon().getDistance()) >= target.getFightPosition()) {
+                    else if(unit.getHitPosition() - target.getFightPosition() < 0) {
+                        if((unit.getHitPosition() + unit.getWeapon().getDistance()) >= target.getFightPosition()) {
                             StringBuilder result = physActionHandler.calculateDamageWeapon(unit, target);
                             resultRound.append(result);
-                            System.out.println("Применено одиночное умение атаки");
+                            System.out.println("Атака оружием. Позиция unit " + unit.getFightPosition() + "/Позиция target " + target.getFightPosition());
                         }
                         else {
                             resultRound.append("[");
@@ -139,14 +152,14 @@ public class FightHandler {
                             resultRound.append(" не достал до противника ");
                             resultRound.append(target.getName());
                             resultRound.append(" при атаке]");
-                            System.out.println(unit.getName() + " не достал до противника " + target.getName() + " при атаке");
+                            System.out.println("Не хватает дальности оружия для атаки. Позиция unit " + unit.getFightPosition() + "/Позиция target " + target.getFightPosition());
                         }
                     }
-                    else if(unit.getFightPosition() - target.getFightPosition() > 0) {
-                        if((unit.getFightPosition() - unit.getWeapon().getDistance()) <= target.getFightPosition()) {
+                    else if(unit.getHitPosition() - target.getFightPosition() > 0) {
+                        if((unit.getHitPosition() - unit.getWeapon().getDistance()) <= target.getFightPosition()) {
                             StringBuilder result = physActionHandler.calculateDamageWeapon(unit, target);
                             resultRound.append(result);
-                            System.out.println("Применено одиночное умение атаки");
+                            System.out.println("Атака оружием. Позиция unit " + unit.getFightPosition() + "/Позиция target " + target.getFightPosition());
                         }
                         else {
                             resultRound.append("[");
@@ -154,7 +167,7 @@ public class FightHandler {
                             resultRound.append(" не достал до противника ");
                             resultRound.append(target.getName());
                             resultRound.append(" при атаке]");
-                            System.out.println(unit.getName() + " не достал до противника " + target.getName() + " при атаке");
+                            System.out.println("Не хватает дальности оружия для атаки. Позиция unit " + unit.getFightPosition() + "/Позиция target " + target.getFightPosition());
                         }
                     }
                 }
@@ -230,9 +243,6 @@ public class FightHandler {
             if(unit.getHp() <= 0) {
                 unit.setStatus(Status.LOSS);
             }
-            if(unit.getMaxHp() <= 0) {
-                unit.setStatus(Status.LOSS);
-            }
             if(unit.getMana() <= 0) {
                 unit.setMana(0);
             }
@@ -254,6 +264,7 @@ public class FightHandler {
                 unit.setFightPosition(null);
                 unit.setTeamNumber(null);
                 unit.setAbilityId(null);
+                unit.setHitPosition(null);
                 unit.setTargetId(null);
                 unit.setActionEnd(false);
                 unit.setPointAction(unit.getMaxPointAction());
@@ -264,6 +275,7 @@ public class FightHandler {
             else {
                 unit.setActionEnd(false);
                 unit.setPointAction(unit.getMaxPointAction());
+                unit.setHitPosition(0L);
                 unit.setAbilityId(0L);
                 unit.setTargetId(0L);
                 unitRepository.save(unit);
@@ -291,7 +303,7 @@ public class FightHandler {
             fight.getResultRound().add(String.valueOf(resultRound));
             fight.setUnits(units);
             fightRepository.save(fight);
-            System.out.println("-->Запуск следующего раунда");
+            System.out.println("-->Раунд " + fight.getCountRound() + " завершен");
         }
         //если во второй команде нет игроков, а в первой есть, завершаем бой,
         //сохраняем результаты победы у unit из первой команды
@@ -310,6 +322,7 @@ public class FightHandler {
                 unit.setAbilityId(null);
                 unit.setTargetId(null);
                 unit.setFightEffect(null);
+                unit.setHitPosition(null);
                 unit.setFightPosition(null);
                 unit.setPointAction(unit.getMaxPointAction());
                 unitRepository.save(unit);
@@ -340,6 +353,7 @@ public class FightHandler {
                 unit.setAbilityId(null);
                 unit.setTargetId(null);
                 unit.setFightEffect(null);
+                unit.setHitPosition(null);
                 unit.setFightPosition(null);
                 unit.setPointAction(unit.getMaxPointAction());
                 unitRepository.save(unit);
@@ -396,57 +410,6 @@ public class FightHandler {
                         & unitEffect.getDurationEffectMagDamage() == 0
                         & unitEffect.getDurationEffectMagDefense() == 0
         );
-    }
-
-    //установка урона AI
-    @Transactional
-    private void setAiAttack() {
-        Optional<Fight> fight = fightRepository.findById(fightId);
-        if(fight.isEmpty()) return;
-
-        //делим на команды всех unit
-        List<Unit> teamOne = new ArrayList<>(fight.get().getUnits().stream().filter(unit -> unit.getTeamNumber() == 1).toList());
-        List<Unit> teamTwo = new ArrayList<>(fight.get().getUnits().stream().filter(unit -> unit.getTeamNumber() == 2).toList());
-
-        //TODO сделать случайный выбор атаки
-        //все unit первой команды применяют атаку на любом unit из второй команды
-        for(Unit aiUnit : teamOne){
-            if(aiUnit.getSubjectType().equals(SubjectType.AI)) {
-                int target = getTargetForAi(teamTwo.size() - 1);
-                Long targetId = teamTwo.get(target).getId();
-                if(aiUnit.getAllAbility().isEmpty()) {
-                    aiUnit.setAbilityId(0L);
-                    aiUnit.setTargetId(targetId);
-                }
-                else {
-                    aiUnit.setAbilityId(1L);
-                    aiUnit.setTargetId(targetId);
-                }
-                aiUnit.setActionEnd(true);
-                unitRepository.save(aiUnit);
-            }
-        }
-
-        //все unit второй команды применяют атаку на любом unit из первой команды
-        for(Unit aiUnit : teamTwo){
-            if(aiUnit.getSubjectType().equals(SubjectType.AI)) {
-                int target = getTargetForAi(teamOne.size() - 1);
-                Long targetId = teamOne.get(target).getId();
-                if (aiUnit.getAllAbility().isEmpty()) {
-                    aiUnit.setAbilityId(0L);
-                    aiUnit.setTargetId(targetId);
-                } else {
-                    aiUnit.setAbilityId(1L);
-                    aiUnit.setTargetId(targetId);
-                }
-                aiUnit.setActionEnd(true);
-                unitRepository.save(aiUnit);
-            }
-        }
-    }
-
-    public int getTargetForAi(int targetTeamSize) {
-        return new RandomDataGenerator().nextInt(0, targetTeamSize);
     }
 
     //рандом +-30% от числа

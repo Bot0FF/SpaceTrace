@@ -5,6 +5,7 @@ import org.bot0ff.dto.UnitDto;
 import org.bot0ff.entity.Fight;
 import org.bot0ff.entity.Subject;
 import org.bot0ff.entity.Unit;
+import org.bot0ff.service.fight.FightService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,21 +28,18 @@ public class FightResponse {
     public FightResponse(Unit player, Fight fight, List<Subject> ability, String info) {
         this.player = player;
         this.fight = fight;
-        this.teamOne = new ArrayList<>();
-        this.teamTwo = new ArrayList<>();
-        if(!fight.getUnits().isEmpty()) {
+        if(fight != null) {
             this.teamOne = new ArrayList<>(fight.getUnits().stream().filter(unit -> unit.getTeamNumber() == 1).toList());
             this.teamTwo = new ArrayList<>(fight.getUnits().stream().filter(unit -> unit.getTeamNumber() == 2).toList());
+            this.resultRound = fight.getResultRound().get(fight.getResultRound().size() - 1);
+            this.countRound = this.fight.getCountRound();
         }
-        this.ability = ability;
-        if(this.fight.getResultRound().isEmpty()) {
-            this.resultRound = "";
+        if(fight != null && FightService.FIGHT_MAP.get(fight.getId()) != null) {
+            this.endRoundTimer = FightService.FIGHT_MAP.get(fight.getId()).getEndRoundTimer().toEpochMilli();
         }
-        else {
-            this.resultRound = this.fight.getResultRound().get(this.fight.getResultRound().size() - 1);
+        if(ability != null) {
+            this.ability = ability;
         }
-        this.countRound = this.fight.getCountRound();
-        this.endRoundTimer = this.fight.getEndRoundTimer();
         this.info = info;
         this.status = 1;
     }

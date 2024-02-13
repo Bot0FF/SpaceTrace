@@ -9,7 +9,6 @@ public class UnitArmor {
     private Long id;
     private String name;
     private String skillType;
-    private String applyType;
     private int hp;
     private int mana;
     private int physDamage;
@@ -25,7 +24,6 @@ public class UnitArmor {
         this.id = 0L;
         this.name = "";
         this.skillType = "";
-        this.applyType = "";
         this.hp = 0;
         this.mana = 0;
         this.physDamage = 0;
