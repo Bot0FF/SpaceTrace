@@ -128,11 +128,13 @@ public class MainService {
 
         //шанс появления enemy на локации
         if(randomUtil.getChanceCreateEnemy()) {
-            Long newEnemyId = entityGenerator.setNewAiUnit(newLocation);
-            newLocation.getAis().add(newEnemyId);
-            //шанс нападения enemy на unit
-            if(randomUtil.getRandom1or2() == 1) {
-                fightService.setStartFight(null, newEnemyId, player.getId());
+            Long newOpponent = entityGenerator.getNewAiUnitId(newLocation);
+            if(!newOpponent.equals(0L)) {
+                newLocation.getAis().add(newOpponent);
+                //шанс нападения enemy на unit
+                if (randomUtil.getRandom1or2() == 1) {
+                    fightService.setStartFight(null, newOpponent, player.getId());
+                }
             }
         }
 

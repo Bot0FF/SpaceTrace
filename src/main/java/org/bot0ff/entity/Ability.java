@@ -4,48 +4,45 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bot0ff.entity.enums.ApplyType;
+import org.bot0ff.entity.enums.RangeType;
 import org.bot0ff.entity.enums.SkillType;
-import org.bot0ff.entity.enums.ObjectType;
 
 @Data
-@Table(name = "thing")
+@Table(name = "ability")
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-public class Thing {
+public class Ability {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "name")
     private String name;
 
-    //id владельца
-    @Column(name = "ownerId")
-    private Long ownerId;
-
-    //состояние использования
-    @Column(name = "isUse")
-    private boolean isUse;
-
-    @Enumerated(value = EnumType.STRING)
-    @Column(name = "subjectType")
-    private ObjectType objectType;
-
     @Enumerated(value = EnumType.STRING)
     @Column(name = "skillType")
     private SkillType skillType;
 
-    /** воздействия на характеристики unit для предметов */
+    @Enumerated(value = EnumType.STRING)
+    @Column(name = "applyType")
+    private ApplyType applyType;
+
+    @Enumerated(value = EnumType.STRING)
+    @Column(name = "rangeType")
+    private RangeType rangeType;
+
+    /** урон */
     //физический урон
     @Column(name = "physDamage")
     private int physDamage;
 
-    //модификатор магического воздействия
-    @Column(name = "magModifier")
-    private double magModifier;
+    //магический урон
+    @Column(name = "magDamage")
+    private int magDamage;
 
+    /** воздействия на характеристики */
     //воздействие на hp
     @Column(name = "hp")
     private int hp;
@@ -82,56 +79,24 @@ public class Thing {
     @Column(name = "luck")
     private int luck;
 
+    /** прочие характеристики */
     //дистанция применения
     @Column(name = "distance")
     private int distance;
 
-    //состояние предмета
-    @Column(name = "condition")
-    private int condition;
+    //требуемое количество очков действия
+    @Column(name = "pointAction")
+    private int pointAction;
 
-    /** количество прибавляемого опыта к навыку для книг */
-    @Column(name = "oneHand")
-    private int oneHand;
+    //длительность действия
+    @Column(name = "duration")
+    private int duration;
 
-    @Column(name = "twoHand")
-    private int twoHand;
+    //количество расходуемой маны
+    @Column(name = "manaCost")
+    private int manaCost;
 
-    @Column(name = "bow")
-    private int bow;
-
-    @Column(name = "fire")
-    private int fire;
-
-    @Column(name = "water")
-    private int water;
-
-    @Column(name = "land")
-    private int land;
-
-    @Column(name = "air")
-    private int air;
-
-    @Column(name = "vitality")
-    private int vitality;
-
-    @Column(name = "spirituality")
-    private int spirituality;
-
-    @Column(name = "regeneration")
-    private int regeneration;
-
-    @Column(name = "meditation")
-    private int meditation;
-
-    @Column(name = "evade")
-    private int evade;
-
-    @Column(name = "block")
-    private int block;
-
-    /** прочие характеристики */
-    //цена объекта
+    //стоимость умения
     @Column(name = "price")
     private int price;
 

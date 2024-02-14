@@ -9,8 +9,10 @@ import org.bot0ff.entity.Thing;
 import org.bot0ff.entity.Unit;
 import org.bot0ff.model.ProfileResponse;
 import org.bot0ff.repository.LocationRepository;
+import org.bot0ff.repository.ObjectsRepository;
 import org.bot0ff.repository.ThingRepository;
 import org.bot0ff.repository.UnitRepository;
+import org.bot0ff.service.generate.EntityGenerator;
 import org.bot0ff.util.JsonProcessor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -84,7 +86,7 @@ public class ProfileService {
         Thing thing = optionalThing.get();
 
         if(thing.isUse()) {
-            switch (thing.getSubjectType()) {
+            switch (thing.getObjectType()) {
                 case WEAPON -> {
                     player.setWeapon(new UnitArmor());
                     thing.setUse(false);
@@ -150,7 +152,7 @@ public class ProfileService {
             return response;
         }
 
-        switch (thing.getSubjectType()) {
+        switch (thing.getObjectType()) {
             case WEAPON -> {
                 if(player.getWeapon().getId() != null) {
                     takeOffExistThing(player.getWeapon());
@@ -158,17 +160,21 @@ public class ProfileService {
                 player.setWeapon(new UnitArmor(
                         thing.getId(),
                         thing.getName(),
+                        thing.getObjectType().name(),
                         thing.getSkillType().name(),
+                        thing.getPhysDamage(),
+                        thing.getMagModifier(),
                         thing.getHp(),
                         thing.getMana(),
-                        thing.getPhysDamage(),
-                        thing.getMagImpact(),
-                        thing.getMagDamageModifier(),
                         thing.getPhysDefense(),
                         thing.getMagDefense(),
-                        thing.getPointAction(),
+                        thing.getStrength(),
+                        thing.getIntelligence(),
+                        thing.getDexterity(),
+                        thing.getEndurance(),
+                        thing.getLuck(),
                         thing.getDistance(),
-                        thing.getDuration()
+                        thing.getCondition()
                 ));
                 thing.setUse(true);
             }
@@ -179,17 +185,21 @@ public class ProfileService {
                 player.setHead(new UnitArmor(
                         thing.getId(),
                         thing.getName(),
+                        thing.getObjectType().name(),
                         thing.getSkillType().name(),
+                        thing.getPhysDamage(),
+                        thing.getMagModifier(),
                         thing.getHp(),
                         thing.getMana(),
-                        thing.getPhysDamage(),
-                        thing.getMagImpact(),
-                        thing.getMagDamageModifier(),
                         thing.getPhysDefense(),
                         thing.getMagDefense(),
-                        thing.getPointAction(),
+                        thing.getStrength(),
+                        thing.getIntelligence(),
+                        thing.getDexterity(),
+                        thing.getEndurance(),
+                        thing.getLuck(),
                         thing.getDistance(),
-                        thing.getDuration()
+                        thing.getCondition()
                 ));
                 thing.setUse(true);
             }
@@ -200,17 +210,21 @@ public class ProfileService {
                 player.setHand(new UnitArmor(
                         thing.getId(),
                         thing.getName(),
+                        thing.getObjectType().name(),
                         thing.getSkillType().name(),
+                        thing.getPhysDamage(),
+                        thing.getMagModifier(),
                         thing.getHp(),
                         thing.getMana(),
-                        thing.getPhysDamage(),
-                        thing.getMagImpact(),
-                        thing.getMagDamageModifier(),
                         thing.getPhysDefense(),
                         thing.getMagDefense(),
-                        thing.getPointAction(),
+                        thing.getStrength(),
+                        thing.getIntelligence(),
+                        thing.getDexterity(),
+                        thing.getEndurance(),
+                        thing.getLuck(),
                         thing.getDistance(),
-                        thing.getDuration()
+                        thing.getCondition()
                 ));
                 thing.setUse(true);
             }
@@ -221,17 +235,21 @@ public class ProfileService {
                 player.setBody(new UnitArmor(
                         thing.getId(),
                         thing.getName(),
+                        thing.getObjectType().name(),
                         thing.getSkillType().name(),
+                        thing.getPhysDamage(),
+                        thing.getMagModifier(),
                         thing.getHp(),
                         thing.getMana(),
-                        thing.getPhysDamage(),
-                        thing.getMagImpact(),
-                        thing.getMagDamageModifier(),
                         thing.getPhysDefense(),
                         thing.getMagDefense(),
-                        thing.getPointAction(),
+                        thing.getStrength(),
+                        thing.getIntelligence(),
+                        thing.getDexterity(),
+                        thing.getEndurance(),
+                        thing.getLuck(),
                         thing.getDistance(),
-                        thing.getDuration()
+                        thing.getCondition()
                 ));
                 thing.setUse(true);
             }
@@ -242,17 +260,21 @@ public class ProfileService {
                 player.setLeg(new UnitArmor(
                         thing.getId(),
                         thing.getName(),
+                        thing.getObjectType().name(),
                         thing.getSkillType().name(),
+                        thing.getPhysDamage(),
+                        thing.getMagModifier(),
                         thing.getHp(),
                         thing.getMana(),
-                        thing.getPhysDamage(),
-                        thing.getMagImpact(),
-                        thing.getMagDamageModifier(),
                         thing.getPhysDefense(),
                         thing.getMagDefense(),
-                        thing.getPointAction(),
+                        thing.getStrength(),
+                        thing.getIntelligence(),
+                        thing.getDexterity(),
+                        thing.getEndurance(),
+                        thing.getLuck(),
                         thing.getDistance(),
-                        thing.getDuration()
+                        thing.getCondition()
                 ));
                 thing.setUse(true);
             }
@@ -296,30 +318,30 @@ public class ProfileService {
             return response;
         }
 
-        switch (thing.getSubjectType()) {
+        switch (thing.getObjectType()) {
             case WEAPON -> {
                 player.setWeapon(new UnitArmor());
-                thing.setDuration(player.getWeapon().getDuration());
+                thing.setCondition(player.getWeapon().getCondition());
                 thing.setUse(false);
             }
             case HEAD -> {
                 player.setHead(new UnitArmor());
-                thing.setDuration(player.getHead().getDuration());
+                thing.setCondition(player.getHead().getCondition());
                 thing.setUse(false);
             }
             case HAND -> {
                 player.setHand(new UnitArmor());
-                thing.setDuration(player.getHand().getDuration());
+                thing.setCondition(player.getHand().getCondition());
                 thing.setUse(false);
             }
             case BODY -> {
                 player.setBody(new UnitArmor());
-                thing.setDuration(player.getBody().getDuration());
+                thing.setCondition(player.getBody().getCondition());
                 thing.setUse(false);
             }
             case LEG -> {
                 player.setLeg(new UnitArmor());
-                thing.setDuration(player.getLeg().getDuration());
+                thing.setCondition(player.getLeg().getCondition());
                 thing.setUse(false);
             }
         }
@@ -343,7 +365,7 @@ public class ProfileService {
         }
         Thing thing = optionalExistThing.get();
 
-        thing.setDuration(existThing.getDuration());
+        thing.setCondition(existThing.getCondition());
         thing.setUse(false);
         thingRepository.save(thing);
     }

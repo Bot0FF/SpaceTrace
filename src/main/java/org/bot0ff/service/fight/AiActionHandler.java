@@ -2,13 +2,14 @@ package org.bot0ff.service.fight;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.bot0ff.entity.Ability;
 import org.bot0ff.entity.Fight;
-import org.bot0ff.entity.Subject;
+import org.bot0ff.entity.Objects;
 import org.bot0ff.entity.Unit;
 import org.bot0ff.entity.enums.ApplyType;
-import org.bot0ff.entity.enums.SubjectType;
+import org.bot0ff.entity.enums.UnitType;
+import org.bot0ff.repository.AbilityRepository;
 import org.bot0ff.repository.FightRepository;
-import org.bot0ff.repository.SubjectRepository;
 import org.bot0ff.repository.UnitRepository;
 import org.bot0ff.util.RandomUtil;
 import org.springframework.stereotype.Service;
@@ -23,7 +24,7 @@ import java.util.Optional;
 public class AiActionHandler {
     private final UnitRepository unitRepository;
     private final FightRepository fightRepository;
-    private final SubjectRepository subjectRepository;
+    private final AbilityRepository abilityRepository;
 
     private final RandomUtil randomUtil;
 
@@ -44,7 +45,7 @@ public class AiActionHandler {
         for(Unit aiUnit : teamOne){
             System.out.println("---------------------");
             System.out.println("Ход AI первой команды");
-            if(aiUnit.getSubjectType().equals(SubjectType.AI)) {
+            if(aiUnit.getUnitType().equals(UnitType.AI)) {
                 //определяем противника
                 Unit target = getRandomUser(teamTwo);
                 //передвигаем AI в случайное место на линии сражения
@@ -66,7 +67,7 @@ public class AiActionHandler {
         for(Unit aiUnit : teamTwo){
             System.out.println("---------------------");
             System.out.println("Ход AI второй команды");
-            if(aiUnit.getSubjectType().equals(SubjectType.AI)) {
+            if(aiUnit.getUnitType().equals(UnitType.AI)) {
                 //определяем противника
                 Unit target = getRandomUser(teamOne);
                 //передвигаем AI в случайное место на линии сражения
@@ -92,7 +93,7 @@ public class AiActionHandler {
         Unit target;
         do{
             target = team.get(randomUtil.getRandomFromTo(0, team.size() - 1));
-        } while (!target.getSubjectType().equals(SubjectType.USER));
+        } while (target.getUnitType().equals(UnitType.AI));
 
         return target;
     }
@@ -150,7 +151,7 @@ public class AiActionHandler {
         if((aiUnit.getLinePosition() - target.getLinePosition()) >= -1
                 | (aiUnit.getLinePosition() - target.getLinePosition()) <= 1) {
             aiUnit.setTargetId(target.getId());
-            aiUnit.setPointAction(aiUnit.getPointAction() - aiUnit.getWeapon().getPointAction());
+            aiUnit.setPointAction(aiUnit.getPointAction() - 2);
             aiUnit.setHitPosition(aiUnit.getLinePosition());
             aiUnit.setTargetPosition(target.getLinePosition());
             unitRepository.save(aiUnit);
@@ -180,7 +181,7 @@ public class AiActionHandler {
         if((aiUnit.getLinePosition() - target.getLinePosition()) >= -5
                 | (aiUnit.getLinePosition() - target.getLinePosition()) <= 5) {
             aiUnit.setTargetId(target.getId());
-            aiUnit.setPointAction(aiUnit.getPointAction() - aiUnit.getWeapon().getPointAction());
+            aiUnit.setPointAction(aiUnit.getPointAction() - 2);
             aiUnit.setHitPosition(aiUnit.getLinePosition());
             aiUnit.setTargetPosition(target.getLinePosition());
             unitRepository.save(aiUnit);
@@ -203,11 +204,11 @@ public class AiActionHandler {
             return;
         }
         Long numberAbility = (long) randomUtil.getRandomFromTo(0, aiUnit.getCurrentAbility().size() - 1);
-        Optional<Subject> optionalAbility = subjectRepository.findById(numberAbility);
+        Optional<Ability> optionalAbility = abilityRepository.findById(numberAbility);
         if(optionalAbility.isEmpty()) return;
-        Subject ability = optionalAbility.get();
+        Ability ability = optionalAbility.get();
 
-        if(aiUnit.getMana() < ability.getCost()) {
+        if(aiUnit.getMana() < ability.getManaCost()) {
             System.out.println("Недостаточно маны для применения умения. Возврат к выбору действия");
             return;
         }
@@ -215,7 +216,7 @@ public class AiActionHandler {
         if(ability.getApplyType().equals(ApplyType.DAMAGE)) {
             if((aiUnit.getLinePosition() - target.getLinePosition()) >= -6
                     | (aiUnit.getLinePosition() - target.getLinePosition()) <= 6) {
-                aiUnit.setMana(aiUnit.getMana() - ability.getCost());
+                aiUnit.setMana(aiUnit.getMana() - ability.getManaCost());
                 aiUnit.setAbilityId(numberAbility);
                 aiUnit.setTargetId(target.getId());
                 aiUnit.setHitPosition(aiUnit.getLinePosition());
@@ -230,7 +231,7 @@ public class AiActionHandler {
             }
         }
         else {
-            aiUnit.setMana(aiUnit.getMana() - ability.getCost());
+            aiUnit.setMana(aiUnit.getMana() - ability.getManaCost());
             aiUnit.setAbilityId(numberAbility);
             aiUnit.setHitPosition(aiUnit.getLinePosition());
             aiUnit.setTargetPosition(target.getLinePosition());

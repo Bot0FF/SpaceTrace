@@ -3,13 +3,13 @@ package org.bot0ff.service.fight;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.math3.random.RandomDataGenerator;
+import org.bot0ff.entity.Ability;
 import org.bot0ff.entity.Fight;
-import org.bot0ff.entity.Subject;
 import org.bot0ff.entity.Unit;
 import org.bot0ff.entity.unit.UnitEffect;
 import org.bot0ff.entity.enums.Status;
+import org.bot0ff.repository.AbilityRepository;
 import org.bot0ff.repository.FightRepository;
-import org.bot0ff.repository.SubjectRepository;
 import org.bot0ff.repository.UnitRepository;
 import org.bot0ff.service.generate.EntityGenerator;
 import org.bot0ff.util.Constants;
@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class FightHandler {
     private UnitRepository unitRepository;
     private FightRepository fightRepository;
-    private SubjectRepository subjectRepository;
+    private AbilityRepository abilityRepository;
     private AiActionHandler aiActionHandler;
     private EntityGenerator entityGenerator;
     private PhysActionHandler physActionHandler;
@@ -39,14 +39,14 @@ public class FightHandler {
     public FightHandler(Long fightId,
                         UnitRepository unitRepository,
                         FightRepository fightRepository,
-                        SubjectRepository subjectRepository,
+                        AbilityRepository abilityRepository,
                         AiActionHandler aiActionHandler,
                         EntityGenerator entityGenerator,
                         PhysActionHandler physActionHandler,
                         MagActionHandler magActionHandler) {
         this.unitRepository = unitRepository;
         this.fightRepository = fightRepository;
-        this.subjectRepository = subjectRepository;
+        this.abilityRepository = abilityRepository;
         this.aiActionHandler = aiActionHandler;
         this.entityGenerator = entityGenerator;
         this.physActionHandler = physActionHandler;
@@ -119,7 +119,7 @@ public class FightHandler {
         for (Unit unit : units) {
             if (unit.isActionEnd() & unit.getStatus().equals(Status.FIGHT)) {
                 //находим примененное умение из бд
-                Optional<Subject> ability = subjectRepository.findById(unit.getAbilityId());
+                Optional<Ability> ability = abilityRepository.findById(unit.getAbilityId());
 
                 //если умение не найдено, рассчитываем как атаку оружием
                 if(ability.isEmpty()) {
@@ -253,10 +253,10 @@ public class FightHandler {
         for (Unit unit : units) {
             if (unit.getStatus().equals(Status.LOSS)) {
                 //сохранение вещи на локации в случае поражения aiUnit
-                switch (unit.getSubjectType()) {
+                switch (unit.getUnitType()) {
                     case AI -> {
                         unit.setFight(null);
-                        entityGenerator.setNewThing(unit.getLocationId());
+                        entityGenerator.setNewThingToLocation(unit.getLocationId());
                     }
                     case USER -> unit.setHp(1);
                 }
@@ -311,7 +311,7 @@ public class FightHandler {
         //сохраняем результаты победы у unit из первой команды
         else if (!teamOne.isEmpty() & teamTwo.isEmpty()) {
             for (Unit unit : teamOne) {
-                switch (unit.getSubjectType()) {
+                switch (unit.getUnitType()) {
                     case AI -> {
                         unit.setStatus(Status.ACTIVE);
                         unit.setFight(null);
@@ -343,7 +343,7 @@ public class FightHandler {
         //сохраняем результаты победы у unit из второй команды
         else {
             for (Unit unit : teamTwo) {
-                switch (unit.getSubjectType()) {
+                switch (unit.getUnitType()) {
                     case AI -> {
                         unit.setStatus(Status.ACTIVE);
                         unit.setFight(null);

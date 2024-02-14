@@ -21,20 +21,20 @@ public class Fight {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "fight", fetch = FetchType.EAGER)
     @ToString.Exclude
-    @JsonIgnore
     private List<Unit> units;
 
     @Column(name = "countRound")
     private int countRound;
 
-    @Column(name = "resultRound")
     @JsonIgnore
+    @Column(name = "resultRound")
     private List<String> resultRound;
 
-    @Column(name = "fightEnd")
     @JsonIgnore
+    @Column(name = "fightEnd")
     private boolean fightEnd;
 
     @Column(name = "unitsWin")

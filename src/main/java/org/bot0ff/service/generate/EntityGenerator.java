@@ -2,116 +2,129 @@ package org.bot0ff.service.generate;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bot0ff.entity.unit.UnitArmor;
-import org.bot0ff.entity.Location;
-import org.bot0ff.entity.Subject;
-import org.bot0ff.entity.Thing;
-import org.bot0ff.entity.Unit;
-import org.bot0ff.entity.enums.Status;
-import org.bot0ff.entity.enums.SubjectType;
-import org.bot0ff.entity.unit.UnitEffect;
-import org.bot0ff.entity.unit.UnitSkill;
-import org.bot0ff.repository.LocationRepository;
-import org.bot0ff.repository.SubjectRepository;
-import org.bot0ff.repository.ThingRepository;
-import org.bot0ff.repository.UnitRepository;
+import org.bot0ff.entity.*;
+import org.bot0ff.repository.*;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class EntityGenerator {
-    private final SubjectRepository subjectRepository;
+    private final ObjectsRepository objectsRepository;
     private final UnitRepository unitRepository;
     private final LocationRepository locationRepository;
     private final ThingRepository thingRepository;
+    private final AiRepository aiRepository;
 
-    //генерация нового ai
-    public Long setNewAiUnit(Location location) {
-        Unit aiUnit = new Unit(
-                //общее
+    //генерация и сохранение нового ai
+    public Long getNewAiUnitId(Location location) {
+        Optional<Ai> optionalAiUnit = aiRepository.findById(1L);
+        if(optionalAiUnit.isEmpty()) return 0L;
+        Ai aiUnit = optionalAiUnit.get();
+
+        Unit newAiUnit = new Unit(
                 null,
-                "*Муравей*",
-                SubjectType.AI,
-                Status.ACTIVE,
-                false,
-                //локация
+                aiUnit.getName(),
+                aiUnit.getUnitType(),
+                aiUnit.getStatus(),
+                aiUnit.isActionEnd(),
                 location.getId(),
-                //основные характеристики
-                10,
-                10,
-                4,
-                4,
-                //атрибуты
-                1,
-                1,
-                1,
-                1,
-                1,
-                0,
-                //навыки
-                new UnitSkill(),
-                List.of(),
-                List.of(),
-                //экипировка
-                new UnitArmor(1L, "Палка-копалка", "ONE_HAND", 0, 0, 10, 0, 0, 0, 0, 2, 1, 100),
-                new UnitArmor(),
-                new UnitArmor(),
-                new UnitArmor(),
-                new UnitArmor(),
-                //сражение
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
+                aiUnit.getHp(),
+                aiUnit.getMana(),
+                aiUnit.getPointAction(),
+                aiUnit.getMaxPointAction(),
+                aiUnit.getStrength(),
+                aiUnit.getIntelligence(),
+                aiUnit.getDexterity(),
+                aiUnit.getEndurance(),
+                aiUnit.getLuck(),
+                aiUnit.getBonusPoint(),
+                aiUnit.getUnitSkill(),
+                aiUnit.getCurrentAbility(),
+                aiUnit.getAllAbility(),
+                aiUnit.getWeapon(),
+                aiUnit.getHead(),
+                aiUnit.getHand(),
+                aiUnit.getBody(),
+                aiUnit.getLeg(),
+                aiUnit.getFight(),
+                aiUnit.getHitPosition(),
+                aiUnit.getTargetPosition(),
+                aiUnit.getLinePosition(),
+                aiUnit.getFightEffect(),
+                aiUnit.getTeamNumber(),
+                aiUnit.getAbilityId(),
+                aiUnit.getTargetId()
         );
-        return unitRepository.save(aiUnit).getId();
+        return unitRepository.save(newAiUnit).getId();
     }
 
-    //генерация новой вещи
-    public void setNewThing(Long locationId) {
-        Optional<Subject> optionalSubject = subjectRepository.findById(1L);
-        if(optionalSubject.isEmpty()) return;
+    //генерация и сохранение нового предмета на локацию
+    public void setNewThingToLocation(Long locationId) {
+        Optional<Objects> optionalThing = objectsRepository.findById(1L);
+        if(optionalThing.isEmpty()) return;
         Optional<Location> location = locationRepository.findById(locationId);
         if(location.isEmpty()) return;
-        Subject subject = optionalSubject.get();
+        Objects objects = optionalThing.get();
         Thing newThing = new Thing(
                 null,
+                objects.getName(),
                 null,
-                subject.getName(),
-                subject.getSubjectType(),
-                subject.getSkillType(),
-                subject.getApplyType(),
-                subject.getHp(),
-                subject.getMana(),
-                subject.getPhysDamage(),
-                subject.getMagImpact(),
-                subject.getMagDamageModifier(),
-                subject.getPhysDefense(),
-                subject.getMagDefense(),
-                subject.getVitality(),
-                subject.getSpirituality(),
-                subject.getRegeneration(),
-                subject.getMeditation(),
-                subject.getEvade(),
-                subject.getBlock(),
-                subject.getDistance(),
-                subject.getPointAction(),
-                subject.getDuration(),
-                subject.getCost(),
-                subject.getPrice(),
-                subject.getDescription(),
-                false
+                false,
+                objects.getObjectType(),
+                objects.getSkillType(),
+                objects.getPhysDamage(),
+                objects.getMagModifier(),
+                objects.getHp(),
+                objects.getMana(),
+                objects.getPhysDefense(),
+                objects.getMagDefense(),
+                objects.getStrength(),
+                objects.getIntelligence(),
+                objects.getDexterity(),
+                objects.getEndurance(),
+                objects.getLuck(),
+                objects.getDistance(),
+                objects.getCondition(),
+                //для книг
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                objects.getPrice(),
+                objects.getDescription()
         );
         Long thingId = thingRepository.save(newThing).getId();
         location.get().getThings().add(thingId);
         locationRepository.save(location.get());
+    }
+
+    //генерация и сохранение нового предмета в инвентарь
+    public Thing setNewThingToInventory(Long playerId, Objects object) {
+        Thing newThing = new Thing(
+                null,
+                object.getName(),
+                playerId,
+                false,
+                object.getObjectType(),
+                object.getSkillType(),
+                object.getPhysDamage(),
+                object.getMagModifier(),
+                object.getHp(),
+                object.getMana(),
+                object.getPhysDefense(),
+                object.getMagDefense(),
+                object.getStrength(),
+                object.getIntelligence(),
+                object.getDexterity(),
+                object.getEndurance(),
+                object.getLuck(),
+                object.getDistance(),
+                object.getCondition(),
+                //для книг
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                object.getPrice(),
+                object.getDescription()
+        );
+        return thingRepository.save(newThing);
     }
 }

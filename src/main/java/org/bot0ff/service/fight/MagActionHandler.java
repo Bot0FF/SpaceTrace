@@ -2,7 +2,8 @@ package org.bot0ff.service.fight;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.bot0ff.entity.Subject;
+import org.bot0ff.entity.Ability;
+import org.bot0ff.entity.Objects;
 import org.bot0ff.entity.Unit;
 import org.bot0ff.entity.enums.Status;
 import org.bot0ff.entity.unit.UnitEffect;
@@ -17,7 +18,7 @@ public class MagActionHandler {
     private final RandomUtil randomUtil;
 
     //рассчитываем урона при атаке умением
-    public StringBuilder calculateDamageAbility(Unit unit, Unit target, Subject ability) {
+    public StringBuilder calculateDamageAbility(Unit unit, Unit target, Ability ability) {
         //расчет уворота
         if(randomUtil.getDoubleChance() <= target.getChanceEvade())  {
             unit.setActionEnd(true);
@@ -33,7 +34,7 @@ public class MagActionHandler {
         double unitMagModifier = unit.getMagModifier();
         //если тип магии примененного умения совпадает с типом магии надетого оружия, модификаторы складываются
         if(ability.getSkillType().name().equals(unit.getWeapon().getSkillType())) {
-            unitMagModifier += unit.getWeapon().getMagDamageModifier();
+            unitMagModifier += unit.getWeapon().getMagModifier();
         }
         //прибавляем к общему модификатору модификатор навыка, соответствующего навыку умения
         switch (ability.getSkillType()){
@@ -44,7 +45,7 @@ public class MagActionHandler {
         }
 
         //получаем магическое воздействие умножением модификатора на действие умения
-        double unitHit = unitMagModifier * ability.getMagImpact();
+        double unitHit = unitMagModifier * ability.getMagDamage();
         double targetDefense = (target.getMagDefense()) * 1.0;
 
         if (unitHit <= 1) unitHit = 1;
@@ -62,7 +63,7 @@ public class MagActionHandler {
             target.setStatus(Status.LOSS);
             System.out.println(target.getName() + " ход отменен. HP <= 0");
         }
-        unit.setMana(unit.getMana() - ability.getCost());
+        unit.setMana(unit.getMana() - ability.getManaCost());
         unit.setActionEnd(true);
 
         return new StringBuilder()
@@ -78,7 +79,7 @@ public class MagActionHandler {
     }
 
     //расчет восстановления при использовании умения
-    public StringBuilder calculateRecoveryAbility(Unit unit, Unit target, Subject ability) {
+    public StringBuilder calculateRecoveryAbility(Unit unit, Unit target, Ability ability) {
         int result = 0;
         String action = "";
         String characteristic = "";
@@ -88,7 +89,7 @@ public class MagActionHandler {
         double unitMagModifier = unit.getMagModifier();
         //если тип магии примененного умения совпадает с типом магии надетого оружия, модификаторы складываются
         if(ability.getSkillType().name().equals(unit.getWeapon().getSkillType())) {
-            unitMagModifier += unit.getWeapon().getMagDamageModifier();
+            unitMagModifier += unit.getWeapon().getMagModifier();
         }
         //прибавляем к общему модификатору модификатор навыка, соответствующего навыку умения
         switch (ability.getSkillType()){
@@ -121,7 +122,7 @@ public class MagActionHandler {
                 }
             }
         }
-        unit.setMana(unit.getMana() - ability.getCost());
+        unit.setMana(unit.getMana() - ability.getManaCost());
         unit.setActionEnd(true);
 
         return new StringBuilder()
@@ -139,7 +140,7 @@ public class MagActionHandler {
     }
 
     //расчет повышения/понижения характеристик при использовании умения
-    public StringBuilder calculateBoostAbility(Unit unit, Unit target, Subject ability) {
+    public StringBuilder calculateBoostAbility(Unit unit, Unit target, Ability ability) {
         double result = 0;
         String action = "";
         String characteristic = "";
@@ -193,15 +194,15 @@ public class MagActionHandler {
                 result = ability.getPhysDefense();
                 target.getFightEffect().add(addFightEffect(ability));
             }
-            if(ability.getMagDamageModifier() != 0) {
-                if(ability.getMagDamageModifier() > 0) {
+            if(ability.getMagDamage() != 0) {
+                if(ability.getMagDamage() > 0) {
                     action = " повысил ";
                 }
                 else {
                     action = " понизил ";
                 }
                 characteristic = " магический урон ";
-                result = ability.getMagDamageModifier();
+                result = ability.getMagDamage();
                 target.getFightEffect().add(addFightEffect(ability));
             }
             if(ability.getMagDefense() != 0) {
@@ -233,7 +234,7 @@ public class MagActionHandler {
     }
 
     //добавляет эффекты умения в список действующих эффектов unit
-    public UnitEffect addFightEffect(Subject ability) {
+    public UnitEffect addFightEffect(Ability ability) {
         UnitEffect unitEffect;
         if(ability.getHp() != 0) {
             unitEffect = new UnitEffect(
@@ -268,13 +269,13 @@ public class MagActionHandler {
                     0, 0
             );
         }
-        else if(ability.getMagDamageModifier() != 0) {
+        else if(ability.getMagDamage() != 0) {
             unitEffect = new UnitEffect(
                     ability.getId(),
                     0, 0,
                     0, 0,
                     0, 0,
-                    ability.getMagDamageModifier(), ability.getDuration(),
+                    ability.getMagDamage(), ability.getDuration(),
                     0, 0,
                     0, 0
             );

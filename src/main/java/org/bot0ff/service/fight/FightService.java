@@ -2,7 +2,8 @@ package org.bot0ff.service.fight;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bot0ff.entity.enums.SubjectType;
+import org.bot0ff.entity.Objects;
+import org.bot0ff.entity.enums.UnitType;
 import org.bot0ff.model.InfoResponse;
 import org.bot0ff.model.FightResponse;
 import org.bot0ff.model.NavigateResponse;
@@ -10,8 +11,8 @@ import org.bot0ff.entity.unit.UnitEffect;
 import org.bot0ff.entity.*;
 import org.bot0ff.entity.enums.ApplyType;
 import org.bot0ff.entity.enums.Status;
+import org.bot0ff.repository.AbilityRepository;
 import org.bot0ff.repository.FightRepository;
-import org.bot0ff.repository.SubjectRepository;
 import org.bot0ff.repository.UnitRepository;
 import org.bot0ff.service.generate.EntityGenerator;
 import org.bot0ff.util.Constants;
@@ -30,7 +31,7 @@ import java.util.*;
 public class FightService {
     private final UnitRepository unitRepository;
     private final FightRepository fightRepository;
-    private final SubjectRepository subjectRepository;
+    private final AbilityRepository abilityRepository;
 
     private final PhysActionHandler physActionHandler;
     private final MagActionHandler magActionHandler;
@@ -112,7 +113,7 @@ public class FightService {
                 newFightId,
                 unitRepository,
                 fightRepository,
-                subjectRepository,
+                abilityRepository,
                 aiActionHandler,
                 entityGenerator,
                 physActionHandler,
@@ -120,7 +121,7 @@ public class FightService {
         ));
 
         //если инициатор сражения AI возвращаем null
-        if(initiator.getSubjectType().equals(SubjectType.AI)) {
+        if(initiator.getUnitType().equals(UnitType.AI)) {
             return null;
         }
 
@@ -150,7 +151,7 @@ public class FightService {
         Fight fight = optionalFight.get();
 
         //находим активные умения unit
-        List<Subject> unitAbility = subjectRepository.findAllById(player.getCurrentAbility());
+        List<Ability> unitAbilities = abilityRepository.findAllById(player.getCurrentAbility());
 
         //если сражение завершено или unit не в команде устанавливаем unit статус победителя или проигравшего и возвращаем уведомление
         if(fight.isFightEnd() | player.getTeamNumber() == null) {
@@ -168,7 +169,7 @@ public class FightService {
         }
 
         return jsonProcessor
-                .toJsonFight(new FightResponse(player, fight, unitAbility, null));
+                .toJsonFight(new FightResponse(player, fight, unitAbilities, null));
     }
 
     //перемещение по полю сражения
@@ -195,12 +196,12 @@ public class FightService {
         Fight fight = optionalFight.get();
 
         //находим активные умения unit
-        List<Subject> unitAbility = subjectRepository.findAllById(player.getCurrentAbility());
+        List<Ability> unitAbilities = abilityRepository.findAllById(player.getCurrentAbility());
 
         //если очков движения нет, отправляем уведомление
         if(player.getPointAction() <= 0) {
             return jsonProcessor
-                    .toJsonFight(new FightResponse(player, fight, unitAbility, "Не хватает очков действия"));
+                    .toJsonFight(new FightResponse(player, fight, unitAbilities, "Не хватает очков действия"));
         }
 
         //перемещение по полю сражения
@@ -215,7 +216,7 @@ public class FightService {
                 }
                 else {
                     return jsonProcessor
-                            .toJsonFight(new FightResponse(player, fight, unitAbility, "Туда нельзя переместиться"));
+                            .toJsonFight(new FightResponse(player, fight, unitAbilities, "Туда нельзя переместиться"));
                 }
             }
             case "right" -> {
@@ -227,12 +228,12 @@ public class FightService {
                 }
                 else {
                     return jsonProcessor
-                            .toJsonFight(new FightResponse(player, fight, unitAbility, "Туда нельзя переместиться"));
+                            .toJsonFight(new FightResponse(player, fight, unitAbilities, "Туда нельзя переместиться"));
                 }
             }
         }
         return jsonProcessor
-                .toJsonFight(new FightResponse(player, fight, unitAbility, player.getName() + " переместился " + moveDirection));
+                .toJsonFight(new FightResponse(player, fight, unitAbilities, player.getName() + " переместился " + moveDirection));
     }
 
     //атака по выбранному противнику оружием
@@ -269,7 +270,7 @@ public class FightService {
         Unit target = optionalTarget.get();
 
         //находим активные умения unit для возврата в ответе
-        List<Subject> unitAbility = subjectRepository.findAllById(player.getCurrentAbility());
+        List<Ability> unitAbilities = abilityRepository.findAllById(player.getCurrentAbility());
 
         //если удар уже был нанесен или применено умение на текущем ходу, возвращаем уведомление
         if(!player.getTargetId().equals(0L) | !player.getAbilityId().equals(0L)) {
@@ -290,7 +291,7 @@ public class FightService {
         }
 
         //проверка достаточности очков действия для нанесения удара
-        if(player.getPointAction() < player.getWeapon().getPointAction()) {
+        if(player.getPointAction() < 2) {
             return jsonProcessor
                     .toJsonInfo(new InfoResponse("Не хватает очков действия"));
         }
@@ -300,7 +301,7 @@ public class FightService {
         player.setTargetPosition(target.getLinePosition());
         player.setAbilityId(0L);
         player.setTargetId(targetId);
-        player.setPointAction(player.getPointAction() - player.getWeapon().getPointAction());
+        player.setPointAction(player.getPointAction() - 2);
         unitRepository.save(player);
 
         //если все участники сражения к этому времени сделали ходы, завершаем раунд
@@ -311,11 +312,11 @@ public class FightService {
         //проверяем надето ли оружие у unit
         if(player.getWeapon().getId().equals(0L)) {
             return jsonProcessor
-                    .toJsonFight(new FightResponse(player, fight, unitAbility, "Атака голыми кулаками"));
+                    .toJsonFight(new FightResponse(player, fight, unitAbilities, "Атака голыми кулаками"));
         }
 
         return jsonProcessor
-                .toJsonFight(new FightResponse(player, fight, unitAbility, "Атака оружием " + player.getWeapon().getName()));
+                .toJsonFight(new FightResponse(player, fight, unitAbilities, "Атака оружием " + player.getWeapon().getName()));
     }
 
     //атака по выбранному противнику умением
@@ -352,7 +353,7 @@ public class FightService {
         Unit target = optionalTarget.get();
 
         //находим активные умения unit для отправки в ответе
-        List<Subject> unitAbility = subjectRepository.findAllById(player.getCurrentAbility());
+        List<Ability> unitAbilities = abilityRepository.findAllById(player.getCurrentAbility());
 
         //если удар уже был нанесен или применено умение на текущем ходу, возвращаем уведомление
         if(!player.getTargetId().equals(0L) | !player.getAbilityId().equals(0L)) {
@@ -367,15 +368,15 @@ public class FightService {
         }
 
         //находим примененное умение из бд
-        Optional<Subject> optionalSubject = subjectRepository.findById(abilityId);
-        if(optionalSubject.isEmpty()) {
+        Optional<Ability> optionalAbility = abilityRepository.findById(abilityId);
+        if(optionalAbility.isEmpty()) {
             return jsonProcessor
                     .toJsonInfo(new InfoResponse("Умение не найдено"));
         }
-        Subject ability = optionalSubject.get();
+        Ability ability = optionalAbility.get();
 
         //если недостаточно маны для применения умения, возвращаем уведомление
-        if(player.getMana() < ability.getCost()) {
+        if(player.getMana() < ability.getManaCost()) {
             return jsonProcessor
                     .toJsonInfo(new InfoResponse("Не хватает маны для этого умения"));
         }
@@ -425,7 +426,7 @@ public class FightService {
         }
 
         return jsonProcessor
-                .toJsonFight(new FightResponse(player, fight, unitAbility, player.getName() + " применил умение " + ability.getName()));
+                .toJsonFight(new FightResponse(player, fight, unitAbilities, player.getName() + " применил умение " + ability.getName()));
     }
 
     //завершает ход unit
@@ -452,7 +453,7 @@ public class FightService {
         Fight fight = optionalFight.get();
 
         //находим активные умения unit для отправки в ответе
-        List<Subject> unitAbility = subjectRepository.findAllById(player.getCurrentAbility());
+        List<Ability> unitAbilities = abilityRepository.findAllById(player.getCurrentAbility());
 
         player.setActionEnd(true);
         unitRepository.save(player);
@@ -463,7 +464,7 @@ public class FightService {
         }
 
         return jsonProcessor
-                .toJsonFight(new FightResponse(player, fight, unitAbility, "Ход завершен"));
+                .toJsonFight(new FightResponse(player, fight, unitAbilities, "Ход завершен"));
     }
 
     //TODO сделать метод для массовых умений
@@ -504,24 +505,5 @@ public class FightService {
         unit.setAbilityId(null);
         unit.setTargetId(null);
         unitRepository.save(unit);
-    }
-
-    //заглушка на очистку статуса боя units
-    @Scheduled(fixedDelay = 3000000)
-    @Transactional
-    public void clearFightDB() {
-        List<Unit> units = unitRepository.findAll();
-        for(Unit unit: units) {
-            unit.setHp(unit.getHp());
-            unit.setLinePosition(null);
-            unit.setFightEffect(null);
-            unit.setActionEnd(false);
-            unit.setAbilityId(null);
-            unit.setTargetId(null);
-            unit.setTeamNumber(null);
-            unit.setStatus(Status.ACTIVE);
-            unit.setFight(null);
-            unitRepository.save(unit);
-        }
     }
 }

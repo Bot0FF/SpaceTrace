@@ -7,37 +7,29 @@ import lombok.NoArgsConstructor;
 import org.bot0ff.entity.enums.SkillType;
 import org.bot0ff.entity.enums.ObjectType;
 
+/** базовый тип, на основе которого создаются предметы */
 @Data
-@Table(name = "thing")
+@Table(name = "objects")
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-public class Thing {
+public class Objects {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "name")
     private String name;
 
-    //id владельца
-    @Column(name = "ownerId")
-    private Long ownerId;
-
-    //состояние использования
-    @Column(name = "isUse")
-    private boolean isUse;
-
     @Enumerated(value = EnumType.STRING)
-    @Column(name = "subjectType")
+    @Column(name = "objectType")
     private ObjectType objectType;
 
     @Enumerated(value = EnumType.STRING)
     @Column(name = "skillType")
     private SkillType skillType;
 
-    /** воздействия на характеристики unit для предметов */
+    /** воздействия на характеристики для предметов */
     //физический урон
     @Column(name = "physDamage")
     private int physDamage;

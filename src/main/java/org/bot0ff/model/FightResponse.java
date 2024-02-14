@@ -1,8 +1,9 @@
 package org.bot0ff.model;
 
 import lombok.Data;
+import org.bot0ff.entity.Ability;
 import org.bot0ff.entity.Fight;
-import org.bot0ff.entity.Subject;
+import org.bot0ff.entity.Objects;
 import org.bot0ff.entity.Unit;
 import org.bot0ff.service.fight.FightService;
 
@@ -17,14 +18,14 @@ public class FightResponse {
     private Fight fight;
     private List<Unit> teamOne;
     private List<Unit> teamTwo;
-    private List<Subject> ability;
+    private List<Ability> ability;
     private String resultRound;
     private int countRound;
     private Long endRoundTimer;
     private String info;
     private int status;
 
-    public FightResponse(Unit player, Fight fight, List<Subject> ability, String info) {
+    public FightResponse(Unit player, Fight fight, List<Ability> ability, String info) {
         this.player = player;
         this.fight = fight;
         if(fight != null) {

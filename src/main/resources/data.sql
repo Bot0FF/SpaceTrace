@@ -99,7 +99,7 @@ where not exists (select 1
                   where u2.id = d.id);
 
 --unit
-with data(id, name, subject_type, status, action_end,
+with data(id, name, unit_type, status, action_end,
             location_id,
             hp, mana, point_action, max_point_action,
             strength, intelligence, dexterity, endurance, luck, bonus_point,
@@ -107,27 +107,27 @@ with data(id, name, subject_type, status, action_end,
             current_ability, all_ability,
             weapon, head, hand, body, leg)
    as (values
-        (1, 'user', 'USER', 'ACTIVE', false,
+        (1, 'user', 'ADMIN', 'ACTIVE', false,
             22,
             7, 7, 4, 4,
             1, 1, 1, 1, 1, 0,
             '{"oneHand": 1, "twoHand": 1, "bow": 1, "fire": 1, "water": 1, "land": 1, "air": 1, "vitality": 1, "spirituality": 1, "regeneration": 1, "meditation": 1, "block": 1, "evade": 1}',
             ARRAY[]::integer[], ARRAY[]::integer[],
-            '{"id": "0", "name": "", "skillType": "", "hp": "0", "mana": "0", "physDamage": "0", "magImpact": "0", "magDamageModifier": 0, "physDefense": "0", "magDefense": "0", "pointAction": 2, "distance": "0", "duration": "0"}',
-            '{"id": "0", "name": "", "skillType": "", "hp": "0", "mana": "0", "physDamage": "0", "magImpact": "0", "magDamageModifier": 0, "physDefense": "0", "magDefense": "0", "pointAction": 0, "distance": "0", "duration": "0"}',
-            '{"id": "0", "name": "", "skillType": "", "hp": "0", "mana": "0", "physDamage": "0", "magImpact": "0", "magDamageModifier": 0, "physDefense": "0", "magDefense": "0", "pointAction": 0, "distance": "0", "duration": "0"}',
-            '{"id": "0", "name": "", "skillType": "", "hp": "0", "mana": "0", "physDamage": "0", "magImpact": "0", "magDamageModifier": 0, "physDefense": "0", "magDefense": "0", "pointAction": 0, "distance": "0", "duration": "0"}',
-            '{"id": "0", "name": "", "skillType": "", "hp": "0", "mana": "0", "physDamage": "0", "magImpact": "0", "magDamageModifier": 0, "physDefense": "0", "magDefense": "0", "pointAction": 0, "distance": "0", "duration": "0"}'
+            '{"id": "0", "name": "", "objectType": "", "skillType": "", "physDamage": "0", "magModifier": "0", "hp": "0", "mana": "0", "physDefense": "0", "magDefense": "0", "strength": 0, "intelligence": 0, "dexterity": 0, "endurance": 0, "luck": 0, "distance": "0", "condition": "0"}',
+            '{"id": "0", "name": "", "objectType": "", "skillType": "", "physDamage": "0", "magModifier": "0", "hp": "0", "mana": "0", "physDefense": "0", "magDefense": "0", "strength": 0, "intelligence": 0, "dexterity": 0, "endurance": 0, "luck": 0, "distance": "0", "condition": "0"}',
+            '{"id": "0", "name": "", "objectType": "", "skillType": "", "physDamage": "0", "magModifier": "0", "hp": "0", "mana": "0", "physDefense": "0", "magDefense": "0", "strength": 0, "intelligence": 0, "dexterity": 0, "endurance": 0, "luck": 0, "distance": "0", "condition": "0"}',
+            '{"id": "0", "name": "", "objectType": "", "skillType": "", "physDamage": "0", "magModifier": "0", "hp": "0", "mana": "0", "physDefense": "0", "magDefense": "0", "strength": 0, "intelligence": 0, "dexterity": 0, "endurance": 0, "luck": 0, "distance": "0", "condition": "0"}',
+            '{"id": "0", "name": "", "objectType": "", "skillType": "", "physDamage": "0", "magModifier": "0", "hp": "0", "mana": "0", "physDefense": "0", "magDefense": "0", "strength": 0, "intelligence": 0, "dexterity": 0, "endurance": 0, "luck": 0, "distance": "0", "condition": "0"}'
 )
 )
-insert into unit (id, name, subject_type, status, action_end,
+insert into unit (id, name, unit_type, status, action_end,
             location_id,
             hp, mana, point_action, max_point_action,
             strength, intelligence, dexterity, endurance, luck, bonus_point,
             unit_skill,
             current_ability, all_ability,
             weapon, head, hand, body, leg)
-select d.id, d.name, d.subject_type, d.status, d.action_end,
+select d.id, d.name, d.unit_type, d.status, d.action_end,
             d.location_id,
             d.hp, d.mana, d.point_action, d.max_point_action,
             d.strength, d.intelligence, d.dexterity, d.endurance, d.luck, d.bonus_point,
@@ -139,40 +139,98 @@ where not exists (select 1
                   from unit u2
                   where u2.id = d.id);
 
---subject
-with data(id, name,
-            subject_type, skill_type, apply_type, range_type,
-            hp, mana, phys_damage, mag_impact, mag_damage_modifier, phys_defense, mag_defense,
-            vitality, spirituality, regeneration, meditation, evade, block,
-            distance, point_action, duration, cost, price, description)
+--базовые aiUnit
+with data(id, name, unit_type, status, action_end,
+            location_id,
+            hp, mana, point_action, max_point_action,
+            strength, intelligence, dexterity, endurance, luck, bonus_point,
+            unit_skill,
+            current_ability, all_ability,
+            weapon, head, hand, body, leg)
    as (values
-        (1, 'Одноручный меч',
-        'WEAPON', 'ONE_HAND', 'DAMAGE', 'ONE',
-        0, 0, 10, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0,
-        1, 2, 100, 0, 0, 'Простой одноручный меч'),
-
-        (2, 'Огненный шар',
-        'ABILITY', 'FIRE', 'DAMAGE', 'ONE',
-        0, 0, 0, 10, 0, 0, 0,
-        0, 0, 0, 0, 0, 0,
-        6, 2, 0, 5, 0, 'Простой огненный шар')
-
+        (1, 'Гусеница', 'AI', 'ACTIVE', false,
+            0,
+            10, 10, 4, 4,
+            1, 1, 1, 1, 1, 0,
+            '{"oneHand": 1, "twoHand": 1, "bow": 1, "fire": 1, "water": 1, "land": 1, "air": 1, "vitality": 1, "spirituality": 1, "regeneration": 1, "meditation": 1, "block": 1, "evade": 1}',
+            ARRAY[]::integer[], ARRAY[]::integer[],
+            '{"id": "0", "name": "", "objectType": "", "skillType": "", "physDamage": "0", "magModifier": "0", "hp": "0", "mana": "0", "physDefense": "0", "magDefense": "0", "strength": 0, "intelligence": 0, "dexterity": 0, "endurance": 0, "luck": 0, "distance": "0", "condition": "0"}',
+            '{"id": "0", "name": "", "objectType": "", "skillType": "", "physDamage": "0", "magModifier": "0", "hp": "0", "mana": "0", "physDefense": "0", "magDefense": "0", "strength": 0, "intelligence": 0, "dexterity": 0, "endurance": 0, "luck": 0, "distance": "0", "condition": "0"}',
+            '{"id": "0", "name": "", "objectType": "", "skillType": "", "physDamage": "0", "magModifier": "0", "hp": "0", "mana": "0", "physDefense": "0", "magDefense": "0", "strength": 0, "intelligence": 0, "dexterity": 0, "endurance": 0, "luck": 0, "distance": "0", "condition": "0"}',
+            '{"id": "0", "name": "", "objectType": "", "skillType": "", "physDamage": "0", "magModifier": "0", "hp": "0", "mana": "0", "physDefense": "0", "magDefense": "0", "strength": 0, "intelligence": 0, "dexterity": 0, "endurance": 0, "luck": 0, "distance": "0", "condition": "0"}',
+            '{"id": "0", "name": "", "objectType": "", "skillType": "", "physDamage": "0", "magModifier": "0", "hp": "0", "mana": "0", "physDefense": "0", "magDefense": "0", "strength": 0, "intelligence": 0, "dexterity": 0, "endurance": 0, "luck": 0, "distance": "0", "condition": "0"}'
 )
-insert into subject (id, name,
-                        subject_type, skill_type, apply_type, range_type,
-                        hp, mana, phys_damage, mag_impact, mag_damage_modifier, phys_defense, mag_defense,
-                        vitality, spirituality, regeneration, meditation, evade, block,
-                        distance, point_action, duration, cost, price, description)
-select d.id, d.name,
-            d.subject_type, d.skill_type, d.apply_type, d.range_type,
-            d.hp, d.mana, d.phys_damage, d.mag_impact, d.mag_damage_modifier, d.phys_defense, d.mag_defense,
-            d.vitality, d.spirituality, d.regeneration, d.meditation, d.evade, d.block,
-            d.distance, d.point_action, d.duration, d.cost, d.price, d.description
+)
+insert into ai (id, name, unit_type, status, action_end,
+            location_id,
+            hp, mana, point_action, max_point_action,
+            strength, intelligence, dexterity, endurance, luck, bonus_point,
+            unit_skill,
+            current_ability, all_ability,
+            weapon, head, hand, body, leg)
+select d.id, d.name, d.unit_type, d.status, d.action_end,
+            d.location_id,
+            d.hp, d.mana, d.point_action, d.max_point_action,
+            d.strength, d.intelligence, d.dexterity, d.endurance, d.luck, d.bonus_point,
+            d.unit_skill,
+            d.current_ability, d.all_ability,
+            d.weapon, d.head, d.hand, d.body, d.leg
 from data d
 where not exists (select 1
-                  from subject u2
+                  from ai u2
                   where u2.id = d.id);
 
+--базовые объекты
+with data(id, name, object_type, skill_type,
+            phys_damage, mag_modifier, hp, mana, phys_defense, mag_defense, strength, intelligence, dexterity, endurance, luck, distance, condition,
+            one_hand, two_hand, bow, fire, water, land, air, vitality, spirituality, regeneration, meditation, evade, block,
+            price, description)
+   as (values
+        (1, 'Одноручный меч', 'WEAPON', 'ONE_HAND',
+        10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 100,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 'Простой одноручный меч'),
+        (2, 'Лук', 'WEAPON', 'BOW',
+        20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 100,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 'Простой лук')
+)
+insert into objects (id, name, object_type, skill_type,
+            phys_damage, mag_modifier, hp, mana, phys_defense, mag_defense, strength, intelligence, dexterity, endurance, luck, distance, condition,
+            one_hand, two_hand, bow, fire, water, land, air, vitality, spirituality, regeneration, meditation, evade, block,
+            price, description)
+select d.id, d.name, d.object_type, d.skill_type,
+            d.phys_damage, d.mag_modifier, d.hp, d.mana, d.phys_defense, d.mag_defense, d.strength, d.intelligence, d.dexterity, d.endurance, d.luck, d.distance, d.condition,
+            d.one_hand, d.two_hand, d.bow, d.fire, d.water, d.land, d.air, d.vitality, d.spirituality, d.regeneration, d.meditation, d.evade, d.block,
+            d.price, d.description
+from data d
+where not exists (select 1
+                  from objects u2
+                  where u2.id = d.id);
+
+--ability
+with data(id, name, skill_type, apply_type, range_type,
+            phys_damage, mag_damage, hp, mana, phys_defense, mag_defense, strength, intelligence, dexterity, endurance, luck,
+            distance, point_action, duration, mana_cost,
+            price, description)
+   as (values
+        (1, 'Огненный шар', 'FIRE', 'DAMAGE', 'ONE',
+        0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        6, 2, 0, 5, 0,
+        0, 'Простой огненный шар')
+
+)
+insert into ability (id, name, skill_type, apply_type, range_type,
+            phys_damage, mag_damage, hp, mana, phys_defense, mag_defense, strength, intelligence, dexterity, endurance, luck,
+            distance, point_action, duration, mana_cost,
+            price, description)
+select d.id, d.name, d.skill_type, d.apply_type, d.range_type,
+            d.phys_damage, d.mag_damage, d.hp, d.mana, d.phys_defense, d.mag_defense, d.strength, d.intelligence, d.dexterity, d.endurance, d.luck,
+            d.distance, d.point_action, d.duration, d.mana_cost,
+            d.price, description
+from data d
+where not exists (select 1
+                  from ability u2
+                  where u2.id = d.id);
 
 
