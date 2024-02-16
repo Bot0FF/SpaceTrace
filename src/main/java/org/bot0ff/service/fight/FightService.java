@@ -2,7 +2,6 @@ package org.bot0ff.service.fight;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bot0ff.entity.Objects;
 import org.bot0ff.entity.enums.UnitType;
 import org.bot0ff.model.InfoResponse;
 import org.bot0ff.model.FightResponse;
@@ -18,7 +17,6 @@ import org.bot0ff.service.generate.EntityGenerator;
 import org.bot0ff.util.Constants;
 import org.bot0ff.util.JsonProcessor;
 import org.bot0ff.util.RandomUtil;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -211,6 +209,9 @@ public class FightService {
                 if(player.getLinePosition() - 1 >= 1) {
                     player.setPointAction(player.getPointAction() - 1);
                     player.setLinePosition(player.getLinePosition() - 1);
+                    if(player.getPointAction() < 1) {
+                        player.setActionEnd(true);
+                    }
                     unitRepository.save(player);
                     moveDirection = " влево";
                 }
@@ -223,6 +224,9 @@ public class FightService {
                 if(player.getLinePosition() + 1 <= 8) {
                     player.setPointAction(player.getPointAction() - 1);
                     player.setLinePosition(player.getLinePosition() + 1);
+                    if(player.getPointAction() < 1) {
+                        player.setActionEnd(true);
+                    }
                     unitRepository.save(player);
                     moveDirection = " вправо";
                 }
@@ -232,6 +236,12 @@ public class FightService {
                 }
             }
         }
+
+        //если все участники сражения к этому времени сделали ходы, завершаем раунд
+        if(fight.getUnits().stream().allMatch(Unit::isActionEnd)) {
+            FIGHT_MAP.get(player.getFight().getId()).setEndRoundTimer(Instant.now());
+        }
+
         return jsonProcessor
                 .toJsonFight(new FightResponse(player, fight, unitAbilities, player.getName() + " переместился " + moveDirection));
     }
@@ -284,16 +294,16 @@ public class FightService {
                     .toJsonInfo(new InfoResponse("Ход уже сделан"));
         }
 
-        //уведомление при попытке атаковать союзника
-        if(player.getTeamNumber().equals(target.getTeamNumber())) {
-            return jsonProcessor
-                    .toJsonInfo(new InfoResponse("Нельзя атаковать союзников"));
-        }
-
         //проверка достаточности очков действия для нанесения удара
         if(player.getPointAction() < 2) {
             return jsonProcessor
                     .toJsonInfo(new InfoResponse("Не хватает очков действия"));
+        }
+
+        //уведомление при попытке атаковать союзника
+        if(player.getTeamNumber().equals(target.getTeamNumber())) {
+            return jsonProcessor
+                    .toJsonInfo(new InfoResponse("Нельзя атаковать союзников"));
         }
 
         //сохранение умения и цели, по которой произведено действие
@@ -302,11 +312,14 @@ public class FightService {
         player.setAbilityId(0L);
         player.setTargetId(targetId);
         player.setPointAction(player.getPointAction() - 2);
+        if(player.getPointAction() < 1) {
+            player.setActionEnd(true);
+        }
         unitRepository.save(player);
 
         //если все участники сражения к этому времени сделали ходы, завершаем раунд
         if(fight.getUnits().stream().allMatch(Unit::isActionEnd)) {
-            FIGHT_MAP.get(player.getFight().getId()).setEndRoundTimer(Instant.now().plusSeconds(2));
+            FIGHT_MAP.get(player.getFight().getId()).setEndRoundTimer(Instant.now());
         }
 
         //проверяем надето ли оружие у unit
@@ -358,7 +371,7 @@ public class FightService {
         //если удар уже был нанесен или применено умение на текущем ходу, возвращаем уведомление
         if(!player.getTargetId().equals(0L) | !player.getAbilityId().equals(0L)) {
             return jsonProcessor
-                    .toJsonInfo(new InfoResponse("Удар уже нанесен"));
+                    .toJsonInfo(new InfoResponse("Умение уже применено"));
         }
 
         //если ход уже сделан, возвращаем уведомление с текущим состоянием сражения
@@ -400,7 +413,50 @@ public class FightService {
         //если на цели уже применено данное умение, возвращаем уведомление
         if(ability.getApplyType().equals(ApplyType.BOOST)
                 | ability.getApplyType().equals(ApplyType.LOWER)) {
-            if(target.getFightEffect().stream().anyMatch(unitEffect -> unitEffect.getId().equals(abilityId))) {
+            boolean isApplied = false;
+            if(ability.getHp() != 0 & target.getFightEffect().getDE_Hp() != 0) {
+                isApplied = true;
+            }
+            else if(ability.getMana() != 0 & target.getFightEffect().getDE_Mana() != 0) {
+                isApplied = true;
+            }
+            else if(ability.getPhysEffect() != 0 & target.getFightEffect().getDE_PhysEff() != 0) {
+                isApplied = true;
+            }
+            else if(ability.getMagEffect() != 0 & target.getFightEffect().getDE_MagEff() != 0) {
+                isApplied = true;
+            }
+            else if(ability.getPhysDefense() != 0 & target.getFightEffect().getDE_PhysDef() != 0) {
+                isApplied = true;
+            }
+            else if(ability.getMagDefense() != 0 & target.getFightEffect().getDE_MagDef() != 0) {
+                isApplied = true;
+            }
+            else if(ability.getStrength() != 0 & target.getFightEffect().getDE_Str() != 0) {
+                isApplied = true;
+            }
+            else if(ability.getIntelligence() != 0 & target.getFightEffect().getDE_Intel() != 0) {
+                isApplied = true;
+            }
+            else if(ability.getDexterity() != 0 & target.getFightEffect().getDE_Dext() != 0) {
+                isApplied = true;
+            }
+            else if(ability.getEndurance() != 0 & target.getFightEffect().getDE_Endur() != 0) {
+                isApplied = true;
+            }
+            else if(ability.getLuck() != 0 & target.getFightEffect().getDE_Luck() != 0) {
+                isApplied = true;
+            }
+            else if(ability.getInitiative() != 0 & target.getFightEffect().getDE_Init() != 0) {
+                isApplied = true;
+            }
+            else if(ability.getBlock() != 0 & target.getFightEffect().getDE_Block() != 0) {
+                isApplied = true;
+            }
+            else if(ability.getEvade() != 0 & target.getFightEffect().getDE_Evade() != 0) {
+                isApplied = true;
+            }
+            if(isApplied) {
                 return jsonProcessor
                         .toJsonInfo(new InfoResponse("Умение уже применено"));
             }
@@ -417,12 +473,16 @@ public class FightService {
         player.setTargetPosition(target.getLinePosition());
         player.setAbilityId(abilityId);
         player.setTargetId(targetId);
+        player.setMana(player.getMana() - ability.getManaCost());
         player.setPointAction(player.getPointAction() - ability.getPointAction());
+        if(player.getPointAction() < 1) {
+            player.setActionEnd(true);
+        }
         unitRepository.save(player);
 
         //если все участники сражения к этому времени сделали ходы, завершаем раунд
         if(fight.getUnits().stream().allMatch(Unit::isActionEnd)) {
-            FIGHT_MAP.get(player.getFight().getId()).setEndRoundTimer(Instant.now().plusSeconds(2));
+            FIGHT_MAP.get(player.getFight().getId()).setEndRoundTimer(Instant.now());
         }
 
         return jsonProcessor
@@ -488,7 +548,7 @@ public class FightService {
         unit.setTargetId(0L);
         unit.setPointAction(unit.getMaxPointAction());
         unit.setLinePosition((long) randomUtil.getRandomFromTo(1, 8));
-        unit.setFightEffect(List.of(new UnitEffect()));
+        unit.setFightEffect(new UnitEffect());
         unitRepository.save(unit);
     }
 

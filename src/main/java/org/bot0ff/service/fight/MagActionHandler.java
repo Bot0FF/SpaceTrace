@@ -3,10 +3,8 @@ package org.bot0ff.service.fight;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.bot0ff.entity.Ability;
-import org.bot0ff.entity.Objects;
 import org.bot0ff.entity.Unit;
 import org.bot0ff.entity.enums.Status;
-import org.bot0ff.entity.unit.UnitEffect;
 import org.bot0ff.util.Constants;
 import org.bot0ff.util.RandomUtil;
 import org.springframework.stereotype.Service;
@@ -21,20 +19,21 @@ public class MagActionHandler {
     public StringBuilder calculateDamageAbility(Unit unit, Unit target, Ability ability) {
         //расчет уворота
         if(randomUtil.getDoubleChance() <= target.getChanceEvade())  {
-            unit.setActionEnd(true);
             return new StringBuilder()
                     .append("[")
                     .append(target.getName())
-                    .append(" уклонился от умения ")
+                    .append(" уклонился от заклинания ")
                     .append(ability.getName())
                     .append("]");
         }
 
         //получаем общий модификатор магических умений unit
         double unitMagModifier = unit.getMagModifier();
+        //System.out.println("Модификатор магического урона " + unit.getName() + "=" + unitMagModifier);
         //если тип магии примененного умения совпадает с типом магии надетого оружия, модификаторы складываются
         if(ability.getSkillType().name().equals(unit.getWeapon().getSkillType())) {
             unitMagModifier += unit.getWeapon().getMagModifier();
+            //System.out.println("К базовому модификатору магического урона добавлен модификатор оружия=" + unitMagModifier);
         }
         //прибавляем к общему модификатору модификатор навыка, соответствующего навыку умения
         switch (ability.getSkillType()){
@@ -43,9 +42,11 @@ public class MagActionHandler {
             case LAND -> unitMagModifier += (getSkillLevel(unit.getUnitSkill().getLand()) * 1.0 / 100);
             case AIR -> unitMagModifier += (getSkillLevel(unit.getUnitSkill().getAir()) * 1.0 / 100);
         }
+        //System.out.println("К базовому модификатору магического урона добавлен модификатор навыка=" + unitMagModifier);
 
-        //получаем магическое воздействие умножением модификатора на действие умения
+        //получаем магический урон умножением модификатора на урон умения
         double unitHit = unitMagModifier * ability.getMagDamage();
+        //System.out.println("Модификатор умножен на урон умения. Итоговый магический урон unit=" + unitHit);
         double targetDefense = (target.getMagDefense()) * 1.0;
 
         if (unitHit <= 1) unitHit = 1;
@@ -54,17 +55,15 @@ public class MagActionHandler {
         int totalDamage = (int) Math.round(unitHit * damageMultiplier);
         int result = randomUtil.getRNum30(totalDamage);
         if (result <= 0) result = 0;
-        System.out.println(unit.getName() + " нанес урон умением " + ability.getName() + " равный " + result);
+        //System.out.println(unit.getName() + " нанес урон умением " + ability.getName() + " равный " + result);
         target.setHp(target.getHp() - result);
 
         //устанавливаем target параметры по результатам расчета
         if (target.getHp() <= 0) {
-            target.setActionEnd(true);
+            target.setActionEnd(false);
             target.setStatus(Status.LOSS);
             System.out.println(target.getName() + " ход отменен. HP <= 0");
         }
-        unit.setMana(unit.getMana() - ability.getManaCost());
-        unit.setActionEnd(true);
 
         return new StringBuilder()
                 .append("[")
@@ -81,7 +80,6 @@ public class MagActionHandler {
     //расчет восстановления при использовании умения
     public StringBuilder calculateRecoveryAbility(Unit unit, Unit target, Ability ability) {
         int result = 0;
-        String action = "";
         String characteristic = "";
         String duration = "";
 
@@ -100,35 +98,24 @@ public class MagActionHandler {
         }
 
         if (ability.getDuration() == 0) {
-            action = " восстановил ";
             if (ability.getHp() != 0) {
                 int unitImpact = (int) (unitMagModifier * ability.getHp());
                 characteristic = " здоровья ";
-                result = ability.getHp();
-                target.setHp(target.getHp() + unitImpact);
-                if (target.getHp() > target.getMaxHp()) {
-                    result = Math.abs(target.getMaxHp() - target.getHp());
-                    target.setHp(target.getMaxHp());
+                if ((target.getHp() + unitImpact) > target.getMaxHp()) {
+                    result = target.getMaxHp() - target.getHp();
+                    target.setHp(target.getHp() + result);
                 }
-            }
-            if (ability.getMana() != 0) {
-                int unitImpact = (int) (unitMagModifier * ability.getMana());
-                characteristic = " маны ";
-                result = ability.getMana();
-                target.setMana(target.getMana() + unitImpact);
-                if (target.getMana() > target.getMaxMana()) {
-                    result = Math.abs(target.getMaxMana() - target.getMana());
-                    target.setMana(target.getMaxMana());
+                else {
+                    result = unitImpact;
+                    target.setHp(target.getHp() + unitImpact);
                 }
             }
         }
-        unit.setMana(unit.getMana() - ability.getManaCost());
-        unit.setActionEnd(true);
 
         return new StringBuilder()
                 .append("[")
                 .append(unit.getName())
-                .append(action)
+                .append(" восстановил ")
                 .append(result)
                 .append(characteristic)
                 .append(" игроку ")
@@ -139,89 +126,100 @@ public class MagActionHandler {
                 .append("]");
     }
 
-    //расчет повышения/понижения характеристик при использовании умения
+    //расчет повышения характеристик при использовании умения
     public StringBuilder calculateBoostAbility(Unit unit, Unit target, Ability ability) {
         double result = 0;
-        String action = "";
         String characteristic = "";
-        String duration = "";
 
-        //TODO добавить длительность умений
-        if(ability.getDuration() != 0) {
-            action = "";
-            duration = " на " + ability.getDuration() + " раунда";
-            if(ability.getHp() != 0) {
-                if(ability.getHp() > 0) {
-                    action = " повысил ";
-                }
-                else {
-                    action = " понизил ";
-                }
-                characteristic = " максимальное здоровье ";
-                result = ability.getHp();
-                target.getFightEffect().add(addFightEffect(ability));
-            }
-            if(ability.getMana() != 0) {
-                if(ability.getMana() > 0) {
-                    action = " повысил ";
-                }
-                else {
-                    action = " понизил ";
-                }
-                characteristic = " максимальную ману ";
-                result = ability.getMana();
-                target.getFightEffect().add(addFightEffect(ability));
-            }
-            if(ability.getPhysDamage() != 0) {
-                if(ability.getPhysDamage() > 0) {
-                    action = " повысил ";
-                }
-                else {
-                    action = " понизил ";
-                }
-                characteristic = " физический урон ";
-                result = ability.getPhysDamage();
-                target.getFightEffect().add(addFightEffect(ability));
-            }
-            if(ability.getPhysDefense() != 0) {
-                if(ability.getPhysDefense() > 0) {
-                    action = " повысил ";
-                }
-                else {
-                    action = " понизил ";
-                }
-                characteristic = " физическую защиту ";
-                result = ability.getPhysDefense();
-                target.getFightEffect().add(addFightEffect(ability));
-            }
-            if(ability.getMagDamage() != 0) {
-                if(ability.getMagDamage() > 0) {
-                    action = " повысил ";
-                }
-                else {
-                    action = " понизил ";
-                }
-                characteristic = " магический урон ";
-                result = ability.getMagDamage();
-                target.getFightEffect().add(addFightEffect(ability));
-            }
-            if(ability.getMagDefense() != 0) {
-                if(ability.getMagDefense() > 0) {
-                    action = " повысил ";
-                }
-                else {
-                    action = " понизил ";
-                }
-                characteristic = " магическую защиту ";
-                result = ability.getMagDefense();
-                target.getFightEffect().add(addFightEffect(ability));
-            }
+        if (ability.getHp() != 0) {
+            characteristic = " максимальное здоровье ";
+            result = ability.getHp();
+            target.getFightEffect().setE_Hp(ability.getHp());
+            target.getFightEffect().setDE_Hp(ability.getDuration() + 1);
+        }
+        else if (ability.getMana() != 0) {
+            characteristic = " максимальную ману ";
+            result = ability.getHp();
+            target.getFightEffect().setE_Mana(ability.getMana());
+            target.getFightEffect().setDE_Mana(ability.getDuration() + 1);
+        }
+        else if (ability.getPhysEffect() != 0) {
+            characteristic = " физический урон ";
+            result = ability.getHp();
+            target.getFightEffect().setE_PhysEff(ability.getPhysEffect());
+            target.getFightEffect().setDE_PhysEff(ability.getDuration() + 1);
+        }
+        else if (ability.getMagEffect() != 0) {
+            characteristic = " магическую силу ";
+            result = ability.getHp();
+            target.getFightEffect().setE_MagEff(ability.getMagEffect());
+            target.getFightEffect().setDE_MagEff(ability.getDuration() + 1);
+        }
+        else if (ability.getPhysDefense() != 0) {
+            characteristic = " физическую защиту ";
+            result = ability.getHp();
+            target.getFightEffect().setE_PhysDef(ability.getPhysDefense());
+            target.getFightEffect().setDE_PhysDef(ability.getDuration() + 1);
+        }
+        else if (ability.getMagDefense() != 0) {
+            characteristic = " магическую защиту ";
+            result = ability.getHp();
+            target.getFightEffect().setE_MagEff(ability.getMagEffect());
+            target.getFightEffect().setDE_MagEff(ability.getDuration() + 1);
+        }
+        else if (ability.getStrength() != 0) {
+            characteristic = " силу ";
+            result = ability.getHp();
+            target.getFightEffect().setE_Str(ability.getStrength());
+            target.getFightEffect().setDE_Str(ability.getDuration() + 1);
+        }
+        else if (ability.getIntelligence() != 0) {
+            characteristic = " интеллект ";
+            result = ability.getHp();
+            target.getFightEffect().setE_Intel(ability.getIntelligence());
+            target.getFightEffect().setDE_Intel(ability.getDuration() + 1);
+        }
+        else if (ability.getDexterity() != 0) {
+            characteristic = " ловкость ";
+            result = ability.getHp();
+            target.getFightEffect().setE_Dext(ability.getDexterity());
+            target.getFightEffect().setDE_Dext(ability.getDuration() + 1);
+        }
+        else if (ability.getEndurance() != 0) {
+            characteristic = " выносливость ";
+            result = ability.getHp();
+            target.getFightEffect().setE_Endur(ability.getEndurance());
+            target.getFightEffect().setDE_Endur(ability.getDuration() + 1);
+        }
+        else if (ability.getLuck() != 0) {
+            characteristic = " удачу ";
+            result = ability.getHp();
+            target.getFightEffect().setE_Luck(ability.getLuck());
+            target.getFightEffect().setDE_Luck(ability.getLuck() + 1);
+        }
+        else if (ability.getInitiative() != 0) {
+            characteristic = " инициативу ";
+            result = ability.getHp();
+            target.getFightEffect().setE_Init(ability.getInitiative());
+            target.getFightEffect().setDE_Init(ability.getDuration() + 1);
+        }
+        else if (ability.getBlock() != 0) {
+            characteristic = " шанс блокирования ";
+            result = ability.getHp();
+            target.getFightEffect().setE_Block(ability.getBlock());
+            target.getFightEffect().setDE_Block(ability.getDuration() + 1);
+        }
+        else if (ability.getEvade() != 0) {
+            characteristic = " шанс уворота ";
+            result = ability.getHp();
+            target.getFightEffect().setE_Evade(ability.getEvade());
+            target.getFightEffect().setDE_Evade(ability.getDuration() + 1);
         }
 
         return new StringBuilder()
                 .append("[")
                 .append(unit.getName())
-                .append(action)
+                .append(" повысил ")
                 .append(characteristic)
                 .append(" на ")
                 .append(result)
@@ -229,91 +227,115 @@ public class MagActionHandler {
                 .append(target.getName())
                 .append(" умением ")
                 .append(ability.getName())
-                .append(duration)
-                .append("]");
+                .append(" на ")
+                .append(ability.getDuration())
+                .append(" раунда]");
     }
 
-    //добавляет эффекты умения в список действующих эффектов unit
-    public UnitEffect addFightEffect(Ability ability) {
-        UnitEffect unitEffect;
-        if(ability.getHp() != 0) {
-            unitEffect = new UnitEffect(
-                    ability.getId(),
-                    ability.getHp(), ability.getDuration(),
-                    0, 0,
-                    0, 0,
-                    0, 0,
-                    0, 0,
-                    0, 0
-            );
+    //расчет понижения характеристик при использовании умения
+    public StringBuilder calculateLowerAbility(Unit unit, Unit target, Ability ability) {
+        double result = 0;
+        String characteristic = "";
+
+        if (ability.getHp() != 0) {
+            characteristic = " максимальное здоровье ";
+            result = ability.getHp();
+            target.getFightEffect().setE_Hp(ability.getHp());
+            target.getFightEffect().setDE_Hp(ability.getDuration());
         }
-        else if(ability.getMana() != 0) {
-            unitEffect = new UnitEffect(
-                    ability.getId(),
-                    0, 0,
-                    ability.getMana(), ability.getDuration(),
-                    0, 0,
-                    0, 0,
-                    0, 0,
-                    0, 0
-            );
+        else if (ability.getMana() != 0) {
+            characteristic = " максимальную ману ";
+            result = ability.getHp();
+            target.getFightEffect().setE_Mana(ability.getMana());
+            target.getFightEffect().setDE_Mana(ability.getDuration());
         }
-        else if(ability.getPhysDamage() != 0) {
-            unitEffect = new UnitEffect(
-                    ability.getId(),
-                    0, 0,
-                    0, 0,
-                    ability.getPhysDamage(), ability.getDuration(),
-                    0, 0,
-                    0, 0,
-                    0, 0
-            );
+        else if (ability.getPhysEffect() != 0) {
+            characteristic = " физический урон ";
+            result = ability.getHp();
+            target.getFightEffect().setE_PhysEff(ability.getPhysEffect());
+            target.getFightEffect().setDE_PhysEff(ability.getDuration());
         }
-        else if(ability.getMagDamage() != 0) {
-            unitEffect = new UnitEffect(
-                    ability.getId(),
-                    0, 0,
-                    0, 0,
-                    0, 0,
-                    ability.getMagDamage(), ability.getDuration(),
-                    0, 0,
-                    0, 0
-            );
+        else if (ability.getMagEffect() != 0) {
+            characteristic = " магическую силу ";
+            result = ability.getHp();
+            target.getFightEffect().setE_MagEff(ability.getMagEffect());
+            target.getFightEffect().setDE_MagEff(ability.getDuration());
         }
-        else if(ability.getPhysDefense() != 0) {
-            unitEffect = new UnitEffect(
-                    ability.getId(),
-                    0, 0,
-                    0, 0,
-                    0, 0,
-                    0, 0,
-                    ability.getPhysDefense(), ability.getDuration(),
-                    0, 0
-            );
+        else if (ability.getPhysDefense() != 0) {
+            characteristic = " физическую защиту ";
+            result = ability.getHp();
+            target.getFightEffect().setE_PhysDef(ability.getPhysDefense());
+            target.getFightEffect().setDE_PhysDef(ability.getDuration());
         }
-        else if(ability.getMagDefense() != 0) {
-            unitEffect = new UnitEffect(
-                    ability.getId(),
-                    0, 0,
-                    0, 0,
-                    0, 0,
-                    0, 0,
-                    0, 0,
-                    ability.getMagDefense(), ability.getDuration()
-            );
+        else if (ability.getMagDefense() != 0) {
+            characteristic = " магическую защиту ";
+            result = ability.getHp();
+            target.getFightEffect().setE_MagEff(ability.getMagEffect());
+            target.getFightEffect().setDE_MagEff(ability.getDuration());
         }
-        else {
-            unitEffect = new UnitEffect(
-                    ability.getId(),
-                    0, 0,
-                    0, 0,
-                    0, 0,
-                    0, 0,
-                    0, 0,
-                    0, 0
-            );
+        else if (ability.getStrength() != 0) {
+            characteristic = " силу ";
+            result = ability.getHp();
+            target.getFightEffect().setE_Str(ability.getStrength());
+            target.getFightEffect().setDE_Str(ability.getDuration());
         }
-        return unitEffect;
+        else if (ability.getIntelligence() != 0) {
+            characteristic = " интеллект ";
+            result = ability.getHp();
+            target.getFightEffect().setE_Intel(ability.getIntelligence());
+            target.getFightEffect().setDE_Intel(ability.getDuration());
+        }
+        else if (ability.getDexterity() != 0) {
+            characteristic = " ловкость ";
+            result = ability.getHp();
+            target.getFightEffect().setE_Dext(ability.getDexterity());
+            target.getFightEffect().setDE_Dext(ability.getDuration());
+        }
+        else if (ability.getEndurance() != 0) {
+            characteristic = " выносливость ";
+            result = ability.getHp();
+            target.getFightEffect().setE_Endur(ability.getEndurance());
+            target.getFightEffect().setDE_Endur(ability.getDuration());
+        }
+        else if (ability.getLuck() != 0) {
+            characteristic = " удачу ";
+            result = ability.getHp();
+            target.getFightEffect().setE_Luck(ability.getLuck());
+            target.getFightEffect().setDE_Luck(ability.getLuck());
+        }
+        else if (ability.getInitiative() != 0) {
+            characteristic = " инициативу ";
+            result = ability.getHp();
+            target.getFightEffect().setE_Init(ability.getInitiative());
+            target.getFightEffect().setDE_Init(ability.getDuration());
+        }
+        else if (ability.getBlock() != 0) {
+            characteristic = " шанс блокирования ";
+            result = ability.getHp();
+            target.getFightEffect().setE_Block(ability.getBlock());
+            target.getFightEffect().setDE_Block(ability.getDuration());
+        }
+        else if (ability.getEvade() != 0) {
+            characteristic = " шанс уворота ";
+            result = ability.getHp();
+            target.getFightEffect().setE_Evade(ability.getEvade());
+            target.getFightEffect().setDE_Evade(ability.getDuration());
+        }
+
+        return new StringBuilder()
+                .append("[")
+                .append(unit.getName())
+                .append(" понизил ")
+                .append(characteristic)
+                .append(" на ")
+                .append(result)
+                .append(" единиц(ы) игроку ")
+                .append(target.getName())
+                .append(" умением ")
+                .append(ability.getName())
+                .append(" на ")
+                .append(ability.getDuration())
+                .append(" раунда]");
     }
 
     //рассчитывает уровень навыка, исходя из опыта навыка unit

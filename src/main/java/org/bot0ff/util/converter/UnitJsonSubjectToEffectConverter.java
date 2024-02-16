@@ -11,11 +11,11 @@ import org.bot0ff.entity.unit.UnitEffect;
 import java.util.List;
 
 @Converter(autoApply = true)
-public class UnitJsonSubjectToEffectConverter implements AttributeConverter<List<UnitEffect>, String> {
+public class UnitJsonSubjectToEffectConverter implements AttributeConverter<UnitEffect, String> {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
-    public String convertToDatabaseColumn(List<UnitEffect> unitFightEffect) {
+    public String convertToDatabaseColumn(UnitEffect unitFightEffect) {
         if(unitFightEffect == null) return null;
         try {
             return objectMapper.writeValueAsString(unitFightEffect);
@@ -25,10 +25,10 @@ public class UnitJsonSubjectToEffectConverter implements AttributeConverter<List
     }
 
     @Override
-    public List<UnitEffect> convertToEntityAttribute(String unitJson) {
+    public UnitEffect convertToEntityAttribute(String unitJson) {
         if(unitJson == null) return null;
         try {
-            return objectMapper.readValue(unitJson, new TypeReference<List<UnitEffect>>(){});
+            return objectMapper.readValue(unitJson, UnitEffect.class);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

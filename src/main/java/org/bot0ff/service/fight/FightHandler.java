@@ -6,7 +6,6 @@ import org.apache.commons.math3.random.RandomDataGenerator;
 import org.bot0ff.entity.Ability;
 import org.bot0ff.entity.Fight;
 import org.bot0ff.entity.Unit;
-import org.bot0ff.entity.unit.UnitEffect;
 import org.bot0ff.entity.enums.Status;
 import org.bot0ff.repository.AbilityRepository;
 import org.bot0ff.repository.FightRepository;
@@ -95,7 +94,6 @@ public class FightHandler {
         });
     }
 
-    //TODO сделать отображение результатов сражения для победивших unit
     @Transactional
     private void resultRoundHandler(Long fightId) {
         StringBuilder resultRound = new StringBuilder();
@@ -117,7 +115,7 @@ public class FightHandler {
         System.out.println("Сортировка по убыванию инициативы " + unitName);
 
         for (Unit unit : units) {
-            if (unit.isActionEnd() & unit.getStatus().equals(Status.FIGHT)) {
+            if (unit.isActionEnd() | (!unit.getAbilityId().equals(0L) | !unit.getTargetId().equals(0L))) {
                 //находим примененное умение из бд
                 Optional<Ability> ability = abilityRepository.findById(unit.getAbilityId());
 
@@ -138,13 +136,13 @@ public class FightHandler {
                     if(unit.getHitPosition() - unit.getTargetPosition() == 0) {
                         StringBuilder result = physActionHandler.calculateDamageWeapon(unit, target);
                         resultRound.append(result);
-                        System.out.println("Атака оружием. Позиция unit " + unit.getLinePosition() + "/Позиция target " + target.getLinePosition());
+                        //System.out.println("Атака оружием. Позиция unit " + unit.getLinePosition() + "/Позиция target " + target.getLinePosition());
                     }
                     else if(unit.getHitPosition() - unit.getTargetPosition() < 0) {
                         if((unit.getHitPosition() + unit.getWeapon().getDistance()) >= unit.getTargetPosition()) {
                             StringBuilder result = physActionHandler.calculateDamageWeapon(unit, target);
                             resultRound.append(result);
-                            System.out.println("Атака оружием. Позиция unit " + unit.getLinePosition() + "/Позиция target " + unit.getTargetPosition());
+                            //System.out.println("Атака оружием. Позиция unit " + unit.getLinePosition() + "/Позиция target " + unit.getTargetPosition());
                         }
                         else {
                             resultRound.append("[");
@@ -159,7 +157,7 @@ public class FightHandler {
                         if((unit.getHitPosition() - unit.getWeapon().getDistance()) <= unit.getTargetPosition()) {
                             StringBuilder result = physActionHandler.calculateDamageWeapon(unit, target);
                             resultRound.append(result);
-                            System.out.println("Атака оружием. Позиция unit " + unit.getLinePosition() + "/Позиция target " + unit.getTargetPosition());
+                            //System.out.println("Атака оружием. Позиция unit " + unit.getLinePosition() + "/Позиция target " + unit.getTargetPosition());
                         }
                         else {
                             resultRound.append("[");
@@ -167,7 +165,7 @@ public class FightHandler {
                             resultRound.append(" не достал до противника ");
                             resultRound.append(target.getName());
                             resultRound.append(" при атаке]");
-                            System.out.println("Не хватает дальности оружия для атаки. Позиция unit " + unit.getLinePosition() + "/Позиция target " + target.getLinePosition());
+                            //System.out.println("Не хватает дальности оружия для атаки. Позиция unit " + unit.getLinePosition() + "/Позиция target " + target.getLinePosition());
                         }
                     }
                 }
@@ -198,6 +196,8 @@ public class FightHandler {
                                     System.out.println("Применено одиночное повышающее умение");
                                 }
                                 case LOWER -> {
+                                    StringBuilder result = magActionHandler.calculateLowerAbility(unit, target, ability.get());
+                                    resultRound.append(result);
                                     System.out.println("Применено одиночное понижающее умение");
                                 }
                             }
@@ -206,23 +206,39 @@ public class FightHandler {
                         case ALL -> {
                             switch (ability.get().getApplyType()) {
                                 case DAMAGE -> {
-                                    //ищем units из команды противников
-                                    List<Unit> opponentUnits = units.stream().filter(u -> !u.getTeamNumber().equals(unit.getTeamNumber())).toList();
+                                    units.forEach(target -> {
+                                        if(!target.getTeamNumber().equals(unit.getTeamNumber())) {
+                                            StringBuilder result = magActionHandler.calculateDamageAbility(unit, target, ability.get());
+                                            resultRound.append(result);
+                                        }
+                                    });
                                     System.out.println("Применено массовое умение атаки");
                                 }
                                 case RECOVERY -> {
-                                    //ищем units из команды союзников
-                                    List<Unit> opponentUnits = units.stream().filter(u -> u.getTeamNumber().equals(unit.getTeamNumber())).toList();
+                                    units.forEach(target -> {
+                                        if(target.getTeamNumber().equals(unit.getTeamNumber())) {
+                                            StringBuilder result = magActionHandler.calculateRecoveryAbility(unit, target, ability.get());
+                                            resultRound.append(result);
+                                        }
+                                    });
                                     System.out.println("Применено массовое умение восстановления");
                                 }
                                 case BOOST -> {
-                                    //ищем units из команды союзников
-                                    List<Unit> opponentUnits = units.stream().filter(u -> u.getTeamNumber().equals(unit.getTeamNumber())).toList();
+                                    units.forEach(target -> {
+                                        if(target.getTeamNumber().equals(unit.getTeamNumber())) {
+                                            StringBuilder result = magActionHandler.calculateBoostAbility(unit, target, ability.get());
+                                            resultRound.append(result);
+                                        }
+                                    });
                                     System.out.println("Применено массовое повышающее умение");
                                 }
                                 case LOWER -> {
-                                    //ищем units из команды противников
-                                    List<Unit> opponentUnits = units.stream().filter(u -> !u.getTeamNumber().equals(unit.getTeamNumber())).toList();
+                                    units.forEach(target -> {
+                                        if(!target.getTeamNumber().equals(unit.getTeamNumber())) {
+                                            StringBuilder result = magActionHandler.calculateLowerAbility(unit, target, ability.get());
+                                            resultRound.append(result);
+                                        }
+                                    });
                                     System.out.println("Применено массовое понижающее умение");
                                 }
                             }
@@ -281,7 +297,7 @@ public class FightHandler {
                 unit.setAbilityId(0L);
                 unit.setTargetId(0L);
                 unitRepository.save(unit);
-                System.out.println("Настройки " + unit.getName() + " сброшены для следующего раунда");
+                //System.out.println("Настройки " + unit.getName() + " сброшены для следующего раунда");
             }
         }
 
@@ -330,14 +346,14 @@ public class FightHandler {
                 unit.setPointAction(unit.getMaxPointAction());
                 unitRepository.save(unit);
                 fight.getUnitsWin().add(unit.getId());
-                System.out.println(unit.getName() + " победил в сражении");
+                //System.out.println(unit.getName() + " победил в сражении");
             }
             endFight = true;
             fight.setFightEnd(true);
             fight.getResultRound().add(String.valueOf(resultRound));
             fight.setUnits(units);
             fightRepository.save(fight);
-            System.out.println(fightId + " сражение завершено и удалено из map");
+            //System.out.println(fightId + " сражение завершено и удалено из map");
         }
         //если в первой команде нет игроков, а во второй есть, завершаем бой,
         //сохраняем результаты победы у unit из второй команды
@@ -362,58 +378,129 @@ public class FightHandler {
                 unit.setPointAction(unit.getMaxPointAction());
                 unitRepository.save(unit);
                 fight.getUnitsWin().add(unit.getId());
-                System.out.println(unit.getName() + " победил в сражении");
+                //System.out.println(unit.getName() + " победил в сражении");
             }
             endFight = true;
             fight.setFightEnd(true);
             fight.getResultRound().add(String.valueOf(resultRound));
             fight.setUnits(units);
             fightRepository.save(fight);
-            System.out.println(fightId + " сражение завершено и удалено из map");
+            //System.out.println(fightId + " сражение завершено и удалено из map");
         }
     }
 
     //обновление состояния UnitEffect для следующего раунда
     private void refreshUnitEffect(Unit unit) {
-        for(UnitEffect unitEffect : unit.getFightEffect()) {
-            //расчет действующих эффектов hp
-            if(unitEffect.getDurationEffectHp() > 0) {
-                unitEffect.setDurationEffectHp(unitEffect.getDurationEffectHp() - 1);
-            }
-
-            //расчет действующих эффектов mana
-            if(unitEffect.getDurationEffectMana() > 0) {
-                unitEffect.setDurationEffectMana(unitEffect.getDurationEffectMana() - 1);
-            }
-
-            //расчет действующих эффектов физического урона
-            if(unitEffect.getDurationEffectPhysDamage() > 0) {
-                unitEffect.setDurationEffectPhysDamage(unitEffect.getDurationEffectPhysDamage() - 1);
-            }
-
-            //расчет действующих эффектов физической защиты
-            if(unitEffect.getDurationEffectPhysDefense() > 0) {
-                unitEffect.setDurationEffectPhysDefense(unitEffect.getDurationEffectPhysDefense() - 1);
-            }
-            //расчет действующих эффектов магического урона
-            if(unitEffect.getDurationEffectMagDamage() > 0) {
-                unitEffect.setDurationEffectMagDamage(unitEffect.getDurationEffectMagDamage() - 1);
-            }
-
-            //расчет действующих эффектов магической защиты
-            if(unitEffect.getDurationEffectMagDefense() > 0) {
-                unitEffect.setDurationEffectMagDefense(unitEffect.getDurationEffectMagDefense() - 1);
+        //расчет действующих эффектов hp
+        if(unit.getFightEffect().getDE_Hp() != 0) {
+            unit.getFightEffect().setDE_Hp(unit.getFightEffect().getDE_Hp() - 1);
+            if(unit.getFightEffect().getDE_Hp() <= 0) {
+                unit.getFightEffect().setE_Hp(0);
             }
         }
-        //удаляем эффект из списка активных эффектов unit, если действия на все характеристики равно 0
-        unit.getFightEffect().removeIf(unitEffect ->
-                unitEffect.getDurationEffectHp() == 0
-                        & unitEffect.getDurationEffectMana() == 0
-                        & unitEffect.getDurationEffectPhysDamage() == 0
-                        & unitEffect.getDurationEffectPhysDefense() == 0
-                        & unitEffect.getDurationEffectMagDamage() == 0
-                        & unitEffect.getDurationEffectMagDefense() == 0
-        );
+        //расчет действующих эффектов mana
+        if(unit.getFightEffect().getDE_Mana() != 0) {
+            unit.getFightEffect().setDE_Mana(unit.getFightEffect().getDE_Mana() - 1);
+            if(unit.getFightEffect().getDE_Mana() <= 0) {
+                unit.getFightEffect().setE_Mana(0);
+            }
+        }
+
+        //расчет действующих эффектов физического воздействия
+        if(unit.getFightEffect().getDE_PhysEff() != 0) {
+            unit.getFightEffect().setDE_PhysEff(unit.getFightEffect().getDE_PhysEff() - 1);
+            if(unit.getFightEffect().getDE_PhysEff() <= 0) {
+                unit.getFightEffect().setE_PhysEff(0);
+            }
+        }
+
+        //расчет действующих эффектов магического воздействия
+        if(unit.getFightEffect().getDE_MagEff() != 0) {
+            unit.getFightEffect().setDE_MagEff(unit.getFightEffect().getDE_MagEff() - 1);
+            if(unit.getFightEffect().getDE_MagEff() <= 0) {
+                unit.getFightEffect().setE_MagEff(0);
+            }
+        }
+
+        //расчет действующих эффектов физической защиты
+        if(unit.getFightEffect().getDE_PhysDef() != 0) {
+            unit.getFightEffect().setDE_PhysDef(unit.getFightEffect().getDE_PhysDef() - 1);
+            if(unit.getFightEffect().getDE_PhysDef() <= 0) {
+                unit.getFightEffect().setE_PhysDef(0);
+            }
+        }
+
+        //расчет действующих эффектов магической защиты
+        if(unit.getFightEffect().getDE_MagDef() != 0) {
+            unit.getFightEffect().setDE_MagDef(unit.getFightEffect().getDE_MagDef() - 1);
+            if(unit.getFightEffect().getDE_MagDef() <= 0) {
+                unit.getFightEffect().setE_MagDef(0);
+            }
+        }
+
+        //расчет действующих эффектов силы
+        if(unit.getFightEffect().getDE_Str() != 0) {
+            unit.getFightEffect().setDE_Str(unit.getFightEffect().getDE_Str() - 1);
+            if(unit.getFightEffect().getDE_Str() <= 0) {
+                unit.getFightEffect().setE_Str(0);
+            }
+        }
+
+        //расчет действующих эффектов интеллекта
+        if(unit.getFightEffect().getDE_Intel() != 0) {
+            unit.getFightEffect().setDE_Intel(unit.getFightEffect().getDE_Intel() - 1);
+            if(unit.getFightEffect().getDE_Intel() <= 0) {
+                unit.getFightEffect().setE_Intel(0);
+            }
+        }
+
+        //расчет действующих эффектов ловкости
+        if(unit.getFightEffect().getDE_Dext() != 0) {
+            unit.getFightEffect().setDE_Dext(unit.getFightEffect().getDE_Dext() - 1);
+            if(unit.getFightEffect().getDE_Dext() <= 0) {
+                unit.getFightEffect().setE_Dext(0);
+            }
+        }
+
+        //расчет действующих эффектов выносливости
+        if(unit.getFightEffect().getDE_Endur() != 0) {
+            unit.getFightEffect().setDE_Endur(unit.getFightEffect().getDE_Endur() - 1);
+            if(unit.getFightEffect().getDE_Endur() <= 0) {
+                unit.getFightEffect().setE_Endur(0);
+            }
+        }
+
+        //расчет действующих эффектов удачи
+        if(unit.getFightEffect().getDE_Luck() != 0) {
+            unit.getFightEffect().setDE_Luck(unit.getFightEffect().getDE_Luck() - 1);
+            if(unit.getFightEffect().getDE_Luck() <= 0) {
+                unit.getFightEffect().setE_Luck(0);
+            }
+        }
+
+        //расчет действующих эффектов инициативы
+        if(unit.getFightEffect().getDE_Init() != 0) {
+            unit.getFightEffect().setDE_Intel(unit.getFightEffect().getDE_Intel() - 1);
+            if(unit.getFightEffect().getDE_Init() <= 0) {
+                unit.getFightEffect().setE_Intel(0);
+            }
+        }
+
+        //расчет действующих эффектов блокирования
+        if(unit.getFightEffect().getDE_Block() != 0) {
+            unit.getFightEffect().setDE_Block(unit.getFightEffect().getDE_Block() - 1);
+            if(unit.getFightEffect().getDE_Block() <= 0) {
+                unit.getFightEffect().setE_Block(0);
+            }
+        }
+
+        //расчет действующих эффектов уворота
+        if(unit.getFightEffect().getDE_Evade() != 0) {
+            unit.getFightEffect().setDE_Evade(unit.getFightEffect().getDE_Evade() - 1);
+            if(unit.getFightEffect().getDE_Evade() <= 0) {
+                unit.getFightEffect().setE_Evade(0);
+            }
+        }
     }
 
     //рандом +-30% от числа

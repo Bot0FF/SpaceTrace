@@ -90,4 +90,18 @@ public class MainController {
         var response = profileService.takeOffInventoryThing("user", thingId);
         return ResponseEntity.ok(response);
     }
+
+    //повышение аттрибутов
+    @GetMapping("/attribute/up")
+    public ResponseEntity<?> upAttribute(@RequestParam String attribute) {
+        var response = profileService.upAttribute("user", attribute);
+        return ResponseEntity.ok(response);
+    }
+
+    //понижение аттрибутов
+    @GetMapping("/attribute/down")
+    public ResponseEntity<?> downAttribute(@RequestParam String attribute) {
+        var response = profileService.downAttribute("user", attribute);
+        return ResponseEntity.ok(response);
+    }
 }

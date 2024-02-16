@@ -43,6 +43,14 @@ public class Ability {
     private int magDamage;
 
     /** воздействия на характеристики */
+    //воздействие на физический урон
+    @Column(name = "physEffect")
+    private int physEffect;
+
+    //воздействие на магический модификатор
+    @Column(name = "magEffect")
+    private double magEffect;
+
     //воздействие на hp
     @Column(name = "hp")
     private int hp;
@@ -78,6 +86,18 @@ public class Ability {
     //воздействие на удачу
     @Column(name = "luck")
     private int luck;
+
+    //воздействие на инициативу
+    @Column(name = "initiative")
+    private int initiative;
+
+    //воздействие на шанс блокирование
+    @Column(name = "block")
+    private double block;
+
+    //воздействие шанс уворота
+    @Column(name = "evade")
+    private double evade;
 
     /** прочие характеристики */
     //дистанция применения

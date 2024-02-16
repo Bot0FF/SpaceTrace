@@ -27,6 +27,14 @@ public class DaemonService {
     public void clearFightDB() {
         List<Unit> units = unitRepository.findAll();
         for(Unit unit: units) {
+
+//            unit.setStrength(1);
+//            unit.setIntelligence(1);
+//            unit.setDexterity(1);
+//            unit.setEndurance(1);
+//            unit.setLuck(1);
+//            unit.setBonusPoint(50);
+
             unit.setHp(unit.getHp());
             unit.setLinePosition(null);
             unit.setHitPosition(null);

@@ -154,7 +154,7 @@ public class Ai {
     @Convert(converter = UnitJsonSubjectToEffectConverter.class)
     @Column(name = "fightEffect", length = 1024)
     @JsonIgnore
-    private List<UnitEffect> fightEffect;
+    private UnitEffect fightEffect;
 
     @Column(name = "teamNumber")
     private Long teamNumber;

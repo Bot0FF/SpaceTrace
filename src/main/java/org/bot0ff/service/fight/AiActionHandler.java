@@ -4,7 +4,6 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.bot0ff.entity.Ability;
 import org.bot0ff.entity.Fight;
-import org.bot0ff.entity.Objects;
 import org.bot0ff.entity.Unit;
 import org.bot0ff.entity.enums.ApplyType;
 import org.bot0ff.entity.enums.UnitType;
@@ -29,11 +28,11 @@ public class AiActionHandler {
     private final RandomUtil randomUtil;
 
     public void setAiAction(Long fightId) throws InterruptedException {
-        System.out.println("------------------------");
-        System.out.println("Старт обработки действий AI");
+        //System.out.println("------------------------");
+        //System.out.println("Старт обработки действий AI");
         Optional<Fight> fight = fightRepository.findById(fightId);
         if(fight.isEmpty()) {
-            System.out.println("Не найдено сражение с fightId " + fightId);
+            //System.out.println("Не найдено сражение с fightId " + fightId);
             return;
         }
 
@@ -43,8 +42,8 @@ public class AiActionHandler {
 
         //все aiUnit первой команды применяют атаку на любом unit из второй команды
         for(Unit aiUnit : teamOne){
-            System.out.println("---------------------");
-            System.out.println("Ход AI первой команды");
+            //System.out.println("---------------------");
+            //System.out.println("Ход AI первой команды");
             if(aiUnit.getUnitType().equals(UnitType.AI)) {
                 //определяем противника
                 Unit target = getRandomUser(teamTwo);
@@ -65,8 +64,8 @@ public class AiActionHandler {
 
         //все aiUnit второй команды применяют атаку на любом unit из первой команды
         for(Unit aiUnit : teamTwo){
-            System.out.println("---------------------");
-            System.out.println("Ход AI второй команды");
+            //System.out.println("---------------------");
+            //System.out.println("Ход AI второй команды");
             if(aiUnit.getUnitType().equals(UnitType.AI)) {
                 //определяем противника
                 Unit target = getRandomUser(teamOne);
@@ -85,7 +84,7 @@ public class AiActionHandler {
                 unitRepository.save(aiUnit);
             }
         }
-        System.out.println("Ходы aiUnit завершены");
+        //System.out.println("Ходы aiUnit завершены");
     }
 
     //расчет случайного противника
@@ -105,30 +104,26 @@ public class AiActionHandler {
             case 1 -> {
                 if(aiUnit.getLinePosition() != 1) {
                     aiUnit.setLinePosition(aiUnit.getLinePosition() - 1);
-                    aiUnit.setPointAction(aiUnit.getPointAction() - 1);
-                    unitRepository.save(aiUnit);
-                    System.out.println(aiUnit.getName() + " переместился на 1 влево");
+                    //System.out.println(aiUnit.getName() + " переместился на 1 влево");
                 }
                 else {
                     aiUnit.setLinePosition(aiUnit.getLinePosition() + 1);
-                    aiUnit.setPointAction(aiUnit.getPointAction() - 1);
-                    unitRepository.save(aiUnit);
-                    System.out.println(aiUnit.getName() + " переместился на 1 вправо");
+                    //System.out.println(aiUnit.getName() + " переместился на 1 вправо");
                 }
+                aiUnit.setPointAction(aiUnit.getPointAction() - 1);
+                unitRepository.save(aiUnit);
             }
             case 2 -> {
                 if(aiUnit.getLinePosition() != 8) {
                     aiUnit.setLinePosition(aiUnit.getLinePosition() + 1);
-                    aiUnit.setPointAction(aiUnit.getPointAction() - 1);
-                    unitRepository.save(aiUnit);
-                    System.out.println(aiUnit.getName() + " переместился на 1 вправо");
+                    //System.out.println(aiUnit.getName() + " переместился на 1 вправо");
                 }
                 else {
                     aiUnit.setLinePosition(aiUnit.getLinePosition() - 1);
-                    aiUnit.setPointAction(aiUnit.getPointAction() - 1);
-                    unitRepository.save(aiUnit);
-                    System.out.println(aiUnit.getName() + " переместился на 1 влево");
+                    //System.out.println(aiUnit.getName() + " переместился на 1 влево");
                 }
+                aiUnit.setPointAction(aiUnit.getPointAction() - 1);
+                unitRepository.save(aiUnit);
             }
         }
     }
@@ -136,15 +131,15 @@ public class AiActionHandler {
     //применение оружия
     private void setAiApplyWeapon(Unit aiUnit, Unit target) {
         if(aiUnit.getWeapon().getSkillType().equals("BOW")) {
-            System.out.println("Тип оружия не соответствует типу одноручное или двуручное. Возврат к выбору действия");
+            //System.out.println("Тип оружия не соответствует типу одноручное или двуручное. Возврат к выбору действия");
             return;
         }
         if(!aiUnit.getTargetId().equals(0L)) {
-            System.out.println("Противник уже выбран. Возврат к выбору действия");
+            //System.out.println("Противник уже выбран. Возврат к выбору действия");
             return;
         }
         if(aiUnit.getPointAction() < 2) {
-            System.out.println("Недостаточно очков действия для нанесения удара оружием. Возврат к выбору действия");
+            //System.out.println("Недостаточно очков действия для нанесения удара оружием. Возврат к выбору действия");
             return;
         }
 
@@ -155,26 +150,26 @@ public class AiActionHandler {
             aiUnit.setHitPosition(aiUnit.getLinePosition());
             aiUnit.setTargetPosition(target.getLinePosition());
             unitRepository.save(aiUnit);
-            System.out.println("Выбран противник для нанесения удара оружием");
+            //System.out.println("Выбран противник для нанесения удара оружием");
         }
         else {
             setAiMove(aiUnit);
-            System.out.println("Превышение расстояния применения оружия. Возврат к выбору действия");
+            //System.out.println("Превышение расстояния применения оружия. Возврат к выбору действия");
         }
     }
 
     //применение оружия
     private void setAiApplyBow(Unit aiUnit, Unit target) {
         if(!aiUnit.getWeapon().getSkillType().equals("BOW")) {
-            System.out.println("Тип оружия не соответствует типу лук. Возврат к выбору действия");
+            //System.out.println("Тип оружия не соответствует типу лук. Возврат к выбору действия");
             return;
         }
         if(!aiUnit.getTargetId().equals(0L)) {
-            System.out.println("Противник уже выбран. Возврат к выбору действия");
+            //System.out.println("Противник уже выбран. Возврат к выбору действия");
             return;
         }
         if(aiUnit.getPointAction() < 2) {
-            System.out.println("Недостаточно очков действия для выстрела из лука. Возврат к выбору действия");
+            //System.out.println("Недостаточно очков действия для выстрела из лука. Возврат к выбору действия");
             return;
         }
 
@@ -185,22 +180,22 @@ public class AiActionHandler {
             aiUnit.setHitPosition(aiUnit.getLinePosition());
             aiUnit.setTargetPosition(target.getLinePosition());
             unitRepository.save(aiUnit);
-            System.out.println("Выбран противник для выстрела из лука");
+            //System.out.println("Выбран противник для выстрела из лука");
         }
         else {
             setAiMove(aiUnit);
-            System.out.println("Превышение расстояния применения лука. Возврат к выбору действия");
+            //System.out.println("Превышение расстояния применения лука. Возврат к выбору действия");
         }
     }
 
     //применение умения
     private void setAiApplyAbility(Unit aiUnit, Unit target) {
         if(aiUnit.getCurrentAbility().isEmpty()) {
-            System.out.println("aiUnit не имеет умений. Возврат к выбору действия");
+            //System.out.println("aiUnit не имеет умений. Возврат к выбору действия");
             return;
         }
         if(!aiUnit.getAbilityId().equals(0L)) {
-            System.out.println("aiUnit уже применил умение. Возврат к выбору действия");
+            //System.out.println("aiUnit уже применил умение. Возврат к выбору действия");
             return;
         }
         Long numberAbility = (long) randomUtil.getRandomFromTo(0, aiUnit.getCurrentAbility().size() - 1);
@@ -209,7 +204,7 @@ public class AiActionHandler {
         Ability ability = optionalAbility.get();
 
         if(aiUnit.getMana() < ability.getManaCost()) {
-            System.out.println("Недостаточно маны для применения умения. Возврат к выбору действия");
+            //System.out.println("Недостаточно маны для применения умения. Возврат к выбору действия");
             return;
         }
 
@@ -223,11 +218,11 @@ public class AiActionHandler {
                 aiUnit.setTargetPosition(target.getLinePosition());
                 aiUnit.setPointAction(aiUnit.getPointAction() - ability.getPointAction());
                 unitRepository.save(aiUnit);
-                System.out.println("Выбрано атакующее умение. Возврат к выбору действия");
+                //System.out.println("Выбрано атакующее умение. Возврат к выбору действия");
             }
             else {
                 setAiMove(aiUnit);
-                System.out.println("Превышение расстояния применения умения. Возврат к выбору действия");
+                //System.out.println("Превышение расстояния применения умения. Возврат к выбору действия");
             }
         }
         else {
@@ -236,7 +231,7 @@ public class AiActionHandler {
             aiUnit.setHitPosition(aiUnit.getLinePosition());
             aiUnit.setTargetPosition(target.getLinePosition());
             aiUnit.setPointAction(aiUnit.getPointAction() - ability.getPointAction());
-            System.out.println("Выбрано не атакующее умение.");
+            //System.out.println("Выбрано не атакующее умение.");
         }
     }
 }

@@ -150,7 +150,7 @@ with data(id, name, unit_type, status, action_end,
    as (values
         (1, 'Гусеница', 'AI', 'ACTIVE', false,
             0,
-            10, 10, 4, 4,
+            20, 200, 4, 4,
             1, 1, 1, 1, 1, 0,
             '{"oneHand": 1, "twoHand": 1, "bow": 1, "fire": 1, "water": 1, "land": 1, "air": 1, "vitality": 1, "spirituality": 1, "regeneration": 1, "meditation": 1, "block": 1, "evade": 1}',
             ARRAY[]::integer[], ARRAY[]::integer[],
@@ -210,22 +210,50 @@ where not exists (select 1
 
 --ability
 with data(id, name, skill_type, apply_type, range_type,
-            phys_damage, mag_damage, hp, mana, phys_defense, mag_defense, strength, intelligence, dexterity, endurance, luck,
+            phys_damage, mag_damage, phys_effect, mag_effect, hp, mana, phys_defense, mag_defense,
+            strength, intelligence, dexterity, endurance, luck, initiative, block, evade,
             distance, point_action, duration, mana_cost,
             price, description)
    as (values
-        (1, 'Огненный шар', 'FIRE', 'DAMAGE', 'ONE',
-        0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        6, 2, 0, 5, 0,
-        0, 'Простой огненный шар')
-
+            (1, 'max_hp +10', 'FIRE', 'BOOST', 'ONE',
+        0, 0, 0, 0, 10, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 2, 2, 5,
+        0, ''),
+            (2, 'max_hp -10', 'FIRE', 'LOWER', 'ONE',
+        0, 0, 0, 0, -10, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 2, 2, 5,
+        0, ''),
+            (3, 'phys_eff +10', 'FIRE', 'BOOST', 'ONE',
+        0, 0, 10, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 2, 2, 5,
+        0, ''),
+            (4, 'phys_eff -10', 'FIRE', 'LOWER', 'ONE',
+        0, 0, -10, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 2, 2, 5,
+        0, ''),
+            (5, 'phys_deff 10', 'FIRE', 'BOOST', 'ONE',
+        0, 0, 0, 10, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 2, 2, 5,
+        0, ''),
+            (6, 'phys_deff -10', 'FIRE', 'LOWER', 'ONE',
+        0, 0, 0, -10, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 2, 2, 5,
+        0, '')
 )
 insert into ability (id, name, skill_type, apply_type, range_type,
-            phys_damage, mag_damage, hp, mana, phys_defense, mag_defense, strength, intelligence, dexterity, endurance, luck,
+            phys_damage, mag_damage, phys_effect, mag_effect, hp, mana, phys_defense, mag_defense,
+            strength, intelligence, dexterity, endurance, luck, initiative, block, evade,
             distance, point_action, duration, mana_cost,
             price, description)
 select d.id, d.name, d.skill_type, d.apply_type, d.range_type,
-            d.phys_damage, d.mag_damage, d.hp, d.mana, d.phys_defense, d.mag_defense, d.strength, d.intelligence, d.dexterity, d.endurance, d.luck,
+            d.phys_damage, d.mag_damage, d.phys_effect, d.mag_effect, d.hp, d.mana, d.phys_defense, d.mag_defense,
+            d.strength, d.intelligence, d.dexterity, d.endurance, d.luck, d.initiative, d.block, d.evade,
             d.distance, d.point_action, d.duration, d.mana_cost,
             d.price, description
 from data d

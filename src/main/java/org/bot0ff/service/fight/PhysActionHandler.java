@@ -20,7 +20,6 @@ public class PhysActionHandler {
     public StringBuilder calculateDamageWeapon(Unit unit, Unit target) {
         //расчет блока
         if(randomUtil.getDoubleChance() <= target.getChanceBlock()) {
-            unit.setActionEnd(true);
             return new StringBuilder()
                     .append("[")
                     .append(target.getName())
@@ -31,7 +30,6 @@ public class PhysActionHandler {
 
         //расчет уворота
         if(randomUtil.getDoubleChance() <= target.getChanceEvade())  {
-            unit.setActionEnd(true);
             return new StringBuilder()
                     .append("[")
                     .append(target.getName())
@@ -55,11 +53,10 @@ public class PhysActionHandler {
 
         //устанавливаем target параметры по результатам расчета
         if (target.getHp() <= 0) {
-            target.setActionEnd(true);
+            target.setActionEnd(false);
             target.setStatus(Status.LOSS);
             System.out.println(target.getName() + " ход отменен. HP <= 0");
         }
-        unit.setActionEnd(true);
 
         if(unit.getWeapon().getId().equals(0L)) {
             return new StringBuilder()
