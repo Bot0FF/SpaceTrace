@@ -178,7 +178,6 @@ public class Unit {
 
     @Convert(converter = UnitJsonSubjectToEffectConverter.class)
     @Column(name = "fightEffect", length = 1024)
-    @JsonIgnore
     private UnitEffect fightEffect;
 
     @Column(name = "teamNumber")
@@ -216,7 +215,7 @@ public class Unit {
         return Math.max(maxMana, 0);
     }
 
-    //модификатор физического урона
+    //физический урон
     public int getPhysDamage() {
         int fullPhysDamage;
         switch (weapon.getSkillType()) {

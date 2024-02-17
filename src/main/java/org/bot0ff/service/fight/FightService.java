@@ -206,7 +206,7 @@ public class FightService {
         String moveDirection = "";
         switch (direction) {
             case "left" -> {
-                if(player.getLinePosition() - 1 >= 1) {
+                if(player.getLinePosition() > 0) {
                     player.setPointAction(player.getPointAction() - 1);
                     player.setLinePosition(player.getLinePosition() - 1);
                     if(player.getPointAction() < 1) {
@@ -221,7 +221,7 @@ public class FightService {
                 }
             }
             case "right" -> {
-                if(player.getLinePosition() + 1 <= 8) {
+                if(player.getLinePosition() < Constants.FIGHT_LINE_LENGTH) {
                     player.setPointAction(player.getPointAction() - 1);
                     player.setLinePosition(player.getLinePosition() + 1);
                     if(player.getPointAction() < 1) {
@@ -547,7 +547,7 @@ public class FightService {
         unit.setAbilityId(0L);
         unit.setTargetId(0L);
         unit.setPointAction(unit.getMaxPointAction());
-        unit.setLinePosition((long) randomUtil.getRandomFromTo(1, 8));
+        unit.setLinePosition((long) randomUtil.getRandomFromTo(0, Constants.FIGHT_LINE_LENGTH));
         unit.setFightEffect(new UnitEffect());
         unitRepository.save(unit);
     }

@@ -10,6 +10,7 @@ import org.bot0ff.entity.enums.UnitType;
 import org.bot0ff.repository.AbilityRepository;
 import org.bot0ff.repository.FightRepository;
 import org.bot0ff.repository.UnitRepository;
+import org.bot0ff.util.Constants;
 import org.bot0ff.util.RandomUtil;
 import org.springframework.stereotype.Service;
 
@@ -102,7 +103,7 @@ public class AiActionHandler {
         int direction = randomUtil.getRandom1or2();
         switch (direction) {
             case 1 -> {
-                if(aiUnit.getLinePosition() != 1) {
+                if(aiUnit.getLinePosition() > 0) {
                     aiUnit.setLinePosition(aiUnit.getLinePosition() - 1);
                     //System.out.println(aiUnit.getName() + " переместился на 1 влево");
                 }
@@ -114,7 +115,7 @@ public class AiActionHandler {
                 unitRepository.save(aiUnit);
             }
             case 2 -> {
-                if(aiUnit.getLinePosition() != 8) {
+                if(aiUnit.getLinePosition() < Constants.FIGHT_LINE_LENGTH) {
                     aiUnit.setLinePosition(aiUnit.getLinePosition() + 1);
                     //System.out.println(aiUnit.getName() + " переместился на 1 вправо");
                 }

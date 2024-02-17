@@ -48,4 +48,7 @@ public class Constants {
 
     //длительность раундов
     public static  int ROUND_LENGTH_TIME = 60;
+
+    //длина поля сражения (от 0 до ...)
+    public static  int FIGHT_LINE_LENGTH = 5;
 }

@@ -139,79 +139,79 @@ public class MagActionHandler {
         }
         else if (ability.getMana() != 0) {
             characteristic = " максимальную ману ";
-            result = ability.getHp();
+            result = ability.getMana();
             target.getFightEffect().setE_Mana(ability.getMana());
             target.getFightEffect().setDE_Mana(ability.getDuration() + 1);
         }
         else if (ability.getPhysEffect() != 0) {
             characteristic = " физический урон ";
-            result = ability.getHp();
+            result = ability.getPhysEffect();
             target.getFightEffect().setE_PhysEff(ability.getPhysEffect());
             target.getFightEffect().setDE_PhysEff(ability.getDuration() + 1);
         }
         else if (ability.getMagEffect() != 0) {
             characteristic = " магическую силу ";
-            result = ability.getHp();
+            result = ability.getMagEffect();
             target.getFightEffect().setE_MagEff(ability.getMagEffect());
             target.getFightEffect().setDE_MagEff(ability.getDuration() + 1);
         }
         else if (ability.getPhysDefense() != 0) {
             characteristic = " физическую защиту ";
-            result = ability.getHp();
+            result = ability.getPhysDefense();
             target.getFightEffect().setE_PhysDef(ability.getPhysDefense());
             target.getFightEffect().setDE_PhysDef(ability.getDuration() + 1);
         }
         else if (ability.getMagDefense() != 0) {
             characteristic = " магическую защиту ";
-            result = ability.getHp();
+            result = ability.getMagDefense();
             target.getFightEffect().setE_MagEff(ability.getMagEffect());
             target.getFightEffect().setDE_MagEff(ability.getDuration() + 1);
         }
         else if (ability.getStrength() != 0) {
             characteristic = " силу ";
-            result = ability.getHp();
+            result = ability.getStrength();
             target.getFightEffect().setE_Str(ability.getStrength());
             target.getFightEffect().setDE_Str(ability.getDuration() + 1);
         }
         else if (ability.getIntelligence() != 0) {
             characteristic = " интеллект ";
-            result = ability.getHp();
+            result = ability.getIntelligence();
             target.getFightEffect().setE_Intel(ability.getIntelligence());
             target.getFightEffect().setDE_Intel(ability.getDuration() + 1);
         }
         else if (ability.getDexterity() != 0) {
             characteristic = " ловкость ";
-            result = ability.getHp();
+            result = ability.getDexterity();
             target.getFightEffect().setE_Dext(ability.getDexterity());
             target.getFightEffect().setDE_Dext(ability.getDuration() + 1);
         }
         else if (ability.getEndurance() != 0) {
             characteristic = " выносливость ";
-            result = ability.getHp();
+            result = ability.getEndurance();
             target.getFightEffect().setE_Endur(ability.getEndurance());
             target.getFightEffect().setDE_Endur(ability.getDuration() + 1);
         }
         else if (ability.getLuck() != 0) {
             characteristic = " удачу ";
-            result = ability.getHp();
+            result = ability.getLuck();
             target.getFightEffect().setE_Luck(ability.getLuck());
             target.getFightEffect().setDE_Luck(ability.getLuck() + 1);
         }
         else if (ability.getInitiative() != 0) {
             characteristic = " инициативу ";
-            result = ability.getHp();
+            result = ability.getInitiative();
             target.getFightEffect().setE_Init(ability.getInitiative());
             target.getFightEffect().setDE_Init(ability.getDuration() + 1);
         }
         else if (ability.getBlock() != 0) {
             characteristic = " шанс блокирования ";
-            result = ability.getHp();
+            result = ability.getBlock();
             target.getFightEffect().setE_Block(ability.getBlock());
             target.getFightEffect().setDE_Block(ability.getDuration() + 1);
         }
         else if (ability.getEvade() != 0) {
             characteristic = " шанс уворота ";
-            result = ability.getHp();
+            result = ability.getEvade();
             target.getFightEffect().setE_Evade(ability.getEvade());
             target.getFightEffect().setDE_Evade(ability.getDuration() + 1);
         }
@@ -241,85 +241,85 @@ public class MagActionHandler {
             characteristic = " максимальное здоровье ";
             result = ability.getHp();
             target.getFightEffect().setE_Hp(ability.getHp());
-            target.getFightEffect().setDE_Hp(ability.getDuration());
+            target.getFightEffect().setDE_Hp(ability.getDuration() + 1);
         }
         else if (ability.getMana() != 0) {
             characteristic = " максимальную ману ";
-            result = ability.getHp();
+            result = ability.getMana();
             target.getFightEffect().setE_Mana(ability.getMana());
-            target.getFightEffect().setDE_Mana(ability.getDuration());
+            target.getFightEffect().setDE_Mana(ability.getDuration() + 1);
         }
         else if (ability.getPhysEffect() != 0) {
             characteristic = " физический урон ";
-            result = ability.getHp();
+            result = ability.getPhysEffect();
             target.getFightEffect().setE_PhysEff(ability.getPhysEffect());
-            target.getFightEffect().setDE_PhysEff(ability.getDuration());
+            target.getFightEffect().setDE_PhysEff(ability.getDuration() + 1);
         }
         else if (ability.getMagEffect() != 0) {
             characteristic = " магическую силу ";
-            result = ability.getHp();
+            result = ability.getMagEffect();
             target.getFightEffect().setE_MagEff(ability.getMagEffect());
-            target.getFightEffect().setDE_MagEff(ability.getDuration());
+            target.getFightEffect().setDE_MagEff(ability.getDuration() + 1);
         }
         else if (ability.getPhysDefense() != 0) {
             characteristic = " физическую защиту ";
-            result = ability.getHp();
+            result = ability.getPhysDefense();
             target.getFightEffect().setE_PhysDef(ability.getPhysDefense());
-            target.getFightEffect().setDE_PhysDef(ability.getDuration());
+            target.getFightEffect().setDE_PhysDef(ability.getDuration() + 1);
         }
         else if (ability.getMagDefense() != 0) {
             characteristic = " магическую защиту ";
-            result = ability.getHp();
+            result = ability.getMagDefense();
             target.getFightEffect().setE_MagEff(ability.getMagEffect());
-            target.getFightEffect().setDE_MagEff(ability.getDuration());
+            target.getFightEffect().setDE_MagEff(ability.getDuration() + 1);
         }
         else if (ability.getStrength() != 0) {
             characteristic = " силу ";
-            result = ability.getHp();
+            result = ability.getStrength();
             target.getFightEffect().setE_Str(ability.getStrength());
-            target.getFightEffect().setDE_Str(ability.getDuration());
+            target.getFightEffect().setDE_Str(ability.getDuration() + 1);
         }
         else if (ability.getIntelligence() != 0) {
             characteristic = " интеллект ";
-            result = ability.getHp();
+            result = ability.getIntelligence();
             target.getFightEffect().setE_Intel(ability.getIntelligence());
-            target.getFightEffect().setDE_Intel(ability.getDuration());
+            target.getFightEffect().setDE_Intel(ability.getDuration() + 1);
         }
         else if (ability.getDexterity() != 0) {
             characteristic = " ловкость ";
-            result = ability.getHp();
+            result = ability.getDexterity();
             target.getFightEffect().setE_Dext(ability.getDexterity());
-            target.getFightEffect().setDE_Dext(ability.getDuration());
+            target.getFightEffect().setDE_Dext(ability.getDuration() + 1);
         }
         else if (ability.getEndurance() != 0) {
             characteristic = " выносливость ";
-            result = ability.getHp();
+            result = ability.getEndurance();
             target.getFightEffect().setE_Endur(ability.getEndurance());
-            target.getFightEffect().setDE_Endur(ability.getDuration());
+            target.getFightEffect().setDE_Endur(ability.getDuration() + 1);
         }
         else if (ability.getLuck() != 0) {
             characteristic = " удачу ";
-            result = ability.getHp();
+            result = ability.getLuck();
             target.getFightEffect().setE_Luck(ability.getLuck());
-            target.getFightEffect().setDE_Luck(ability.getLuck());
+            target.getFightEffect().setDE_Luck(ability.getLuck() + 1);
         }
         else if (ability.getInitiative() != 0) {
             characteristic = " инициативу ";
-            result = ability.getHp();
+            result = ability.getInitiative();
             target.getFightEffect().setE_Init(ability.getInitiative());
-            target.getFightEffect().setDE_Init(ability.getDuration());
+            target.getFightEffect().setDE_Init(ability.getDuration() + 1);
         }
         else if (ability.getBlock() != 0) {
             characteristic = " шанс блокирования ";
-            result = ability.getHp();
+            result = ability.getBlock();
             target.getFightEffect().setE_Block(ability.getBlock());
-            target.getFightEffect().setDE_Block(ability.getDuration());
+            target.getFightEffect().setDE_Block(ability.getDuration() + 1);
         }
         else if (ability.getEvade() != 0) {
             characteristic = " шанс уворота ";
-            result = ability.getHp();
+            result = ability.getEvade();
             target.getFightEffect().setE_Evade(ability.getEvade());
-            target.getFightEffect().setDE_Evade(ability.getDuration());
+            target.getFightEffect().setDE_Evade(ability.getDuration() + 1);
         }
 
         return new StringBuilder()
