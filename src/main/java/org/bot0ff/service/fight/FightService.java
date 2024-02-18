@@ -6,7 +6,7 @@ import org.bot0ff.entity.enums.UnitType;
 import org.bot0ff.model.InfoResponse;
 import org.bot0ff.model.FightResponse;
 import org.bot0ff.model.NavigateResponse;
-import org.bot0ff.entity.unit.UnitEffect;
+import org.bot0ff.entity.unit.UnitFightEffect;
 import org.bot0ff.entity.*;
 import org.bot0ff.entity.enums.ApplyType;
 import org.bot0ff.entity.enums.Status;
@@ -311,7 +311,7 @@ public class FightService {
         player.setTargetPosition(target.getLinePosition());
         player.setAbilityId(0L);
         player.setTargetId(targetId);
-        player.setPointAction(player.getPointAction() - 2);
+        player.setPointAction(player.getPointAction() - Constants.POINT_ACTION_WEAPON);
         if(player.getPointAction() < 1) {
             player.setActionEnd(true);
         }
@@ -355,6 +355,20 @@ public class FightService {
         }
         Fight fight = optionalFight.get();
 
+        //находим примененное умение из бд
+        Optional<Ability> optionalAbility = abilityRepository.findById(abilityId);
+        if(optionalAbility.isEmpty()) {
+            return jsonProcessor
+                    .toJsonInfo(new InfoResponse("Умение не найдено"));
+        }
+        Ability ability = optionalAbility.get();
+
+        //если недостаточно маны для применения умения, возвращаем уведомление
+        if(player.getMana() < ability.getManaCost()) {
+            return jsonProcessor
+                    .toJsonInfo(new InfoResponse("Не хватает маны для этого умения"));
+        }
+
         //проверка наличия противника
         Optional<Unit> optionalTarget = fight.getUnits().stream().filter(unit -> unit.getId().equals(targetId)).findFirst();
         if(optionalTarget.isEmpty()) {
@@ -364,9 +378,6 @@ public class FightService {
                     .toJsonNavigate(new NavigateResponse());
         }
         Unit target = optionalTarget.get();
-
-        //находим активные умения unit для отправки в ответе
-        List<Ability> unitAbilities = abilityRepository.findAllById(player.getCurrentAbility());
 
         //если удар уже был нанесен или применено умение на текущем ходу, возвращаем уведомление
         if(!player.getTargetId().equals(0L) | !player.getAbilityId().equals(0L)) {
@@ -380,18 +391,10 @@ public class FightService {
                     .toJsonInfo(new InfoResponse("Ход уже сделан"));
         }
 
-        //находим примененное умение из бд
-        Optional<Ability> optionalAbility = abilityRepository.findById(abilityId);
-        if(optionalAbility.isEmpty()) {
+        //проверка достаточности очков действия для применения умения
+        if(player.getPointAction() < ability.getPointAction()) {
             return jsonProcessor
-                    .toJsonInfo(new InfoResponse("Умение не найдено"));
-        }
-        Ability ability = optionalAbility.get();
-
-        //если недостаточно маны для применения умения, возвращаем уведомление
-        if(player.getMana() < ability.getManaCost()) {
-            return jsonProcessor
-                    .toJsonInfo(new InfoResponse("Не хватает маны для этого умения"));
+                    .toJsonInfo(new InfoResponse("Не хватает очков действия"));
         }
 
         //уведомление при попытке использовать восстанавливающие умения на противниках
@@ -462,11 +465,8 @@ public class FightService {
             }
         }
 
-        //проверка достаточности очков действия для применения умения
-        if(player.getPointAction() < ability.getPointAction()) {
-            return jsonProcessor
-                    .toJsonInfo(new InfoResponse("Не хватает очков действия"));
-        }
+        //находим активные умения unit для отправки в ответе
+        List<Ability> unitAbilities = abilityRepository.findAllById(player.getCurrentAbility());
 
         //сохранение умения и цели, по которой произведено действие
         player.setHitPosition(player.getLinePosition());
@@ -488,6 +488,8 @@ public class FightService {
         return jsonProcessor
                 .toJsonFight(new FightResponse(player, fight, unitAbilities, player.getName() + " применил умение " + ability.getName()));
     }
+
+    //TODO сделать обработчик для массовых умений
 
     //завершает ход unit
     public String setActionEnd(String name) {
@@ -548,7 +550,7 @@ public class FightService {
         unit.setTargetId(0L);
         unit.setPointAction(unit.getMaxPointAction());
         unit.setLinePosition((long) randomUtil.getRandomFromTo(0, Constants.FIGHT_LINE_LENGTH));
-        unit.setFightEffect(new UnitEffect());
+        unit.setFightEffect(new UnitFightEffect());
         unitRepository.save(unit);
     }
 

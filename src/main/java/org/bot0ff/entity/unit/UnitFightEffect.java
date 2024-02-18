@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class UnitEffect {
+public class UnitFightEffect {
     //эффект
     private int E_Hp;
     //длительность эффекта
@@ -50,7 +50,7 @@ public class UnitEffect {
     private double E_Evade;
     private int DE_Evade;
 
-    public UnitEffect() {
+    public UnitFightEffect() {
         this.E_Hp = 0;
         this.DE_Hp = 0;
         this.E_Mana = 0;

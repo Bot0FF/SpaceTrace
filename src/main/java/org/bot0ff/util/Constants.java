@@ -47,8 +47,11 @@ public class Constants {
     public static int CHANCE_CREATE_ENEMY = 50;
 
     //длительность раундов
-    public static  int ROUND_LENGTH_TIME = 60;
+    public static int ROUND_LENGTH_TIME = 60;
 
     //длина поля сражения (от 0 до ...)
-    public static  int FIGHT_LINE_LENGTH = 5;
+    public static int FIGHT_LINE_LENGTH = 5;
+
+    //количество очков движения, которые затрачиваются на применение оружия
+    public static int POINT_ACTION_WEAPON = 1;
 }

@@ -8,7 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bot0ff.entity.enums.UnitType;
 import org.bot0ff.entity.unit.UnitArmor;
-import org.bot0ff.entity.unit.UnitEffect;
+import org.bot0ff.entity.unit.UnitFightEffect;
 import org.bot0ff.entity.enums.Status;
 import org.bot0ff.entity.unit.UnitSkill;
 import org.bot0ff.util.Constants;
@@ -178,7 +178,7 @@ public class Unit {
 
     @Convert(converter = UnitJsonSubjectToEffectConverter.class)
     @Column(name = "fightEffect", length = 1024)
-    private UnitEffect fightEffect;
+    private UnitFightEffect fightEffect;
 
     @Column(name = "teamNumber")
     private Long teamNumber;

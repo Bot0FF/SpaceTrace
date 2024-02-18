@@ -109,7 +109,7 @@ with data(id, name, unit_type, status, action_end,
    as (values
         (1, 'user', 'ADMIN', 'ACTIVE', false,
             22,
-            7, 7, 4, 4,
+            7, 7, 2, 2,
             1, 1, 1, 1, 1, 0,
             '{"oneHand": 1, "twoHand": 1, "bow": 1, "fire": 1, "water": 1, "land": 1, "air": 1, "vitality": 1, "spirituality": 1, "regeneration": 1, "meditation": 1, "block": 1, "evade": 1}',
             ARRAY[]::integer[], ARRAY[]::integer[],
