@@ -3,6 +3,7 @@ package org.bot0ff.service.fight;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bot0ff.entity.enums.UnitType;
+import org.bot0ff.entity.unit.UnitFightStep;
 import org.bot0ff.model.InfoResponse;
 import org.bot0ff.model.FightResponse;
 import org.bot0ff.model.NavigateResponse;
@@ -282,12 +283,6 @@ public class FightService {
         //находим активные умения unit для возврата в ответе
         List<Ability> unitAbilities = abilityRepository.findAllById(player.getCurrentAbility());
 
-        //если удар уже был нанесен или применено умение на текущем ходу, возвращаем уведомление
-        if(!player.getTargetId().equals(0L) | !player.getAbilityId().equals(0L)) {
-            return jsonProcessor
-                    .toJsonInfo(new InfoResponse("Удар уже нанесен"));
-        }
-
         //если ход уже сделан, возвращаем уведомление с текущим состоянием сражения
         if(player.isActionEnd()) {
             return jsonProcessor
@@ -295,7 +290,7 @@ public class FightService {
         }
 
         //проверка достаточности очков действия для нанесения удара
-        if(player.getPointAction() < 2) {
+        if(player.getPointAction() < Constants.POINT_ACTION_WEAPON) {
             return jsonProcessor
                     .toJsonInfo(new InfoResponse("Не хватает очков действия"));
         }
@@ -307,10 +302,9 @@ public class FightService {
         }
 
         //сохранение умения и цели, по которой произведено действие
-        player.setHitPosition(player.getLinePosition());
-        player.setTargetPosition(target.getLinePosition());
-        player.setAbilityId(0L);
-        player.setTargetId(targetId);
+        player.getFightStep().add(new UnitFightStep(
+                0L, targetId, player.getLinePosition(), target.getLinePosition()
+        ));
         player.setPointAction(player.getPointAction() - Constants.POINT_ACTION_WEAPON);
         if(player.getPointAction() < 1) {
             player.setActionEnd(true);
@@ -323,13 +317,12 @@ public class FightService {
         }
 
         //проверяем надето ли оружие у unit
-        if(player.getWeapon().getId().equals(0L)) {
-            return jsonProcessor
-                    .toJsonFight(new FightResponse(player, fight, unitAbilities, "Атака голыми кулаками"));
+        String playerWeapon = "оружием " + player.getWeapon().getName();
+        if (player.getWeapon().getId() == 0L) {
+            playerWeapon = "голыми кулаками";
         }
-
         return jsonProcessor
-                .toJsonFight(new FightResponse(player, fight, unitAbilities, "Атака оружием " + player.getWeapon().getName()));
+                .toJsonFight(new FightResponse(player, fight, unitAbilities, "Атака " + playerWeapon));
     }
 
     //атака по выбранному противнику умением
@@ -378,12 +371,6 @@ public class FightService {
                     .toJsonNavigate(new NavigateResponse());
         }
         Unit target = optionalTarget.get();
-
-        //если удар уже был нанесен или применено умение на текущем ходу, возвращаем уведомление
-        if(!player.getTargetId().equals(0L) | !player.getAbilityId().equals(0L)) {
-            return jsonProcessor
-                    .toJsonInfo(new InfoResponse("Умение уже применено"));
-        }
 
         //если ход уже сделан, возвращаем уведомление с текущим состоянием сражения
         if(player.isActionEnd()) {
@@ -469,10 +456,9 @@ public class FightService {
         List<Ability> unitAbilities = abilityRepository.findAllById(player.getCurrentAbility());
 
         //сохранение умения и цели, по которой произведено действие
-        player.setHitPosition(player.getLinePosition());
-        player.setTargetPosition(target.getLinePosition());
-        player.setAbilityId(abilityId);
-        player.setTargetId(targetId);
+        player.getFightStep().add(new UnitFightStep(
+                abilityId, targetId, player.getLinePosition(), target.getLinePosition()
+        ));
         player.setMana(player.getMana() - ability.getManaCost());
         player.setPointAction(player.getPointAction() - ability.getPointAction());
         if(player.getPointAction() < 1) {
@@ -517,6 +503,7 @@ public class FightService {
         //находим активные умения unit для отправки в ответе
         List<Ability> unitAbilities = abilityRepository.findAllById(player.getCurrentAbility());
 
+        player.setPointAction(0);
         player.setActionEnd(true);
         unitRepository.save(player);
 
@@ -544,10 +531,7 @@ public class FightService {
         unit.setStatus(Status.FIGHT);
         unit.setFight(newFight);
         unit.setTeamNumber(teamNumber);
-        unit.setHitPosition(0L);
-        unit.setTargetPosition(0L);
-        unit.setAbilityId(0L);
-        unit.setTargetId(0L);
+        unit.setFightStep(List.of());
         unit.setPointAction(unit.getMaxPointAction());
         unit.setLinePosition((long) randomUtil.getRandomFromTo(0, Constants.FIGHT_LINE_LENGTH));
         unit.setFightEffect(new UnitFightEffect());
@@ -559,13 +543,10 @@ public class FightService {
         unit.setStatus(status);
         unit.setActionEnd(false);
         unit.setFight(null);
-        unit.setHitPosition(null);
-        unit.setTargetPosition(null);
+        unit.setFightStep(null);
         unit.setLinePosition(null);
         unit.setFightEffect(null);
         unit.setTeamNumber(null);
-        unit.setAbilityId(null);
-        unit.setTargetId(null);
         unitRepository.save(unit);
     }
 }

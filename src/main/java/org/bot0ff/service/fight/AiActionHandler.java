@@ -7,6 +7,7 @@ import org.bot0ff.entity.Fight;
 import org.bot0ff.entity.Unit;
 import org.bot0ff.entity.enums.ApplyType;
 import org.bot0ff.entity.enums.UnitType;
+import org.bot0ff.entity.unit.UnitFightStep;
 import org.bot0ff.repository.AbilityRepository;
 import org.bot0ff.repository.FightRepository;
 import org.bot0ff.repository.UnitRepository;
@@ -70,7 +71,7 @@ public class AiActionHandler {
             if(aiUnit.getUnitType().equals(UnitType.AI)) {
                 //определяем противника
                 Unit target = getRandomUser(teamOne);
-                //передвигаем AI в случайное место на линии сражения
+                //выбираем случайное действие AI, пока есть очки действия
                 do{
                     int changeAiAction = randomUtil.getRandomFromTo(0, 3);
                     switch (changeAiAction){
@@ -135,21 +136,17 @@ public class AiActionHandler {
             //System.out.println("Тип оружия не соответствует типу одноручное или двуручное. Возврат к выбору действия");
             return;
         }
-        if(!aiUnit.getTargetId().equals(0L)) {
-            //System.out.println("Противник уже выбран. Возврат к выбору действия");
-            return;
-        }
-        if(aiUnit.getPointAction() < 2) {
+        if(aiUnit.getPointAction() < Constants.POINT_ACTION_WEAPON) {
             //System.out.println("Недостаточно очков действия для нанесения удара оружием. Возврат к выбору действия");
             return;
         }
+        if((aiUnit.getLinePosition() - target.getLinePosition()) >= -aiUnit.getWeapon().getDistance()
+                | (aiUnit.getLinePosition() - target.getLinePosition()) <= aiUnit.getWeapon().getDistance()) {
 
-        if((aiUnit.getLinePosition() - target.getLinePosition()) >= -1
-                | (aiUnit.getLinePosition() - target.getLinePosition()) <= 1) {
-            aiUnit.setTargetId(target.getId());
-            aiUnit.setPointAction(aiUnit.getPointAction() - 2);
-            aiUnit.setHitPosition(aiUnit.getLinePosition());
-            aiUnit.setTargetPosition(target.getLinePosition());
+            aiUnit.getFightStep().add(new UnitFightStep(
+                    0L, target.getId(), aiUnit.getLinePosition(), target.getLinePosition()
+            ));
+            aiUnit.setPointAction(aiUnit.getPointAction() - Constants.POINT_ACTION_WEAPON);
             unitRepository.save(aiUnit);
             //System.out.println("Выбран противник для нанесения удара оружием");
         }
@@ -165,21 +162,17 @@ public class AiActionHandler {
             //System.out.println("Тип оружия не соответствует типу лук. Возврат к выбору действия");
             return;
         }
-        if(!aiUnit.getTargetId().equals(0L)) {
-            //System.out.println("Противник уже выбран. Возврат к выбору действия");
-            return;
-        }
         if(aiUnit.getPointAction() < 2) {
             //System.out.println("Недостаточно очков действия для выстрела из лука. Возврат к выбору действия");
             return;
         }
 
-        if((aiUnit.getLinePosition() - target.getLinePosition()) >= -5
-                | (aiUnit.getLinePosition() - target.getLinePosition()) <= 5) {
-            aiUnit.setTargetId(target.getId());
-            aiUnit.setPointAction(aiUnit.getPointAction() - 2);
-            aiUnit.setHitPosition(aiUnit.getLinePosition());
-            aiUnit.setTargetPosition(target.getLinePosition());
+        if((aiUnit.getLinePosition() - target.getLinePosition()) >= -aiUnit.getWeapon().getDistance()
+                | (aiUnit.getLinePosition() - target.getLinePosition()) <= aiUnit.getWeapon().getDistance()) {
+            aiUnit.getFightStep().add(new UnitFightStep(
+                    0L, target.getId(), aiUnit.getLinePosition(), target.getLinePosition()
+            ));
+            aiUnit.setPointAction(aiUnit.getPointAction() - Constants.POINT_ACTION_WEAPON);
             unitRepository.save(aiUnit);
             //System.out.println("Выбран противник для выстрела из лука");
         }
@@ -195,10 +188,6 @@ public class AiActionHandler {
             //System.out.println("aiUnit не имеет умений. Возврат к выбору действия");
             return;
         }
-        if(!aiUnit.getAbilityId().equals(0L)) {
-            //System.out.println("aiUnit уже применил умение. Возврат к выбору действия");
-            return;
-        }
         Long numberAbility = (long) randomUtil.getRandomFromTo(0, aiUnit.getCurrentAbility().size() - 1);
         Optional<Ability> optionalAbility = abilityRepository.findById(numberAbility);
         if(optionalAbility.isEmpty()) return;
@@ -210,13 +199,12 @@ public class AiActionHandler {
         }
 
         if(ability.getApplyType().equals(ApplyType.DAMAGE)) {
-            if((aiUnit.getLinePosition() - target.getLinePosition()) >= -6
-                    | (aiUnit.getLinePosition() - target.getLinePosition()) <= 6) {
+            if((aiUnit.getLinePosition() - target.getLinePosition()) >= -ability.getDistance()
+                    | (aiUnit.getLinePosition() - target.getLinePosition()) <= ability.getDistance()) {
+                aiUnit.getFightStep().add(new UnitFightStep(
+                        numberAbility, target.getId(), aiUnit.getLinePosition(), target.getLinePosition()
+                ));
                 aiUnit.setMana(aiUnit.getMana() - ability.getManaCost());
-                aiUnit.setAbilityId(numberAbility);
-                aiUnit.setTargetId(target.getId());
-                aiUnit.setHitPosition(aiUnit.getLinePosition());
-                aiUnit.setTargetPosition(target.getLinePosition());
                 aiUnit.setPointAction(aiUnit.getPointAction() - ability.getPointAction());
                 unitRepository.save(aiUnit);
                 //System.out.println("Выбрано атакующее умение. Возврат к выбору действия");
@@ -227,10 +215,10 @@ public class AiActionHandler {
             }
         }
         else {
+            aiUnit.getFightStep().add(new UnitFightStep(
+                    numberAbility, 0L, aiUnit.getLinePosition(), target.getLinePosition()
+            ));
             aiUnit.setMana(aiUnit.getMana() - ability.getManaCost());
-            aiUnit.setAbilityId(numberAbility);
-            aiUnit.setHitPosition(aiUnit.getLinePosition());
-            aiUnit.setTargetPosition(target.getLinePosition());
             aiUnit.setPointAction(aiUnit.getPointAction() - ability.getPointAction());
             //System.out.println("Выбрано не атакующее умение.");
         }

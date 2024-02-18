@@ -23,7 +23,7 @@ public class PhysActionHandler {
             return new StringBuilder()
                     .append("[")
                     .append(target.getName())
-                    .append(" заблокировал удар ")
+                    .append(" заблокировал(а) удар ")
                     .append(unit.getName())
                     .append("]");
         }
@@ -62,7 +62,7 @@ public class PhysActionHandler {
             return new StringBuilder()
                     .append("[")
                     .append(unit.getName())
-                    .append(" нанес ")
+                    .append(" нанес(ла) ")
                     .append(result)
                     .append(" урона противнику ")
                     .append(target.getName())
@@ -73,7 +73,7 @@ public class PhysActionHandler {
         return new StringBuilder()
                 .append("[")
                 .append(unit.getName())
-                .append(" нанес ")
+                .append(" нанес(ла) ")
                 .append(result)
                 .append(" урона противнику ")
                 .append(target.getName())

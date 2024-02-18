@@ -9,9 +9,11 @@ import org.bot0ff.entity.enums.Status;
 import org.bot0ff.entity.enums.UnitType;
 import org.bot0ff.entity.unit.UnitArmor;
 import org.bot0ff.entity.unit.UnitFightEffect;
+import org.bot0ff.entity.unit.UnitFightStep;
 import org.bot0ff.entity.unit.UnitSkill;
 import org.bot0ff.util.converter.UnitJsonSubjectToArmorConverter;
-import org.bot0ff.util.converter.UnitJsonSubjectToEffectConverter;
+import org.bot0ff.util.converter.UnitJsonSubjectToFightEffectConverter;
+import org.bot0ff.util.converter.UnitJsonSubjectToFightStepConverter;
 import org.bot0ff.util.converter.UnitJsonSubjectToSkillConverter;
 
 import java.util.List;
@@ -139,31 +141,20 @@ public class Ai {
     @JoinColumn(name = "fight")
     private Fight fight;
 
-    //позиция unit во время атаки
-    @Column(name = "hitPosition")
-    private Long hitPosition;
-
-    //позиция target во время атаки unit
-    @Column(name = "targetPosition")
-    private Long targetPosition;
+    @Column(name = "teamNumber")
+    private Long teamNumber;
 
     //позиция на линии сражения
     @Column(name = "linePosition")
     private Long linePosition;
 
-    @Convert(converter = UnitJsonSubjectToEffectConverter.class)
+    @JsonIgnore
+    @Convert(converter = UnitJsonSubjectToFightStepConverter.class)
+    @Column(name = "fightStep", length = 1024)
+    private List<UnitFightStep> fightStep;
+
+    @Convert(converter = UnitJsonSubjectToFightEffectConverter.class)
     @Column(name = "fightEffect", length = 1024)
     @JsonIgnore
     private UnitFightEffect fightEffect;
-
-    @Column(name = "teamNumber")
-    private Long teamNumber;
-
-    @Column(name = "abilityId")
-    @JsonIgnore
-    private Long abilityId;
-
-    @Column(name = "targetId")
-    @JsonIgnore
-    private Long targetId;
 }

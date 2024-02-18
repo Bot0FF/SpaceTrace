@@ -37,12 +37,9 @@ public class DaemonService {
 
             unit.setHp(unit.getHp());
             unit.setLinePosition(null);
-            unit.setHitPosition(null);
-            unit.setTargetPosition(null);
+            unit.setFightStep(null);
             unit.setFightEffect(null);
             unit.setActionEnd(false);
-            unit.setAbilityId(null);
-            unit.setTargetId(null);
             unit.setTeamNumber(null);
             unit.setStatus(Status.ACTIVE);
             unit.setFight(null);

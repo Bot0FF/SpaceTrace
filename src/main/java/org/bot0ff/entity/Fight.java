@@ -30,7 +30,7 @@ public class Fight {
     private int countRound;
 
     @JsonIgnore
-    @Column(name = "resultRound")
+    @Column(name = "resultRound", length = 1024)
     private List<String> resultRound;
 
     @JsonIgnore

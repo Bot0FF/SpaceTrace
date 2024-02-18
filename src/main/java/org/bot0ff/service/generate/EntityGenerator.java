@@ -50,13 +50,10 @@ public class EntityGenerator {
                 aiUnit.getBody(),
                 aiUnit.getLeg(),
                 aiUnit.getFight(),
-                aiUnit.getHitPosition(),
-                aiUnit.getTargetPosition(),
-                aiUnit.getLinePosition(),
-                aiUnit.getFightEffect(),
                 aiUnit.getTeamNumber(),
-                aiUnit.getAbilityId(),
-                aiUnit.getTargetId()
+                aiUnit.getLinePosition(),
+                aiUnit.getFightStep(),
+                aiUnit.getFightEffect()
         );
         return unitRepository.save(newAiUnit).getId();
     }

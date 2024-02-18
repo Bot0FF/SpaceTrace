@@ -7,7 +7,7 @@ import jakarta.persistence.Converter;
 import org.bot0ff.entity.unit.UnitFightEffect;
 
 @Converter(autoApply = true)
-public class UnitJsonSubjectToEffectConverter implements AttributeConverter<UnitFightEffect, String> {
+public class UnitJsonSubjectToFightEffectConverter implements AttributeConverter<UnitFightEffect, String> {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override

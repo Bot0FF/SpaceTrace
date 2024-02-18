@@ -7,6 +7,7 @@ import org.bot0ff.entity.Ability;
 import org.bot0ff.entity.Fight;
 import org.bot0ff.entity.Unit;
 import org.bot0ff.entity.enums.Status;
+import org.bot0ff.entity.unit.UnitFightStep;
 import org.bot0ff.repository.AbilityRepository;
 import org.bot0ff.repository.FightRepository;
 import org.bot0ff.repository.UnitRepository;
@@ -115,137 +116,158 @@ public class FightHandler {
         System.out.println("Сортировка по убыванию инициативы " + unitName);
 
         for (Unit unit : units) {
-            if (unit.isActionEnd() | (!unit.getAbilityId().equals(0L) | !unit.getTargetId().equals(0L))) {
-                //находим примененное умение из бд
-                Optional<Ability> ability = abilityRepository.findById(unit.getAbilityId());
-
-                //если умение не найдено, рассчитываем как атаку оружием
-                if(ability.isEmpty()) {
-                    //если цель-unit не найден, переходим к следующей итерации цикла
-                    Optional<Unit> optionalTarget = units.stream().filter(t -> t.getId().equals(unit.getTargetId())).findFirst();
-                    if (optionalTarget.isEmpty()) {
-                        resultRound
-                                .append("[")
-                                .append(unit.getName())
-                                .append(" бездействовал в предыдущем раунде]");
-                        continue;
-                    }
-
-                    Unit target = optionalTarget.get();
-                    //если дальность применения оружия достает до расположения выбранного противника на шкале сражения, считаем нанесенный урон
-                    if(unit.getHitPosition() - unit.getTargetPosition() == 0) {
-                        StringBuilder result = physActionHandler.calculateDamageWeapon(unit, target);
-                        resultRound.append(result);
-                        //System.out.println("Атака оружием. Позиция unit " + unit.getLinePosition() + "/Позиция target " + target.getLinePosition());
-                    }
-                    else if(unit.getHitPosition() - unit.getTargetPosition() < 0) {
-                        if((unit.getHitPosition() + unit.getWeapon().getDistance()) >= unit.getTargetPosition()) {
-                            StringBuilder result = physActionHandler.calculateDamageWeapon(unit, target);
-                            resultRound.append(result);
-                            //System.out.println("Атака оружием. Позиция unit " + unit.getLinePosition() + "/Позиция target " + unit.getTargetPosition());
-                        }
-                        else {
-                            resultRound.append("[");
-                            resultRound.append(unit.getName());
-                            resultRound.append(" не достал до противника ");
-                            resultRound.append(target.getName());
-                            resultRound.append(" при атаке]");
-                            System.out.println("Не хватает дальности оружия для атаки. Позиция unit " + unit.getLinePosition() + "/Позиция target " + target.getLinePosition());
-                        }
-                    }
-                    else if(unit.getHitPosition() - unit.getTargetPosition() > 0) {
-                        if((unit.getHitPosition() - unit.getWeapon().getDistance()) <= unit.getTargetPosition()) {
-                            StringBuilder result = physActionHandler.calculateDamageWeapon(unit, target);
-                            resultRound.append(result);
-                            //System.out.println("Атака оружием. Позиция unit " + unit.getLinePosition() + "/Позиция target " + unit.getTargetPosition());
-                        }
-                        else {
-                            resultRound.append("[");
-                            resultRound.append(unit.getName());
-                            resultRound.append(" не достал до противника ");
-                            resultRound.append(target.getName());
-                            resultRound.append(" при атаке]");
-                            //System.out.println("Не хватает дальности оружия для атаки. Позиция unit " + unit.getLinePosition() + "/Позиция target " + target.getLinePosition());
-                        }
-                    }
+            if (unit.isActionEnd()) {
+                //если список действий в раунде пуст, переходим к следующему unit
+                if (unit.getFightStep().isEmpty()) {
+                    resultRound
+                            .append("[")
+                            .append(unit.getName())
+                            .append(" бездействовал(а) в предыдущем раунде]");
+                    continue;
                 }
-                else {
-                    //определяем область применения умения (одиночное или массовое)
-                    switch (ability.get().getRangeType()) {
-                        //одиночные умения
-                        case ONE -> {
-                            //Ищем unit на которого применено умение
-                            Optional<Unit> optionalTarget = units.stream().filter(t -> t.getId().equals(unit.getTargetId())).findFirst();
-                            if (optionalTarget.isEmpty()) continue;
-
-                            Unit target = optionalTarget.get();
-                            //определяем тип действия примененного умения (урон, восстановление, повышение, понижение)
-                            switch (ability.get().getApplyType()) {
-                                case DAMAGE -> {
-                                    StringBuilder result = magActionHandler.calculateDamageAbility(unit, target, ability.get());
-                                    resultRound.append(result);
-                                }
-                                case RECOVERY -> {
-                                    StringBuilder result = magActionHandler.calculateRecoveryAbility(unit, target, ability.get());
-                                    resultRound.append(result);
-                                    System.out.println("Применено одиночное умение восстановления");
-                                }
-                                case BOOST -> {
-                                    StringBuilder result = magActionHandler.calculateBoostAbility(unit, target, ability.get());
-                                    resultRound.append(result);
-                                    System.out.println("Применено одиночное повышающее умение");
-                                }
-                                case LOWER -> {
-                                    StringBuilder result = magActionHandler.calculateLowerAbility(unit, target, ability.get());
-                                    resultRound.append(result);
-                                    System.out.println("Применено одиночное понижающее умение");
-                                }
+                //для каждого примененного действия unit производим расчет
+                for (UnitFightStep unitFightStep : unit.getFightStep()) {
+                    //если ability = 0, рассчитываем как атаку оружием
+                    if (unitFightStep.getAbilityId().equals(0L)) {
+                        //если цель-unit не найден в БД, переходим к следующей итерации цикла
+                        Optional<Unit> optionalTarget = units.stream().filter(t -> t.getId().equals(unitFightStep.getTargetId())).findFirst();
+                        if (optionalTarget.isEmpty()) {
+                            resultRound
+                                    .append("[")
+                                    .append(unit.getName())
+                                    .append(" не смог попасть по противнику]");
+                            log.info("Не target-unit в БД по запросу unitId={}", unitFightStep.getTargetId());
+                            continue;
+                        }
+                        Unit target = optionalTarget.get();
+                        //если дальность применения оружия достает до расположения выбранного противника на шкале сражения, считаем нанесенный урон
+                        if (unitFightStep.getHitPosition() - unitFightStep.getTargetPosition() == 0) {
+                            StringBuilder result = physActionHandler.calculateDamageWeapon(unit, target);
+                            resultRound.append(result);
+                            //System.out.println("Атака оружием. Позиция unit " + unit.getLinePosition() + "/Позиция target " + target.getLinePosition());
+                        } else if (unitFightStep.getHitPosition() - unitFightStep.getTargetPosition() < 0) {
+                            if ((unitFightStep.getHitPosition() + unit.getWeapon().getDistance()) >= unitFightStep.getTargetPosition()) {
+                                StringBuilder result = physActionHandler.calculateDamageWeapon(unit, target);
+                                resultRound.append(result);
+                                //System.out.println("Атака оружием. Позиция unit " + unit.getLinePosition() + "/Позиция target " + unit.getTargetPosition());
+                            } else {
+                                resultRound.append("[");
+                                resultRound.append(unit.getName());
+                                resultRound.append(" не достал(а) до противника ");
+                                resultRound.append(target.getName());
+                                resultRound.append(" при атаке]");
+                                //System.out.println("Не хватает дальности оружия для атаки. Позиция unit " + unit.getLinePosition() + "/Позиция target " + target.getLinePosition());
+                            }
+                        } else if (unitFightStep.getHitPosition() - unitFightStep.getTargetPosition() > 0) {
+                            if ((unitFightStep.getHitPosition() - unit.getWeapon().getDistance()) <= unitFightStep.getTargetPosition()) {
+                                StringBuilder result = physActionHandler.calculateDamageWeapon(unit, target);
+                                resultRound.append(result);
+                                //System.out.println("Атака оружием. Позиция unit " + unit.getLinePosition() + "/Позиция target " + unit.getTargetPosition());
+                            } else {
+                                resultRound.append("[");
+                                resultRound.append(unit.getName());
+                                resultRound.append(" не достал(а) до противника ");
+                                resultRound.append(target.getName());
+                                resultRound.append(" при атаке]");
+                                //System.out.println("Не хватает дальности оружия для атаки. Позиция unit " + unit.getLinePosition() + "/Позиция target " + target.getLinePosition());
                             }
                         }
-                        //массовые умения
-                        case ALL -> {
-                            switch (ability.get().getApplyType()) {
-                                case DAMAGE -> {
-                                    units.forEach(target -> {
-                                        if(!target.getTeamNumber().equals(unit.getTeamNumber())) {
-                                            StringBuilder result = magActionHandler.calculateDamageAbility(unit, target, ability.get());
-                                            resultRound.append(result);
-                                        }
-                                    });
-                                    System.out.println("Применено массовое умение атаки");
+                    } else {
+                        //если примененное умение не найдено в БД, переходим к следующей итерации
+                        Optional<Ability> optionalAbility = abilityRepository.findById(unitFightStep.getAbilityId());
+                        if (optionalAbility.isEmpty()) {
+                            resultRound
+                                    .append("[")
+                                    .append(unit.getName())
+                                    .append(" не смог применить изученное умение]");
+                            log.info("Не найдено примененное умение в БД по запросу abilityId={}", unitFightStep.getAbilityId());
+                            continue;
+                        }
+                        Ability ability = optionalAbility.get();
+                        //определяем область применения умения (одиночное или массовое)
+                        switch (ability.getRangeType()) {
+                            //одиночные умения
+                            case ONE -> {
+                                //Ищем unit на которого применено умение
+                                Optional<Unit> optionalTarget = units.stream().filter(t -> t.getId().equals(unitFightStep.getTargetId())).findFirst();
+                                if (optionalTarget.isEmpty()) {
+                                    resultRound
+                                            .append("[")
+                                            .append(unit.getName())
+                                            .append(" не смог попасть по противнику]");
+                                    log.info("Не target-unit в БД по запросу unitId={}", unitFightStep.getTargetId());
+                                    continue;
                                 }
-                                case RECOVERY -> {
-                                    units.forEach(target -> {
-                                        if(target.getTeamNumber().equals(unit.getTeamNumber())) {
-                                            StringBuilder result = magActionHandler.calculateRecoveryAbility(unit, target, ability.get());
-                                            resultRound.append(result);
-                                        }
-                                    });
-                                    System.out.println("Применено массовое умение восстановления");
-                                }
-                                case BOOST -> {
-                                    units.forEach(target -> {
-                                        if(target.getTeamNumber().equals(unit.getTeamNumber())) {
-                                            StringBuilder result = magActionHandler.calculateBoostAbility(unit, target, ability.get());
-                                            resultRound.append(result);
-                                        }
-                                    });
-                                    System.out.println("Применено массовое повышающее умение");
-                                }
-                                case LOWER -> {
-                                    units.forEach(target -> {
-                                        if(!target.getTeamNumber().equals(unit.getTeamNumber())) {
-                                            StringBuilder result = magActionHandler.calculateLowerAbility(unit, target, ability.get());
-                                            resultRound.append(result);
-                                        }
-                                    });
-                                    System.out.println("Применено массовое понижающее умение");
+                                Unit target = optionalTarget.get();
+                                //определяем тип действия примененного умения (урон, восстановление, повышение, понижение)
+                                switch (ability.getApplyType()) {
+                                    case DAMAGE -> {
+                                        StringBuilder result = magActionHandler.calculateDamageAbility(unit, target, ability);
+                                        resultRound.append(result);
+                                        //System.out.println("Применено одиночное умение атаки");
+                                    }
+                                    case RECOVERY -> {
+                                        StringBuilder result = magActionHandler.calculateRecoveryAbility(unit, target, ability);
+                                        resultRound.append(result);
+                                        //System.out.println("Применено одиночное умение восстановления");
+                                    }
+                                    case BOOST -> {
+                                        StringBuilder result = magActionHandler.calculateBoostAbility(unit, target, ability);
+                                        resultRound.append(result);
+                                        //System.out.println("Применено одиночное повышающее умение");
+                                    }
+                                    case LOWER -> {
+                                        StringBuilder result = magActionHandler.calculateLowerAbility(unit, target, ability);
+                                        resultRound.append(result);
+                                        //System.out.println("Применено одиночное понижающее умение");
+                                    }
                                 }
                             }
+                            //массовые умения
+                            case ALL -> {
+                                switch (ability.getApplyType()) {
+                                    case DAMAGE -> {
+                                        units.forEach(target -> {
+                                            if (!target.getTeamNumber().equals(unit.getTeamNumber())) {
+                                                StringBuilder result = magActionHandler.calculateDamageAbility(unit, target, ability);
+                                                resultRound.append(result);
+                                            }
+                                        });
+                                        //System.out.println("Применено массовое умение атаки");
+                                    }
+                                    case RECOVERY -> {
+                                        units.forEach(target -> {
+                                            if (target.getTeamNumber().equals(unit.getTeamNumber())) {
+                                                StringBuilder result = magActionHandler.calculateRecoveryAbility(unit, target, ability);
+                                                resultRound.append(result);
+                                            }
+                                        });
+                                        //System.out.println("Применено массовое умение восстановления");
+                                    }
+                                    case BOOST -> {
+                                        units.forEach(target -> {
+                                            if (target.getTeamNumber().equals(unit.getTeamNumber())) {
+                                                StringBuilder result = magActionHandler.calculateBoostAbility(unit, target, ability);
+                                                resultRound.append(result);
+                                            }
+                                        });
+                                        //System.out.println("Применено массовое повышающее умение");
+                                    }
+                                    case LOWER -> {
+                                        units.forEach(target -> {
+                                            if (!target.getTeamNumber().equals(unit.getTeamNumber())) {
+                                                StringBuilder result = magActionHandler.calculateLowerAbility(unit, target, ability);
+                                                resultRound.append(result);
+                                            }
+                                        });
+                                        //System.out.println("Применено массовое понижающее умение");
+                                    }
+                                }
+                            }
+                            default -> System.out.println("Умение не выбрано");
                         }
-                        default -> System.out.println("Умение не выбрано");
+                        System.out.println("Переход хода к следующему юниту в раунде");
                     }
-                    System.out.println("Переход хода к следующему юниту в раунде");
                 }
             }
         }
@@ -278,11 +300,8 @@ public class FightHandler {
                 }
                 unit.setFightEffect(null);
                 unit.setLinePosition(null);
-                unit.setTargetPosition(null);
+                unit.setFightStep(null);
                 unit.setTeamNumber(null);
-                unit.setAbilityId(null);
-                unit.setHitPosition(null);
-                unit.setTargetId(null);
                 unit.setActionEnd(false);
                 unit.setPointAction(unit.getMaxPointAction());
                 unitRepository.save(unit);
@@ -292,10 +311,7 @@ public class FightHandler {
             else {
                 unit.setActionEnd(false);
                 unit.setPointAction(unit.getMaxPointAction());
-                unit.setHitPosition(0L);
-                unit.setTargetPosition(0L);
-                unit.setAbilityId(0L);
-                unit.setTargetId(0L);
+                unit.setFightStep(List.of());
                 unitRepository.save(unit);
                 //System.out.println("Настройки " + unit.getName() + " сброшены для следующего раунда");
             }
@@ -337,11 +353,8 @@ public class FightHandler {
                 unit.setHp(unit.getHp());
                 unit.setActionEnd(false);
                 unit.setTeamNumber(null);
-                unit.setAbilityId(null);
-                unit.setTargetId(null);
+                unit.setFightStep(null);
                 unit.setFightEffect(null);
-                unit.setHitPosition(null);
-                unit.setTargetPosition(null);
                 unit.setLinePosition(null);
                 unit.setPointAction(unit.getMaxPointAction());
                 unitRepository.save(unit);
@@ -369,11 +382,8 @@ public class FightHandler {
                 unit.setHp(unit.getHp());
                 unit.setActionEnd(false);
                 unit.setTeamNumber(null);
-                unit.setAbilityId(null);
-                unit.setTargetId(null);
+                unit.setFightStep(null);
                 unit.setFightEffect(null);
-                unit.setHitPosition(null);
-                unit.setTargetPosition(null);
                 unit.setLinePosition(null);
                 unit.setPointAction(unit.getMaxPointAction());
                 unitRepository.save(unit);

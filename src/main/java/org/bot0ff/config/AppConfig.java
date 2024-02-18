@@ -4,7 +4,7 @@ import jakarta.persistence.EntityManagerFactory;
 import org.bot0ff.util.JsonProcessor;
 import org.bot0ff.util.RandomUtil;
 import org.bot0ff.util.converter.UnitJsonSubjectToArmorConverter;
-import org.bot0ff.util.converter.UnitJsonSubjectToEffectConverter;
+import org.bot0ff.util.converter.UnitJsonSubjectToFightEffectConverter;
 import org.bot0ff.util.converter.UnitJsonSubjectToSkillConverter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -26,8 +26,8 @@ public class AppConfig {
     }
 
     @Bean
-    public UnitJsonSubjectToEffectConverter getUnitJsonEffectConverter() {
-        return new UnitJsonSubjectToEffectConverter();
+    public UnitJsonSubjectToFightEffectConverter getUnitJsonEffectConverter() {
+        return new UnitJsonSubjectToFightEffectConverter();
     }
 
     @Bean
