@@ -140,38 +140,8 @@ public class FightHandler {
                             continue;
                         }
                         Unit target = optionalTarget.get();
-                        //если дальность применения оружия достает до расположения выбранного противника на шкале сражения, считаем нанесенный урон
-                        if (unitFightStep.getHitPosition() - unitFightStep.getTargetPosition() == 0) {
-                            StringBuilder result = physActionHandler.calculateDamageWeapon(unit, target);
-                            resultRound.append(result);
-                            //System.out.println("Атака оружием. Позиция unit " + unit.getLinePosition() + "/Позиция target " + target.getLinePosition());
-                        } else if (unitFightStep.getHitPosition() - unitFightStep.getTargetPosition() < 0) {
-                            if ((unitFightStep.getHitPosition() + unit.getWeapon().getDistance()) >= unitFightStep.getTargetPosition()) {
-                                StringBuilder result = physActionHandler.calculateDamageWeapon(unit, target);
-                                resultRound.append(result);
-                                //System.out.println("Атака оружием. Позиция unit " + unit.getLinePosition() + "/Позиция target " + unit.getTargetPosition());
-                            } else {
-                                resultRound.append("[");
-                                resultRound.append(unit.getName());
-                                resultRound.append(" не достал(а) до противника ");
-                                resultRound.append(target.getName());
-                                resultRound.append(" при атаке]");
-                                //System.out.println("Не хватает дальности оружия для атаки. Позиция unit " + unit.getLinePosition() + "/Позиция target " + target.getLinePosition());
-                            }
-                        } else if (unitFightStep.getHitPosition() - unitFightStep.getTargetPosition() > 0) {
-                            if ((unitFightStep.getHitPosition() - unit.getWeapon().getDistance()) <= unitFightStep.getTargetPosition()) {
-                                StringBuilder result = physActionHandler.calculateDamageWeapon(unit, target);
-                                resultRound.append(result);
-                                //System.out.println("Атака оружием. Позиция unit " + unit.getLinePosition() + "/Позиция target " + unit.getTargetPosition());
-                            } else {
-                                resultRound.append("[");
-                                resultRound.append(unit.getName());
-                                resultRound.append(" не достал(а) до противника ");
-                                resultRound.append(target.getName());
-                                resultRound.append(" при атаке]");
-                                //System.out.println("Не хватает дальности оружия для атаки. Позиция unit " + unit.getLinePosition() + "/Позиция target " + target.getLinePosition());
-                            }
-                        }
+                        StringBuilder result = physActionHandler.calculateDamageWeapon(unit, target);
+                        resultRound.append(result);
                     } else {
                         //если примененное умение не найдено в БД, переходим к следующей итерации
                         Optional<Ability> optionalAbility = abilityRepository.findById(unitFightStep.getAbilityId());

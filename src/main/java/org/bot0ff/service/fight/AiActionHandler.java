@@ -140,19 +140,37 @@ public class AiActionHandler {
             //System.out.println("Недостаточно очков действия для нанесения удара оружием. Возврат к выбору действия");
             return;
         }
-        if((aiUnit.getLinePosition() - target.getLinePosition()) >= -aiUnit.getWeapon().getDistance()
-                | (aiUnit.getLinePosition() - target.getLinePosition()) <= aiUnit.getWeapon().getDistance()) {
-
-            aiUnit.getFightStep().add(new UnitFightStep(
-                    0L, target.getId(), aiUnit.getLinePosition(), target.getLinePosition()
-            ));
-            aiUnit.setPointAction(aiUnit.getPointAction() - Constants.POINT_ACTION_WEAPON);
-            unitRepository.save(aiUnit);
-            //System.out.println("Выбран противник для нанесения удара оружием");
+        //если player слева, а противник справа
+        if(aiUnit.getLinePosition() - target.getLinePosition() <= 0){
+            //проверяем, что точка player + дистанция атаки достает до точки противника справа на линии сражения
+            //если больше или равно, значит противник в зоне атаки
+            if (aiUnit.getLinePosition() + aiUnit.getWeapon().getDistance() >= target.getLinePosition()) {
+                aiUnit.getFightStep().add(new UnitFightStep(0L, target.getId()));
+                aiUnit.setPointAction(aiUnit.getPointAction() - Constants.POINT_ACTION_WEAPON);
+                unitRepository.save(aiUnit);
+                //System.out.println("Выбран противник для нанесения удара оружием");
+            }
+            //если противник не в зоне атаки, перемещаемся
+            else {
+                setAiMove(aiUnit);
+                //System.out.println("Превышение расстояния применения оружия. Возврат к выбору действия");
+            }
         }
-        else {
-            setAiMove(aiUnit);
-            //System.out.println("Превышение расстояния применения оружия. Возврат к выбору действия");
+        //если player справа, а противник слева
+        else if(aiUnit.getLinePosition() - target.getLinePosition() >= 0) {
+            //проверяем, что точка player + дистанция атаки достает до точки противника слева на линии сражения
+            //если меньше или равно, значит противник в зоне атаки
+            if (aiUnit.getLinePosition() + aiUnit.getWeapon().getDistance() <= target.getLinePosition()) {
+                aiUnit.getFightStep().add(new UnitFightStep(0L, target.getId()));
+                aiUnit.setPointAction(aiUnit.getPointAction() - Constants.POINT_ACTION_WEAPON);
+                unitRepository.save(aiUnit);
+                //System.out.println("Выбран противник для нанесения удара оружием");
+            }
+            //если противник не в зоне атаки, перемещаемся
+            else {
+                setAiMove(aiUnit);
+                //System.out.println("Превышение расстояния применения оружия. Возврат к выбору действия");
+            }
         }
     }
 
@@ -162,23 +180,42 @@ public class AiActionHandler {
             //System.out.println("Тип оружия не соответствует типу лук. Возврат к выбору действия");
             return;
         }
-        if(aiUnit.getPointAction() < 2) {
+        if(aiUnit.getPointAction() < Constants.POINT_ACTION_WEAPON) {
             //System.out.println("Недостаточно очков действия для выстрела из лука. Возврат к выбору действия");
             return;
         }
 
-        if((aiUnit.getLinePosition() - target.getLinePosition()) >= -aiUnit.getWeapon().getDistance()
-                | (aiUnit.getLinePosition() - target.getLinePosition()) <= aiUnit.getWeapon().getDistance()) {
-            aiUnit.getFightStep().add(new UnitFightStep(
-                    0L, target.getId(), aiUnit.getLinePosition(), target.getLinePosition()
-            ));
-            aiUnit.setPointAction(aiUnit.getPointAction() - Constants.POINT_ACTION_WEAPON);
-            unitRepository.save(aiUnit);
-            //System.out.println("Выбран противник для выстрела из лука");
+        //если player слева, а противник справа
+        if(aiUnit.getLinePosition() - target.getLinePosition() <= 0){
+            //проверяем, что точка player + дистанция атаки достает до точки противника справа на линии сражения
+            //если больше или равно, значит противник в зоне атаки
+            if (aiUnit.getLinePosition() + aiUnit.getWeapon().getDistance() >= target.getLinePosition()) {
+                aiUnit.getFightStep().add(new UnitFightStep(0L, target.getId()));
+                aiUnit.setPointAction(aiUnit.getPointAction() - Constants.POINT_ACTION_WEAPON);
+                unitRepository.save(aiUnit);
+                //System.out.println("Выбран противник для нанесения удара оружием");
+            }
+            //если противник не в зоне атаки, перемещаемся
+            else {
+                setAiMove(aiUnit);
+                //System.out.println("Превышение расстояния применения оружия. Возврат к выбору действия");
+            }
         }
-        else {
-            setAiMove(aiUnit);
-            //System.out.println("Превышение расстояния применения лука. Возврат к выбору действия");
+        //если player справа, а противник слева
+        else if(aiUnit.getLinePosition() - target.getLinePosition() >= 0) {
+            //проверяем, что точка player + дистанция атаки достает до точки противника слева на линии сражения
+            //если меньше или равно, значит противник в зоне атаки
+            if (aiUnit.getLinePosition() + aiUnit.getWeapon().getDistance() <= target.getLinePosition()) {
+                aiUnit.getFightStep().add(new UnitFightStep(0L, target.getId()));
+                aiUnit.setPointAction(aiUnit.getPointAction() - Constants.POINT_ACTION_WEAPON);
+                unitRepository.save(aiUnit);
+                //System.out.println("Выбран противник для нанесения удара оружием");
+            }
+            //если противник не в зоне атаки, перемещаемся
+            else {
+                setAiMove(aiUnit);
+                //System.out.println("Превышение расстояния применения оружия. Возврат к выбору действия");
+            }
         }
     }
 
@@ -199,25 +236,41 @@ public class AiActionHandler {
         }
 
         if(ability.getApplyType().equals(ApplyType.DAMAGE)) {
-            if((aiUnit.getLinePosition() - target.getLinePosition()) >= -ability.getDistance()
-                    | (aiUnit.getLinePosition() - target.getLinePosition()) <= ability.getDistance()) {
-                aiUnit.getFightStep().add(new UnitFightStep(
-                        numberAbility, target.getId(), aiUnit.getLinePosition(), target.getLinePosition()
-                ));
-                aiUnit.setMana(aiUnit.getMana() - ability.getManaCost());
-                aiUnit.setPointAction(aiUnit.getPointAction() - ability.getPointAction());
-                unitRepository.save(aiUnit);
-                //System.out.println("Выбрано атакующее умение. Возврат к выбору действия");
+            //если player слева, а противник справа
+            if(aiUnit.getLinePosition() - target.getLinePosition() <= 0){
+                //проверяем, что точка player + дистанция атаки достает до точки противника справа на линии сражения
+                //если больше или равно, значит противник в зоне атаки
+                if (aiUnit.getLinePosition() + ability.getDistance() >= target.getLinePosition()) {
+                    aiUnit.getFightStep().add(new UnitFightStep(numberAbility, target.getId()));
+                    aiUnit.setPointAction(aiUnit.getPointAction() - Constants.POINT_ACTION_WEAPON);
+                    unitRepository.save(aiUnit);
+                    //System.out.println("Выбран противник для нанесения удара оружием");
+                }
+                //если противник не в зоне атаки, перемещаемся
+                else {
+                    setAiMove(aiUnit);
+                    //System.out.println("Превышение расстояния применения оружия. Возврат к выбору действия");
+                }
             }
-            else {
-                setAiMove(aiUnit);
-                //System.out.println("Превышение расстояния применения умения. Возврат к выбору действия");
+            //если player справа, а противник слева
+            else if(aiUnit.getLinePosition() - target.getLinePosition() >= 0) {
+                //проверяем, что точка player + дистанция атаки достает до точки противника слева на линии сражения
+                //если меньше или равно, значит противник в зоне атаки
+                if (aiUnit.getLinePosition() + ability.getDistance() <= target.getLinePosition()) {
+                    aiUnit.getFightStep().add(new UnitFightStep(numberAbility, target.getId()));
+                    aiUnit.setPointAction(aiUnit.getPointAction() - Constants.POINT_ACTION_WEAPON);
+                    unitRepository.save(aiUnit);
+                    //System.out.println("Выбран противник для нанесения удара оружием");
+                }
+                //если противник не в зоне атаки, перемещаемся
+                else {
+                    setAiMove(aiUnit);
+                    //System.out.println("Превышение расстояния применения оружия. Возврат к выбору действия");
+                }
             }
         }
         else {
-            aiUnit.getFightStep().add(new UnitFightStep(
-                    numberAbility, 0L, aiUnit.getLinePosition(), target.getLinePosition()
-            ));
+            aiUnit.getFightStep().add(new UnitFightStep(numberAbility, 0L));
             aiUnit.setMana(aiUnit.getMana() - ability.getManaCost());
             aiUnit.setPointAction(aiUnit.getPointAction() - ability.getPointAction());
             //System.out.println("Выбрано не атакующее умение.");
