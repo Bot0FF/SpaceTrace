@@ -301,6 +301,21 @@ public class FightService {
                     .toJsonInfo(new InfoResponse("Нельзя атаковать союзников"));
         }
 
+        //если дальность атаки не позволяет нанести удар, отправляем уведомление
+        if (player.getLinePosition() - target.getLinePosition() <= 0) {
+            if (player.getLinePosition() + player.getWeapon().getDistance() < target.getLinePosition()) {
+                return jsonProcessor
+                        .toJsonFight(new FightResponse(player, fight, unitAbilities, "Противник слишком далеко"));
+                //System.out.println("Атака оружием. Позиция unit " + unit.getLinePosition() + "/Позиция target " + unit.getTargetPosition());
+            }
+        } else if (player.getLinePosition() - target.getLinePosition() >= 0) {
+            if (player.getLinePosition() - player.getWeapon().getDistance() > target.getLinePosition()) {
+                return jsonProcessor
+                        .toJsonFight(new FightResponse(player, fight, unitAbilities, "Противник слишком далеко"));
+                //System.out.println("Атака оружием. Позиция unit " + unit.getLinePosition() + "/Позиция target " + unit.getTargetPosition());
+            }
+        }
+
         //сохранение умения и цели, по которой произведено действие
         player.getFightStep().add(new UnitFightStep(
                 0L, targetId, player.getLinePosition(), target.getLinePosition()
@@ -454,6 +469,21 @@ public class FightService {
 
         //находим активные умения unit для отправки в ответе
         List<Ability> unitAbilities = abilityRepository.findAllById(player.getCurrentAbility());
+
+        //если дальность атаки не позволяет нанести удар, отправляем уведомление
+        if (player.getLinePosition() - target.getLinePosition() <= 0) {
+            if (player.getLinePosition() + ability.getDistance() < target.getLinePosition()) {
+                return jsonProcessor
+                        .toJsonFight(new FightResponse(player, fight, unitAbilities, "Противник слишком далеко"));
+                //System.out.println("Атака оружием. Позиция unit " + unit.getLinePosition() + "/Позиция target " + unit.getTargetPosition());
+            }
+        } else if (player.getLinePosition() - target.getLinePosition() >= 0) {
+            if (player.getLinePosition() - ability.getDistance() > target.getLinePosition()) {
+                return jsonProcessor
+                        .toJsonFight(new FightResponse(player, fight, unitAbilities, "Противник слишком далеко"));
+                //System.out.println("Атака оружием. Позиция unit " + unit.getLinePosition() + "/Позиция target " + unit.getTargetPosition());
+            }
+        }
 
         //сохранение умения и цели, по которой произведено действие
         player.getFightStep().add(new UnitFightStep(
