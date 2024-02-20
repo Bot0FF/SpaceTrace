@@ -2,22 +2,17 @@ package org.bot0ff.service.fight;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bot0ff.entity.enums.UnitType;
 import org.bot0ff.entity.unit.UnitFightStep;
 import org.bot0ff.model.InfoResponse;
 import org.bot0ff.model.FightResponse;
 import org.bot0ff.model.NavigateResponse;
-import org.bot0ff.entity.unit.UnitFightEffect;
 import org.bot0ff.entity.*;
 import org.bot0ff.entity.enums.ApplyType;
 import org.bot0ff.entity.enums.Status;
 import org.bot0ff.repository.AbilityRepository;
-import org.bot0ff.repository.FightRepository;
 import org.bot0ff.repository.UnitRepository;
-import org.bot0ff.service.generate.EntityGenerator;
 import org.bot0ff.util.Constants;
 import org.bot0ff.util.JsonProcessor;
-import org.bot0ff.util.RandomUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,104 +24,11 @@ import java.util.*;
 @RequiredArgsConstructor
 public class FightService {
     private final UnitRepository unitRepository;
-    private final FightRepository fightRepository;
     private final AbilityRepository abilityRepository;
 
-    private final PhysActionHandler physActionHandler;
-    private final MagActionHandler magActionHandler;
-    private final AiActionHandler aiActionHandler;
-    private final EntityGenerator entityGenerator;
     private final JsonProcessor jsonProcessor;
-    private final RandomUtil randomUtil;
 
     public static Map<Long, FightHandler> FIGHT_MAP = Collections.synchronizedMap(new HashMap<>());
-
-    //начать сражение с выбранным unit
-    @Transactional
-    public String setStartFight(String name, Long initiatorId, Long targetId) {
-        //определяем инициатора сражения и противника, в зависимости от того, кто напал
-        Optional<Unit> optionalInitiator;
-        if(name != null) {
-            optionalInitiator = unitRepository.findByName(name);
-        }
-        else {
-            optionalInitiator = unitRepository.findById(initiatorId);
-        }
-
-        if(optionalInitiator.isEmpty()) {
-            var response = jsonProcessor
-                    .toJsonInfo(new InfoResponse("Игрок не найден"));
-            log.info("Не найден unit в БД по запросу name: {}", name);
-            return response;
-        }
-        Unit initiator = optionalInitiator.get();
-
-        //поиск opponent в бд
-        var optionalOpponent = unitRepository.findById(targetId);
-        if(optionalOpponent.isEmpty()) {
-            resetUnitFight(initiator, Status.ACTIVE);
-            var response = jsonProcessor
-                    .toJsonInfo(new InfoResponse("Противник уже ушел"));
-            log.info("Не найден opponent в БД по запросу targetId: {}", targetId);
-            return response;
-        }
-        Unit opponent = optionalOpponent.get();
-
-        //если противник уже в бою, проверяем есть ли место в бою, для участия
-        if(opponent.getStatus().equals(Status.FIGHT)) {
-            //ищем количество участников в противоположной противника команде
-            List<Unit> initiatorTeam = opponent.getFight().getUnits().stream().filter(unit -> !unit.getTeamNumber().equals(opponent.getTeamNumber())).toList();
-            if(initiatorTeam.size() >= Constants.MAX_COUNT_FIGHT_TEAM) {
-                resetUnitFight(initiator, Status.ACTIVE);
-                var response = jsonProcessor
-                        .toJsonInfo(new InfoResponse("В сражении достаточно участников"));
-                log.info("Нет места для сражения с противником - opponentId: {}", opponent.getId());
-                return response;
-            }
-            //добавляем нападающего в противоположную команду в случайное место на поле сражения
-            else {
-                if(opponent.getTeamNumber().equals(1L)) {
-                    setUnitFight(initiator, opponent.getFight(), 2L);
-                }
-                else {
-                    setUnitFight(initiator, opponent.getFight(), 1L);
-                }
-                //отправляем ответ со статусом unit FIGHT
-                return jsonProcessor
-                        .toJsonFight(new FightResponse(initiator, opponent.getFight(), null, ""));
-            }
-        }
-
-        //создание и сохранение нового сражения
-        Fight newFight = getNewFight(initiator, opponent);
-        Long newFightId = fightRepository.save(newFight).getId();
-
-        //сохранение статуса FIGHT у player
-        setUnitFight(initiator, newFight, 1L);
-
-        //сохранение статуса FIGHT у enemy
-        setUnitFight(opponent, newFight, 2L);
-
-        //добавление нового сражения в map и запуск обработчика раундов
-        FIGHT_MAP.put(newFightId, new FightHandler(
-                newFightId,
-                unitRepository,
-                fightRepository,
-                abilityRepository,
-                aiActionHandler,
-                entityGenerator,
-                physActionHandler,
-                magActionHandler
-        ));
-
-        //если инициатор сражения AI возвращаем null
-        if(initiator.getUnitType().equals(UnitType.AI)) {
-            return null;
-        }
-
-        return jsonProcessor
-                .toJsonFight(new FightResponse(initiator, newFight, null, ""));
-    }
 
     //текущее состояние сражения
     @Transactional
@@ -281,7 +183,7 @@ public class FightService {
         Unit target = optionalTarget.get();
 
         //находим активные умения unit для возврата в ответе
-        List<Ability> unitAbilities = abilityRepository.findAllById(player.getCurrentAbility());
+        var unitAbilities = abilityRepository.findAllById(player.getCurrentAbility());
 
         //если ход уже сделан, возвращаем уведомление с текущим состоянием сражения
         if(player.isActionEnd()) {
@@ -472,7 +374,7 @@ public class FightService {
         }
 
         //находим активные умения unit для отправки в ответе
-        List<Ability> unitAbilities = abilityRepository.findAllById(player.getCurrentAbility());
+        var unitAbilities = abilityRepository.findAllById(player.getCurrentAbility());
 
         //если player слева, а противник справа
         if (player.getLinePosition() - target.getLinePosition() <= 0) {
@@ -539,7 +441,7 @@ public class FightService {
         Fight fight = optionalFight.get();
 
         //находим активные умения unit для отправки в ответе
-        List<Ability> unitAbilities = abilityRepository.findAllById(player.getCurrentAbility());
+        var unitAbilities = abilityRepository.findAllById(player.getCurrentAbility());
 
         player.setPointAction(0);
         player.setActionEnd(true);
@@ -555,26 +457,6 @@ public class FightService {
     }
 
     //TODO сделать метод для массовых умений
-
-    //создание нового сражения
-    private Fight getNewFight(Unit initiator, Unit opponent) {
-        return new Fight(null,
-                new ArrayList<>(List.of(initiator, opponent)),
-                1, new ArrayList<>(List.of("")), false, new ArrayList<>(), new ArrayList<>());
-    }
-
-    //сохранение настроек нового сражения unit
-    private void setUnitFight(Unit unit, Fight newFight, Long teamNumber) {
-        unit.setActionEnd(false);
-        unit.setStatus(Status.FIGHT);
-        unit.setFight(newFight);
-        unit.setTeamNumber(teamNumber);
-        unit.setFightStep(List.of());
-        unit.setPointAction(unit.getMaxPointAction());
-        unit.setLinePosition((long) randomUtil.getRandomFromTo(0, Constants.FIGHT_LINE_LENGTH));
-        unit.setFightEffect(new UnitFightEffect());
-        unitRepository.save(unit);
-    }
 
     //сброс настроек сражения unit при ошибке
     private void resetUnitFight(Unit unit, Status status) {

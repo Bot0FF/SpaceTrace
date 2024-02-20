@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @Data
 @Slf4j
@@ -30,6 +31,7 @@ public class AiActionHandler {
     private final RandomUtil randomUtil;
 
     public void setAiAction(Long fightId) throws InterruptedException {
+        TimeUnit.SECONDS.sleep(1);
         //System.out.println("------------------------");
         //System.out.println("Старт обработки действий AI");
         Optional<Fight> fight = fightRepository.findById(fightId);

@@ -34,10 +34,6 @@ public class Ability {
     private RangeType rangeType;
 
     /** урон */
-    //физический урон
-    @Column(name = "physDamage")
-    private int physDamage;
-
     //магический урон
     @Column(name = "magDamage")
     private int magDamage;
@@ -123,4 +119,8 @@ public class Ability {
     //описание
     @Column(name = "description")
     private String description;
+
+    //является ли умение избранным
+    @Transient
+    private boolean isCurrentAbility;
 }

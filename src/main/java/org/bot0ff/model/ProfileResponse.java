@@ -1,13 +1,13 @@
 package org.bot0ff.model;
 
 import lombok.Data;
+import org.bot0ff.entity.Ability;
 import org.bot0ff.entity.Thing;
 import org.bot0ff.entity.Unit;
 import org.bot0ff.entity.unit.UnitSkill;
 import org.bot0ff.util.Constants;
 
 import java.util.List;
-import java.util.TreeSet;
 
 /** Класс ответа, с информацией о профиле игрока */
 
@@ -16,13 +16,22 @@ public class ProfileResponse {
     private Unit player;
     private UnitSkillExp unitSkill;
     private List<Thing> things;
+    private List<Ability> abilities;
     private String info;
     private int status;
 
-    public ProfileResponse(Unit player, List<Thing> things, String info) {
+    public ProfileResponse(Unit player, List<Thing> things, List<Ability> allAbilities, String info) {
         this.player = player;
         this.unitSkill = new UnitSkillExp(player.getUnitSkill());
         this.things = things;
+        this.abilities = allAbilities;
+        if(!allAbilities.isEmpty()) {
+            this.abilities = allAbilities.stream().peek(ability -> {
+                if(player.getCurrentAbility().contains(ability.getId())) {
+                    ability.setCurrentAbility(true);
+                }
+            }).toList();
+        }
         this.info = info;
         this.status = 1;
     }

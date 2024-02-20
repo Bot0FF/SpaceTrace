@@ -6,19 +6,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+/** Обрабатывает запросы для страниц:
+ * - Сражение
+ */
+
 @Validated
 @RestController
 @RequestMapping("/api/fight")
 @RequiredArgsConstructor
 public class FightController {
     private final FightService fightService;
-
-    //начать сражение с выбранным противником
-    @GetMapping("/attack")
-    public ResponseEntity<?> actionAttack(@RequestParam Long targetId) {
-        var response = fightService.setStartFight("user", null, targetId);
-        return ResponseEntity.ok(response);
-    }
 
     //текущее состояние сражения
     @GetMapping("/refresh")

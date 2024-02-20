@@ -2,29 +2,20 @@ package org.bot0ff.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bot0ff.entity.Objects;
 import org.bot0ff.model.InfoResponse;
 import org.bot0ff.entity.unit.UnitArmor;
 import org.bot0ff.entity.Location;
 import org.bot0ff.entity.Thing;
 import org.bot0ff.entity.Unit;
 import org.bot0ff.model.ProfileResponse;
-import org.bot0ff.repository.LocationRepository;
-import org.bot0ff.repository.ObjectsRepository;
-import org.bot0ff.repository.ThingRepository;
-import org.bot0ff.repository.UnitRepository;
+import org.bot0ff.repository.*;
 import org.bot0ff.service.generate.EntityGenerator;
 import org.bot0ff.util.JsonProcessor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-
-/** Обрабатывает запросы для страниц:
- * - Информация об игроке (profile)
- * - Список вещей в инвентаре и взаимодействие с ними (profile/inventory)
- * - Распределение аттрибутов (profile/attribute)
- * - Уровень навыков (profile/skill)
- * - Список и выбор умений (profile/ability) */
 
 @Slf4j
 @Service
@@ -33,9 +24,13 @@ public class ProfileService {
     private final UnitRepository unitRepository;
     private final LocationRepository locationRepository;
     private final ThingRepository thingRepository;
+    private final AbilityRepository abilityRepository;
+    private final EntityGenerator entityGenerator;
+    private final ObjectsRepository objectsRepository;
 
     private final JsonProcessor jsonProcessor;
 
+    /** Взаимодействие с профилем игрока */
     //страница профиля
     @Transactional
     public String getUnitProfileState(String name) {
@@ -48,11 +43,36 @@ public class ProfileService {
         }
         Unit player = optionalPlayer.get();
 
+        //находим весь инвентарь unit
+        var optionalThings = thingRepository.findAllByOwnerId(player.getId());
+        List<Thing> things = optionalThings.stream().toList();
+
+        //находим изученные умения unit
+        var unitAbilities = abilityRepository.findAllById(player.getAllAbility());
+
+        return jsonProcessor
+                .toJsonProfile(new ProfileResponse(player, things, unitAbilities, ""));
+    }
+
+    /** Взаимодействие с инвентарем игрока */
+    //страница инвентаря
+    @Transactional
+    public String getUnitInventory(String name) {
+        var optionalPlayer = unitRepository.findByName(name);
+        if(optionalPlayer.isEmpty()) {
+            var response = jsonProcessor
+                    .toJsonInfo(new InfoResponse("Игрок не найден"));
+            log.info("Не найден player в БД по запросу username: {}", name);
+            return response;
+        }
+        Unit player = optionalPlayer.get();
+
+        //находим весь инвентарь unit
         var optionalThings = thingRepository.findAllByOwnerId(player.getId());
         List<Thing> things = optionalThings.stream().toList();
 
         return jsonProcessor
-                .toJsonProfile(new ProfileResponse(player, things, null));
+                .toJsonProfile(new ProfileResponse(player, things, List.of(), ""));
     }
 
     //удаляет вещь из инвентаря
@@ -121,7 +141,7 @@ public class ProfileService {
         List<Thing> things = optionalThings.stream().toList();
 
         return jsonProcessor
-                .toJsonProfile(new ProfileResponse(player, things, "Вещь (" + thing.getName() + ") удалена из инвентаря"));
+                .toJsonProfile(new ProfileResponse(player, things, List.of(), "Вещь (" + thing.getName() + ") удалена из инвентаря"));
     }
 
     //надеть вещь из инвентаря
@@ -287,7 +307,7 @@ public class ProfileService {
         List<Thing> things = optionalThings.stream().toList();
 
         return jsonProcessor
-                .toJsonProfile(new ProfileResponse(player, things, "Вещь (" + thing.getName() + ") надета"));
+                .toJsonProfile(new ProfileResponse(player, things, List.of(), "Вещь (" + thing.getName() + ") надета"));
     }
 
     //снять надетую вещь
@@ -353,9 +373,10 @@ public class ProfileService {
         List<Thing> things = optionalThings.stream().toList();
 
         return jsonProcessor
-                .toJsonProfile(new ProfileResponse(player, things, "Вещь (" + thing.getName() + ") снята"));
+                .toJsonProfile(new ProfileResponse(player, things, List.of(), "Вещь (" + thing.getName() + ") снята"));
     }
 
+    /** Взаимодействие с аттрибутами игрока */
     //повышение аттрибутов
     @Transactional
     public String upAttribute(String name, String attribute) {
@@ -406,14 +427,10 @@ public class ProfileService {
 
         unitRepository.save(player);
 
-        var optionalThings = thingRepository.findAllByOwnerId(player.getId());
-        List<Thing> things = optionalThings.stream().toList();
-
         return jsonProcessor
-                .toJsonProfile(new ProfileResponse(player, things, message));
+                .toJsonProfile(new ProfileResponse(player, List.of(), List.of(), message));
     }
 
-    /** для админа */
     //понижение аттрибутов
     @Transactional
     public String downAttribute(String name, String attribute) {
@@ -467,13 +484,50 @@ public class ProfileService {
 
         unitRepository.save(player);
 
-        var optionalThings = thingRepository.findAllByOwnerId(player.getId());
-        List<Thing> things = optionalThings.stream().toList();
-
         return jsonProcessor
-                .toJsonProfile(new ProfileResponse(player, things, message));
+                .toJsonProfile(new ProfileResponse(player, List.of(), List.of(), message));
     }
 
+    /** Взаимодействие с умениями игрока */
+    //список всех изученных умений
+    @Transactional
+    public String getAllUnitAbilities(String name) {
+        var optionalPlayer = unitRepository.findByName(name);
+        if(optionalPlayer.isEmpty()) {
+            var response = jsonProcessor
+                    .toJsonInfo(new InfoResponse("Игрок не найден"));
+            log.info("Не найден player в БД по запросу username: {}", name);
+            return response;
+        }
+        Unit player = optionalPlayer.get();
+
+        //находим изученные умения unit
+        var unitAbilities = abilityRepository.findAllById(player.getAllAbility());
+
+        return jsonProcessor
+                .toJsonProfile(new ProfileResponse(player, List.of(), unitAbilities, ""));
+    }
+
+    //список избранных умений
+    @Transactional
+    public String getCurrentUnitAbilities(String name) {
+        var optionalPlayer = unitRepository.findByName(name);
+        if(optionalPlayer.isEmpty()) {
+            var response = jsonProcessor
+                    .toJsonInfo(new InfoResponse("Игрок не найден"));
+            log.info("Не найден player в БД по запросу username: {}", name);
+            return response;
+        }
+        Unit player = optionalPlayer.get();
+
+        //находим изученные умения unit
+        var unitAbilities = abilityRepository.findAllById(player.getCurrentAbility());
+
+        return jsonProcessor
+                .toJsonProfile(new ProfileResponse(player, List.of(), unitAbilities, ""));
+    }
+
+    /** Вспомогательные методы */
     //снимает существующую вещь, перед надеванием другой
     public void takeOffExistThing(UnitArmor existThing) {
         var optionalExistThing = thingRepository.findById(existThing.getId());
@@ -488,4 +542,68 @@ public class ProfileService {
         thingRepository.save(thing);
     }
 
+    /** для админа */
+    //добавить предмет в инвентарь по id
+    public String addThingToInventory(String name, Long thingId) {
+        var optionalPlayer = unitRepository.findByName(name);
+        if(optionalPlayer.isEmpty()) {
+            var response = jsonProcessor
+                    .toJsonInfo(new InfoResponse("Игрок не найден"));
+            log.info("Не найден player в БД по запросу username: {}", name);
+            return response;
+        }
+        Unit player = optionalPlayer.get();
+
+        var optionalObject = objectsRepository.findById(thingId);
+        if(optionalObject.isEmpty()) {
+            var response = jsonProcessor
+                    .toJsonInfo(new InfoResponse("Предмет не найден"));
+            log.info("Не найден предмет в БД по запросу thingId: {}", thingId);
+            return response;
+        }
+        Objects object = optionalObject.get();
+
+        Thing newThing = entityGenerator.setNewThingToInventory(player.getId(), object);
+
+        var optionalThings = thingRepository.findAllByOwnerId(player.getId());
+        List<Thing> things = optionalThings.stream().toList();
+
+        return jsonProcessor
+                .toJsonProfile(new ProfileResponse(player, things, List.of(), "Вещь (" + newThing.getName() + ") добавлена в инвентарь"));
+    }
+
+    //удалить предмет по id
+    public String removeThingFromDB(String name, Long thingId) {
+        var optionalPlayer = unitRepository.findByName(name);
+        if(optionalPlayer.isEmpty()) {
+            var response = jsonProcessor
+                    .toJsonInfo(new InfoResponse("Игрок не найден"));
+            log.info("Не найден player в БД по запросу username: {}", name);
+            return response;
+        }
+        Unit player = optionalPlayer.get();
+
+        var optionalThing = thingRepository.findById(thingId);
+        if(optionalThing.isEmpty()) {
+            var response = jsonProcessor
+                    .toJsonInfo(new InfoResponse("Предмет не найден"));
+            log.info("Не найден предмет в БД по запросу thingId: {}", thingId);
+            return response;
+        }
+        Thing thing = optionalThing.get();
+
+        if(thing.isUse()) {
+            var response = jsonProcessor
+                    .toJsonInfo(new InfoResponse("Нужно снять вещь"));
+            log.info("Попытка удалить надетую вещь, thingId: {}", thingId);
+            return response;
+        }
+        thingRepository.delete(thing);
+
+        var optionalThings = thingRepository.findAllByOwnerId(player.getId());
+        List<Thing> things = optionalThings.stream().toList();
+
+        return jsonProcessor
+                .toJsonProfile(new ProfileResponse(player, things, List.of(), "Вещь (" + thing.getName() + ") удалена из БД"));
+    }
 }
