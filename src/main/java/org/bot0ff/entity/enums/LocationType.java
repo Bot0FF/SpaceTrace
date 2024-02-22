@@ -5,5 +5,7 @@ public enum LocationType {
     WASTELAND,
     PLATEAU,
     MOUNTAINS,
-    HIGHLANDS
+    HIGHLANDS,
+    URBAN,
+    HOME,
 }

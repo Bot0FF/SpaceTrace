@@ -17,7 +17,6 @@ import java.util.List;
 @NoArgsConstructor
 public class Location implements Serializable {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JsonIgnore
     private Long id;
 
@@ -29,11 +28,8 @@ public class Location implements Serializable {
     @Column(name = "name")
     private String name;
 
-    @Column(name = "x")
-    private int x;
-
-    @Column(name = "y")
-    private int y;
+    @Column(name = "coordinate")
+    private String coordinate;
 
     @Column(name = "ais")
     @JsonIgnore
@@ -46,4 +42,7 @@ public class Location implements Serializable {
     @Column(name = "things")
     @JsonIgnore
     private List<Long> things;
+
+    @Column(name = "doorId")
+    private Long doorId;
 }

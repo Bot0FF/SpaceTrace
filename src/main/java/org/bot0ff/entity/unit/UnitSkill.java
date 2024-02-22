@@ -2,14 +2,13 @@ package org.bot0ff.entity.unit;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
 public class UnitSkill {
     private int oneHand;
     private int twoHand;
-    private int bow;
+    private int shoot;
 
     private int fire;
     private int water;
@@ -32,7 +31,7 @@ public class UnitSkill {
     public UnitSkill() {
         this.oneHand = 1;
         this.twoHand = 1;
-        this.bow = 1;
+        this.shoot = 1;
         this.fire = 1;
         this.water = 1;
         this.land = 1;

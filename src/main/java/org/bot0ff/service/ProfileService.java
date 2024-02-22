@@ -11,11 +11,13 @@ import org.bot0ff.entity.Unit;
 import org.bot0ff.model.ProfileResponse;
 import org.bot0ff.repository.*;
 import org.bot0ff.service.generate.EntityGenerator;
+import org.bot0ff.util.Constants;
 import org.bot0ff.util.JsonProcessor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -508,9 +510,9 @@ public class ProfileService {
                 .toJsonProfile(new ProfileResponse(player, List.of(), unitAbilities, ""));
     }
 
-    //список избранных умений
+    //добавить в избранные умения
     @Transactional
-    public String getCurrentUnitAbilities(String name) {
+    public String addCurrentUnitAbilities(String name, Long abilityId) {
         var optionalPlayer = unitRepository.findByName(name);
         if(optionalPlayer.isEmpty()) {
             var response = jsonProcessor
@@ -520,11 +522,61 @@ public class ProfileService {
         }
         Unit player = optionalPlayer.get();
 
-        //находим изученные умения unit
-        var unitAbilities = abilityRepository.findAllById(player.getCurrentAbility());
+        //находим все изученные умения unit
+        var unitAbilities = abilityRepository.findAllById(player.getAllAbility());
+
+        //находим удаленное из избранного умение
+        var removedAbility = unitAbilities.stream().filter(ability -> ability.getId().equals(abilityId)).findFirst();
+
+        if(removedAbility.isEmpty()) {
+            log.info("Не найдено удаляемое из избранного умение в БД, abilityId={}", abilityId);
+            return jsonProcessor
+                    .toJsonProfile(new ProfileResponse(player, List.of(), unitAbilities, "Умение не найдено"));
+        }
+
+        if(player.getCurrentAbility().size() > Constants.CURRENT_ABILITY_COUNT) {
+            return jsonProcessor
+                    .toJsonProfile(new ProfileResponse(player, List.of(), unitAbilities, "Нельзя добавить в избранное больше " + Constants.CURRENT_ABILITY_COUNT + " умений"));
+        }
+
+        //удаляем умение из избранного
+        player.getCurrentAbility().removeIf(ability -> ability.equals(abilityId));
+        unitRepository.save(player);
 
         return jsonProcessor
-                .toJsonProfile(new ProfileResponse(player, List.of(), unitAbilities, ""));
+                .toJsonProfile(new ProfileResponse(player, List.of(), unitAbilities, "Умение " + removedAbility.get().getName() + " удалено из избранного"));
+    }
+
+    //удалить из избранных умений
+    @Transactional
+    public String removeCurrentUnitAbilities(String name, Long abilityId) {
+        var optionalPlayer = unitRepository.findByName(name);
+        if(optionalPlayer.isEmpty()) {
+            var response = jsonProcessor
+                    .toJsonInfo(new InfoResponse("Игрок не найден"));
+            log.info("Не найден player в БД по запросу username: {}", name);
+            return response;
+        }
+        Unit player = optionalPlayer.get();
+
+        //находим все изученные умения unit
+        var unitAbilities = abilityRepository.findAllById(player.getAllAbility());
+
+        //находим добавляемое в избранное умение
+        var addAbility = unitAbilities.stream().filter(ability -> ability.getId().equals(abilityId)).findFirst();
+
+        if(addAbility.isEmpty()) {
+            log.info("Не найдено добавляемое в избранное умение в БД, abilityId={}", abilityId);
+            return jsonProcessor
+                    .toJsonProfile(new ProfileResponse(player, List.of(), unitAbilities, "Умение не найдено"));
+        }
+
+        //добавляем умение в избранное
+        player.getCurrentAbility().add(abilityId);
+        unitRepository.save(player);
+
+        return jsonProcessor
+                .toJsonProfile(new ProfileResponse(player, List.of(), unitAbilities, "Умение " + addAbility.get().getName() + " добавлено в избранное"));
     }
 
     /** Вспомогательные методы */

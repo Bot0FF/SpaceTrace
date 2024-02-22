@@ -41,7 +41,7 @@ public class ProfileResponse {
     static class UnitSkillExp {
         private String oneHand;
         private String twoHand;
-        private String bow;
+        private String shoot;
 
         private String fire;
         private String water;
@@ -64,7 +64,7 @@ public class ProfileResponse {
         public UnitSkillExp(UnitSkill unitSkill) {
             this.oneHand = getSkillInfo(unitSkill.getOneHand());
             this.twoHand = getSkillInfo(unitSkill.getTwoHand());
-            this.bow = getSkillInfo(unitSkill.getBow());
+            this.shoot = getSkillInfo(unitSkill.getShoot());
             this.fire = getSkillInfo(unitSkill.getFire());
             this.water = getSkillInfo(unitSkill.getWater());
             this.land = getSkillInfo(unitSkill.getLand());

@@ -220,9 +220,9 @@ public class Unit {
                 physDamageModifier += (getSkillLevel(unitSkill.getTwoHand()) * 1.0 / 100);
                 fullPhysDamage = (int) Math.round(physDamageModifier * (weapon.getPhysDamage() + 1));
             }
-            case "BOW" -> {
+            case "SHOOT" -> {
                 double physDamageModifier = (((dexterity * 5.0) / 100) + 1) + (((luck * 0.9) / 100) + 0.10);
-                physDamageModifier += (getSkillLevel(unitSkill.getBow()) * 1.0 / 100);
+                physDamageModifier += (getSkillLevel(unitSkill.getShoot()) * 1.0 / 100);
                 fullPhysDamage = (int) Math.round(physDamageModifier * (weapon.getPhysDamage() + 1));
             }
             default -> fullPhysDamage = strength + dexterity + intelligence;

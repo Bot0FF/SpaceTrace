@@ -54,4 +54,10 @@ public class Constants {
 
     //количество очков движения, которые затрачиваются на применение оружия
     public static int POINT_ACTION_WEAPON = 1;
+
+    //максимальное количество избранных умений
+    public static int CURRENT_ABILITY_COUNT = 6;
+
+    //ширина основной карты
+    public static int MAIN_MAP_LENGTH = 10;
 }

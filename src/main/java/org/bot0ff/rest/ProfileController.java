@@ -82,10 +82,17 @@ public class ProfileController {
         return ResponseEntity.ok(response);
     }
 
-    //список избранных умений
-    @GetMapping("/abilities/current")
-    public ResponseEntity<?> getCurrentUnitAbilities() {
-        var response = profileService.getCurrentUnitAbilities("user");
+    //добавить в избранные умения
+    @GetMapping("/abilities/current/add")
+    public ResponseEntity<?> addCurrentUnitAbilities(@RequestParam Long abilityId) {
+        var response = profileService.addCurrentUnitAbilities("user", abilityId);
+        return ResponseEntity.ok(response);
+    }
+
+    //удалить из избранных умений
+    @GetMapping("/abilities/current/remove")
+    public ResponseEntity<?> removeCurrentUnitAbilities(@RequestParam Long abilityId) {
+        var response = profileService.removeCurrentUnitAbilities("user", abilityId);
         return ResponseEntity.ok(response);
     }
 

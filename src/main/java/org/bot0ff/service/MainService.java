@@ -105,29 +105,18 @@ public class MainService {
         }
         Location location = optionalLocation.get();
 
+        long newLocationId = 0L;
         int newPosX = 0;
         int newPosY = 0;
         switch (direction) {
-            case "up" -> {
-                newPosX = location.getX();
-                newPosY = location.getY() + 1;
-            }
-            case "left" -> {
-                newPosX = location.getX() - 1;
-                newPosY = location.getY();
-            }
-            case "right" -> {
-                newPosX = location.getX() + 1;
-                newPosY = location.getY();
-            }
-            case "down" -> {
-                newPosX = location.getX();
-                newPosY = location.getY() - 1;
-            }
+            case "up" -> newLocationId = player.getLocationId() - Constants.MAIN_MAP_LENGTH;
+            case "left" -> newLocationId = player.getLocationId() - 1;
+            case "right" -> newLocationId = player.getLocationId() + 1;
+            case "down" -> newLocationId = player.getLocationId() + Constants.MAIN_MAP_LENGTH;
         }
 
         //поиск локации для перехода
-        Optional<Location> optionalNewLocation = locationRepository.findById(Long.valueOf("" + newPosX + newPosY));
+        Optional<Location> optionalNewLocation = locationRepository.findById(newLocationId);
         if(optionalNewLocation.isEmpty()) {
             var response = jsonProcessor
                     .toJsonInfo(new InfoResponse("Туда нельзя перейти"));
@@ -137,17 +126,17 @@ public class MainService {
         Location newLocation = optionalNewLocation.get();
 
 
-        //шанс появления enemy на локации
-        if(randomUtil.getChanceCreateEnemy()) {
-            Long newOpponent = entityGenerator.getNewAiUnitId(newLocation);
-            if(!newOpponent.equals(0L)) {
-                newLocation.getAis().add(newOpponent);
-                //шанс нападения enemy на unit
-                if (randomUtil.getRandom1or2() == 1) {
-                    setStartFight(null, newOpponent, player.getId());
-                }
-            }
-        }
+//        //шанс появления enemy на локации
+//        if(randomUtil.getChanceCreateEnemy()) {
+//            Long newOpponent = entityGenerator.getNewAiUnitId(newLocation);
+//            if(!newOpponent.equals(0L)) {
+//                newLocation.getAis().add(newOpponent);
+//                //шанс нападения enemy на unit
+//                if (randomUtil.getRandom1or2() == 1) {
+//                    setStartFight(null, newOpponent, player.getId());
+//                }
+//            }
+//        }
 
         //сохранение новой локации у unit
         location.getUnits().removeIf(u -> u.equals(player.getId()));

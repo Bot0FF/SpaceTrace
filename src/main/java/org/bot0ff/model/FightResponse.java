@@ -3,7 +3,6 @@ package org.bot0ff.model;
 import lombok.Data;
 import org.bot0ff.entity.Ability;
 import org.bot0ff.entity.Fight;
-import org.bot0ff.entity.Objects;
 import org.bot0ff.entity.Unit;
 import org.bot0ff.service.fight.FightService;
 

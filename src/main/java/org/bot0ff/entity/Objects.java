@@ -89,8 +89,8 @@ public class Objects {
     @Column(name = "twoHand")
     private int twoHand;
 
-    @Column(name = "bow")
-    private int bow;
+    @Column(name = "shoot")
+    private int shoot;
 
     @Column(name = "fire")
     private int fire;

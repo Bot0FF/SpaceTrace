@@ -57,7 +57,7 @@ public class AiActionHandler {
                     switch (changeAiAction){
                         case 1 -> setAiMove(aiUnit);
                         case 2 -> setAiApplyWeapon(aiUnit, target);
-                        case 3 -> setAiApplyBow(aiUnit, target);
+                        case 3 -> setAiApplyShoot(aiUnit, target);
                         case 4 -> setAiApplyAbility(aiUnit, target);
                     }
                 } while (aiUnit.getPointAction() > 0);
@@ -79,7 +79,7 @@ public class AiActionHandler {
                     switch (changeAiAction){
                         case 1 -> setAiMove(aiUnit);
                         case 2 -> setAiApplyWeapon(aiUnit, target);
-                        case 3 -> setAiApplyBow(aiUnit, target);
+                        case 3 -> setAiApplyShoot(aiUnit, target);
                         case 4 -> setAiApplyAbility(aiUnit, target);
                     }
 
@@ -134,7 +134,7 @@ public class AiActionHandler {
 
     //применение оружия
     private void setAiApplyWeapon(Unit aiUnit, Unit target) {
-        if(aiUnit.getWeapon().getSkillType().equals("BOW")) {
+        if(aiUnit.getWeapon().getSkillType().equals("SHOOT")) {
             //System.out.println("Тип оружия не соответствует типу одноручное или двуручное. Возврат к выбору действия");
             return;
         }
@@ -177,8 +177,8 @@ public class AiActionHandler {
     }
 
     //применение оружия
-    private void setAiApplyBow(Unit aiUnit, Unit target) {
-        if(!aiUnit.getWeapon().getSkillType().equals("BOW")) {
+    private void setAiApplyShoot(Unit aiUnit, Unit target) {
+        if(!aiUnit.getWeapon().getSkillType().equals("SHOOT")) {
             //System.out.println("Тип оружия не соответствует типу лук. Возврат к выбору действия");
             return;
         }

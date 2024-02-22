@@ -6,7 +6,7 @@ public enum SkillType {
     //для оружия
     ONE_HAND,
     TWO_HAND,
-    BOW,
+    SHOOT,
     //для умений
     FIRE,
     WATER,
