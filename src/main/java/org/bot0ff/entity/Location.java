@@ -43,6 +43,9 @@ public class Location implements Serializable {
     @JsonIgnore
     private List<Long> things;
 
+    @Column(name = "isWorld")
+    private boolean isWorld;
+
     @Column(name = "doorId")
     private Long doorId;
 }

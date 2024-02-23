@@ -106,8 +106,6 @@ public class MainService {
         Location location = optionalLocation.get();
 
         long newLocationId = 0L;
-        int newPosX = 0;
-        int newPosY = 0;
         switch (direction) {
             case "up" -> newLocationId = player.getLocationId() - Constants.MAIN_MAP_LENGTH;
             case "left" -> newLocationId = player.getLocationId() - 1;
@@ -120,23 +118,23 @@ public class MainService {
         if(optionalNewLocation.isEmpty()) {
             var response = jsonProcessor
                     .toJsonInfo(new InfoResponse("Туда нельзя перейти"));
-            log.info("Не найдена location в БД по запросу locationId: {}", newPosX + "/" + newPosY);
+            log.info("Не найдена location в БД по запросу locationId: {}", newLocationId);
             return response;
         }
         Location newLocation = optionalNewLocation.get();
 
 
-//        //шанс появления enemy на локации
-//        if(randomUtil.getChanceCreateEnemy()) {
-//            Long newOpponent = entityGenerator.getNewAiUnitId(newLocation);
-//            if(!newOpponent.equals(0L)) {
-//                newLocation.getAis().add(newOpponent);
-//                //шанс нападения enemy на unit
-//                if (randomUtil.getRandom1or2() == 1) {
-//                    setStartFight(null, newOpponent, player.getId());
-//                }
-//            }
-//        }
+        //шанс появления enemy на локации
+        if(randomUtil.getChanceCreateEnemy()) {
+            Long newOpponent = entityGenerator.getNewAiUnitId(newLocation);
+            if(!newOpponent.equals(0L)) {
+                newLocation.getAis().add(newOpponent);
+                //шанс нападения enemy на unit
+                if (randomUtil.getRandom1or2() == 1) {
+                    setStartFight(null, newOpponent, player.getId());
+                }
+            }
+        }
 
         //сохранение новой локации у unit
         location.getUnits().removeIf(u -> u.equals(player.getId()));
@@ -146,8 +144,17 @@ public class MainService {
         player.setLocationId(newLocation.getId());
         unitRepository.save(player);
 
+        String info = "Ты перешел на локацию: " + optionalNewLocation.get().getName();
+        //если на локации есть id места, возвращаем наименование в info для кнопки
+        if(!newLocation.getDoorId().equals(0L)) {
+            Optional<Location> optionalPlaceLocation = locationRepository.findById(newLocation.getDoorId());
+            if(optionalPlaceLocation.isPresent()) {
+                info = optionalPlaceLocation.get().getName();
+            }
+        }
+
         return jsonProcessor
-                .toJsonMain(new MainResponse(player, newLocation, "Ты перешел на локацию: " + optionalNewLocation.get().getName()));
+                .toJsonMain(new MainResponse(player, newLocation, info));
     }
 
     //список ais на локации
