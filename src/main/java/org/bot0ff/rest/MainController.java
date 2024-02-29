@@ -37,6 +37,13 @@ public class MainController {
         return ResponseEntity.ok(response);
     }
 
+    //переход в город, подземелье, строение
+    @GetMapping("/move/locality")
+    public ResponseEntity<?> moveToLocality() {
+        var response = mainService.moveToLocality("user");
+        return ResponseEntity.ok(response);
+    }
+
     //список ais на локации
     @GetMapping("/location/ais")
     public ResponseEntity<?> getLocationAis() {

@@ -21,12 +21,17 @@ public class PlaceController {
 
     /** Взаимодействие с местом */
     @GetMapping("/")
-    public ResponseEntity<?> mainPage(@RequestParam String locationType) {
+    public ResponseEntity<?> getPlace(@RequestParam Long doorId) {
         String response = "";
-        switch (locationType) {
-            case "HOME" -> response = placeService.getPlaceHome("user");
+        if (doorId.equals(0L)) {
+            response = placeService.getPlaceNotFound("user");
+        }
+        else if(doorId.equals(1L)) {
+            response = placeService.getPlaceHome("user");
+        }
+        else if(doorId.equals(2L)) {
+            response = placeService.getPlaceChurch("user");
         }
         return ResponseEntity.ok(response);
-
     }
 }

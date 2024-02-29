@@ -46,6 +46,15 @@ public class Location implements Serializable {
     @Column(name = "isWorld")
     private boolean isWorld;
 
+    //id для перехода в города, подземелья
+    @Column(name = "localityId")
+    private Long localityId;
+
+    //id для перехода по строениям
     @Column(name = "doorId")
     private Long doorId;
+
+    //наименование локации, для перехода
+    @Column(name = "localityName")
+    private String localityName;
 }

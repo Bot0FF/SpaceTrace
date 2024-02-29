@@ -1,9 +1,6 @@
 package org.bot0ff.util;
 
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -23,6 +20,9 @@ public class Constants {
     //2 - успешный ответ, требующий перенаправления на другую страницу
     //3 - не успешный ответ, требующие перенаправления на главную и перезагрузки страницы
     //4 - не успешный ответ, информирующий об ошибке при обработке запроса
+
+    //помещения в городах
+    //1 - Храм
 
     //player
     public static int START_HP = 100;

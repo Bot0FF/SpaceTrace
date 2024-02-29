@@ -28,7 +28,7 @@ public class PlaceService {
     private final JsonProcessor jsonProcessor;
 
     /** Взаимодействие с местом - дом unit */
-    //страница профиля
+    //дом
     @Transactional
     public String getPlaceHome(String name) {
         var optionalPlayer = unitRepository.findByName(name);
@@ -42,5 +42,30 @@ public class PlaceService {
 
         return jsonProcessor
                 .toJson(player);
+    }
+
+    //храм
+    @Transactional
+    public String getPlaceChurch(String name) {
+        var optionalPlayer = unitRepository.findByName(name);
+        if(optionalPlayer.isEmpty()) {
+            var response = jsonProcessor
+                    .toJsonInfo(new InfoResponse("Игрок не найден"));
+            log.info("Не найден player в БД по запросу username: {}", name);
+            return response;
+        }
+        Unit player = optionalPlayer.get();
+
+        return jsonProcessor
+                .toJson(player);
+    }
+
+    //место не найдено
+    @Transactional
+    public String getPlaceNotFound(String name) {
+        var response = jsonProcessor
+                .toJsonInfo(new InfoResponse("Закрыто"));
+        log.info("Не найдено место для перехода по запросу player");
+        return response;
     }
 }

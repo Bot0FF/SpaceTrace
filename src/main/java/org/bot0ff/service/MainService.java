@@ -123,18 +123,18 @@ public class MainService {
         }
         Location newLocation = optionalNewLocation.get();
 
-
         //шанс появления enemy на локации
-        if(randomUtil.getChanceCreateEnemy()) {
-            Long newOpponent = entityGenerator.getNewAiUnitId(newLocation);
-            if(!newOpponent.equals(0L)) {
-                newLocation.getAis().add(newOpponent);
-                //шанс нападения enemy на unit
-                if (randomUtil.getRandom1or2() == 1) {
-                    setStartFight(null, newOpponent, player.getId());
-                }
-            }
-        }
+//        if(randomUtil.getChanceCreateEnemy()) {
+//            Long newOpponent = entityGenerator.getNewAiUnitId(newLocation);
+//            if(!newOpponent.equals(0L)) {
+//                newLocation.getAis().add(newOpponent);
+//                //шанс нападения enemy на unit
+//                if (randomUtil.getRandom1or2() == 1) {
+//                    setStartFight(null, newOpponent, player.getId());
+//                }
+//            }
+//        }
+//
 
         //сохранение новой локации у unit
         location.getUnits().removeIf(u -> u.equals(player.getId()));
@@ -144,17 +144,50 @@ public class MainService {
         player.setLocationId(newLocation.getId());
         unitRepository.save(player);
 
-        String info = "Ты перешел на локацию: " + optionalNewLocation.get().getName();
-        //если на локации есть id места, возвращаем наименование в info для кнопки
-        if(!newLocation.getDoorId().equals(0L)) {
-            Optional<Location> optionalPlaceLocation = locationRepository.findById(newLocation.getDoorId());
-            if(optionalPlaceLocation.isPresent()) {
-                info = optionalPlaceLocation.get().getName();
-            }
+        return jsonProcessor
+                .toJsonMain(new MainResponse(player, newLocation, optionalNewLocation.get().getName()));
+    }
+
+    //переход в город, подземелье, строение
+    @Transactional
+    public String moveToLocality(String name) {
+        var optionalPlayer = unitRepository.findByName(name);
+        if(optionalPlayer.isEmpty()) {
+            var response = jsonProcessor
+                    .toJsonInfo(new InfoResponse("Игрок не найден"));
+            log.info("Не найден player в БД по запросу username: {}", name);
+            return response;
         }
+        Unit player = optionalPlayer.get();
+
+        var optionalLocation = locationRepository.findById(player.getLocationId());
+        if(optionalLocation.isEmpty()) {
+            var response = jsonProcessor
+                    .toJsonInfo(new InfoResponse("Локация не найдена"));
+            log.info("Не найдена location в БД по запросу locationId: {}", optionalPlayer.get().getLocationId());
+            return response;
+        }
+        Location location = optionalLocation.get();
+
+        Optional<Location> optionalNewLocality = locationRepository.findById(location.getLocalityId());
+        if(optionalNewLocality.isEmpty()) {
+            var response = jsonProcessor
+                    .toJsonInfo(new InfoResponse("Туда нельзя перейти"));
+            log.info("Не найдена location в БД по запросу localityId: {}", location.getLocalityId());
+            return response;
+        }
+        Location newLocality = optionalNewLocality.get();
+
+        //сохранение новой локации у unit
+        location.getUnits().removeIf(u -> u.equals(player.getId()));
+        locationRepository.save(location);
+        newLocality.getUnits().add(player.getId());
+        locationRepository.save(newLocality);
+        player.setLocationId(newLocality.getId());
+        unitRepository.save(player);
 
         return jsonProcessor
-                .toJsonMain(new MainResponse(player, newLocation, info));
+                .toJsonMain(new MainResponse(player, newLocality, newLocality.getName()));
     }
 
     //список ais на локации
