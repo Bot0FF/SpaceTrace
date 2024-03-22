@@ -22,7 +22,6 @@ public class Location implements Serializable {
 
     @Enumerated(value = EnumType.STRING)
     @Column(name = "locationType")
-    @JsonIgnore
     private LocationType locationType;
 
     @Column(name = "name")

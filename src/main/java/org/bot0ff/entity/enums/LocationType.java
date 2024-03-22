@@ -1,11 +1,13 @@
 package org.bot0ff.entity.enums;
 
 public enum LocationType {
-    PLAIN,
-    WASTELAND,
-    PLATEAU,
-    MOUNTAINS,
-    HIGHLANDS,
-    URBAN,
-    HOME,
+    plain,
+    wasteland,
+    plateau,
+    mountains,
+    highlands,
+    urban,
+    home,
+    church,
+    shop
 }
